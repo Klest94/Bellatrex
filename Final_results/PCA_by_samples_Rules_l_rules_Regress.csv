@@ -1,0 +1,21 @@
+,data size,Avg. rule length
+airfoil,"(1503, 5)",23.102
+AmesHousing,"(2915, 283)",29.848
+auto_mpg,"(398, 7)",16.7468
+bike_sharing,"(731, 12)",21.858
+boston_housing,"(506, 14)",21.326
+california_housing,"(20640, 8)",38.604
+car_imports_1985_imputed,"(201, 63)",14.93
+Computer_hardware,"(209, 6)",16.8294
+concrete_compressive_strength,"(1030, 8)",22.772
+concrete_slump_data,"(103, 9)",11.76
+ENB2012_cooling,"(768, 8)",17.688
+ENB2012_heating,"(768, 8)",17.32
+forest_fires,"(517, 12)",20.314
+PRSA_data,"(41757, 13)",41.26
+slump_dataset,"(103, 9)",12.27
+students_final_math,"(395, 43)",19.3443
+wine_quality_all,"(6497, 12)",29.282
+wine_quality_red,"(1599, 11)",23.702
+wine_quality_white,"(4898, 11)",29.232
+average,,22.53623684210526

@@ -1,0 +1,26 @@
+,data size,Avg. rule length
+blood,"(748, 4)",15.128
+breast_cancer_diagnostic,"(569, 30)",5.494
+breast_cancer_original,"(699, 9)",5.532
+breast_cancer_prognostic,"(198, 33)",9.7897
+brest_cancer_coimba,"(116, 9)",9.3652
+Colonoscopy_green,"(98, 62)",7.0316
+Colonoscopy_hinselmann,"(97, 62)",6.2842
+Colonoscopy_schiller,"(92, 62)",6.7
+divorce,"(170, 54)",1.4706
+Flowmeters,"(87, 36)",4.8941
+haberman,"(306, 3)",13.4754
+hcc-survival,"(165, 49)",9.5636
+ionosphere,"(351, 34)",8.0143
+LSVT_voice_rehabilitation,"(126, 310)",6.6
+mamographic,"(961, 5)",16.21
+musk,"(476, 166)",12.4779
+parkinson,"(756, 753)",13.39
+risk_factors,"(858, 35)",7.274
+simulation_crashes,"(540, 18)",6.484
+sonar,"(208, 60)",8.2927
+SPECT,"(267, 22)",11.5472
+SPECTF,"(267, 44)",7.8491
+vertebral_column_data,"(310, 6)",7.2516
+wholesale,"(440, 7)",6.7386
+average,,8.619075

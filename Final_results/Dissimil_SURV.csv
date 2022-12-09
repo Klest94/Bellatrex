@@ -1,0 +1,16 @@
+,OOB S.Trees,Small RSF,Bellatrex
+addicts,0.6032,0.4419,0.5679
+breast_cancer-survival-imputed,0.9657,0.9563,0.9841
+DBCD,0.9969,0.9978,0.999
+DLBCL,0.9876,0.9971,0.9994
+echocardiogram,0.7952,0.7905,0.8567
+FLChain-single_event-imputed,0.6214,0.6761,0.743
+gbsg2,0.7691,0.7242,0.7633
+lung,0.8182,0.7743,0.8395
+NHANES_I-imputed,0.7953,0.7945,0.8391
+primary_biliary_cirrhosis,0.8495,0.8239,0.8664
+rotterdam-excl-recurr,0.7958,0.7333,0.7614
+rotterdam-incl-recurr,0.7501,0.7541,0.8187
+veteran,0.7904,0.7461,0.8167
+whas500,0.8503,0.7977,0.8305
+average,0.8135,0.7863,0.8352

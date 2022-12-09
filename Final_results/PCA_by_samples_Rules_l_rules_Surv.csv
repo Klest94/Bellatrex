@@ -1,0 +1,17 @@
+,data size,Avg. rule length
+addicts,"(238, 3)",10.5106
+ALS-imputed-70,"(5324, 76)",31.286
+breast_cancer-survival-imputed,"(198, 80)",10.8205
+DBCD,"(295, 4919)",21.1051
+DLBCL,"(240, 7399)",26.975
+echocardiogram,"(130, 9)",10.1538
+FLChain-single_event-imputed,"(7874, 8)",31.726
+gbsg2,"(686, 8)",19.036
+lung,"(228, 8)",12.8622
+NHANES_I-imputed,"(9931, 18)",29.852
+primary_biliary_cirrhosis,"(403, 19)",14.6975
+rotterdam-excl-recurr,"(2982, 11)",21.88
+rotterdam-incl-recurr,"(2982, 12)",21.826
+veteran,"(137, 9)",9.8963
+whas500,"(500, 14)",15.76
+average,,19.2258
