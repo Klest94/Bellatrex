@@ -6,4 +6,7 @@
  
  The model's code, prediction, and tuned hyperparameters will be shared upon acceptance.
 
-In order to limit the size of the repository not all data folds will be shared, one example dataset is available instead.
+
+ ## Instructions
+
+How to run a minimal example

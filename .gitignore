@@ -2,7 +2,6 @@
 __pycache__/
 MS_BASE_static/
 MS_BASE_dynamic/
-datasets/
 tuned_hyperparams/
 EXAMPLE/
 predictions/
