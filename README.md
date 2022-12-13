@@ -1,5 +1,7 @@
 # Bellatrex
 
+## Welcome!
+
 ![](illustration_Bellatrex.png)
 
  This repository contains the detailed final results and relative statistical analysis of the manuscript for the BELLATREX method, currently under revision.
@@ -8,5 +10,9 @@
 
 
  ## Instructions
+ 
+ 
+To guarantee that the script runs correctly, run BELLATREX on a Python environment that matches the requirements indicated in `requirements.txt`. Slightly older versions might also work, but `DeprecationWarning` messages will be raised.
 
-How to run a minimal example
+The user can replicate the examples from the paper by simply running 
+`main_example.py`.
