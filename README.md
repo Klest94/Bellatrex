@@ -3,9 +3,8 @@
 
 ![A schematic illustration of Bellatrex](illustration_Bellatrex.png)
 
- This repository contains the detailed final results and relative statistical analysis of the manuscript for the BELLATREX method, currently under revision.
- 
- The model's code, prediction, and tuned hyperparameters will be shared upon acceptance.
+ This repository contains the detailed final results and relative statistical analysis of the manuscript for the BELLATREX method, currently submitted at ``...``. A  preprint version is avilable at: ``...``
+ The model's code, predictions, and tuned hyperparameters will be shared on thie repository upon acceptance.
 
 
 ## Instructions
