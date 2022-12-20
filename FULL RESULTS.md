@@ -1,27 +1,6 @@
-# Bellatrex
-
-## Welcome!
-
-![](illustration_Bellatrex.png)
-
- This repository contains the detailed final results and relative statistical analysis of the manuscript for the BELLATREX method, currently under revision.
- 
- The model's code, prediction, and tuned hyperparameters will be shared upon acceptance.
-
-
-## Instructions
- 
- 
-To guarantee that the script runs correctly, run BELLATREX on a Python environment that matches the requirements indicated in `requirements.txt`. Slightly older versions might also work, but `DeprecationWarning` messages will be raised.
-
-The user can replicate the examples from the paper by simply running 
-`main_example.py`.
-
-
 # Additional material
 
-In order not to overcrowd the final manuscript with tables and plots, we share here some detials about the datasets employed in the comparison as well as an extended version of the results.
-
+In order not to overcrowd the final manuscript with tables and plots, here we share more details about the datasets employed in the comparison, followed by an extended version of the results.
 
 ## Dataset overview
 
@@ -78,10 +57,14 @@ Here we share details about the datasets in use for the comparison. In particula
 | lung                                              | (228, 8)            | 28 |
 | NHANES I											 | (9931, 18)          | 65 |
 | PBC                                               | (403, 19)           | 56 |
-| rotterdam (excl. ``recurr`` covariate) | (2982, 11)          | 57 |
-| rotterdam (incl. ``recurr`` covariate) | (2982, 12)          | 57 |
+| rotterdam [^1] | (2982, 11)          | 57 |
+| rotterdam [^2] | (2982, 12)          | 57 |
 | veteran                                           | (137, 9)            | 7  |
 | whas500                                           | (500, 14)           | 57 |
+
+[^1]: excl. ``recurr`` covariate
+
+[^2]: incl. ``recurr`` covariate
 
 
 ### Multi-label classification data
@@ -156,9 +139,9 @@ Here we share details about the datasets in use for the comparison. In particula
 
 # Final Results
 
-Here we share an extended version of the results. In particular, we compare Bellatrex against several competing methods and share the obtained performance, complexity, and dissimilarity at a dataset specific level.
+Here we share an extended version of the results. In particular, we compare Bellatrex against several competing methods and share the obtained performance, complexity, and dissimilarity at a dataset specific level. The statistical significance of the results is evaluated through the Friedman-Nemenyi post-hoc test. Additionally, detailed results of the ablation study are shared.
 
-The procedure is repeated not only for binary classification tasks, but also for multi-label classification, time-to-event, regression, and multi-target regression datasets.
+The procedure is repeated for binary classification data, as well as for multi-label classification, time-to-event, regression, and multi-target regression datasets.
 
 ## Binary classification
 
@@ -193,6 +176,11 @@ The procedure is repeated not only for binary classification tasks, but also for
 | Average        | 0.8554 | **0.8470** | 0.7788    | 0.7782 | 0.7578   | 0.7625          | 0.8161          | 0.7779          | 0.7504    | 0.7889          |
 
 
+Running the post-hoc Friedman-Nemenyi statistical procedure on the above table leads to the following results:
+
+![](Final_results/BIN_Performance.png)
+
+
 ### Complexity
 
 |                | Bellatrex (avg. n.rules) | OOB Trees | Small RF | DT            | SIRUS | RuleCOSI+     | C443  | HS            |
@@ -222,6 +210,10 @@ The procedure is repeated not only for binary classification tasks, but also for
 | vertebral      | 7.25 (1.56)          | 7.42      | 7.46     | **3.70** | 11.80 | 6.17          | 14.20 | 4.37          |
 | wholesale      | 6.74 (1.39)          | 6.65      | 6.31     | 4.35          | 13.00 | **2.96** | 14.87 | 4.52          |
 | Average        | 8.62 (1.69)          | 9.26      | 9.03     | 4.44          | 11.83 | 6.00          | 15.17 | **4.34** |
+
+Similarly, the statistical testing for the complexity of the explanations:
+
+![](Final_results/BIN_Complexity_by_samples.png)
 
 
 
@@ -255,7 +247,9 @@ The procedure is repeated not only for binary classification tasks, but also for
 | wholesale      | 0.6871    | 0.7425   | 0.8277          | **0.8813** |
 | Average        | 0.8268    | 0.8556   | 0.9044          | **0.9286** |
 
+And the statistical testing for the rule dissimilarity:
 
+![](Final_results/BIN_Dissimil_by_samples.png)
 
 
 ## Multi-label classification
@@ -280,6 +274,11 @@ The procedure is repeated not only for binary classification tasks, but also for
 | Average       | 0.8473 | **0.7894** | 0.7524    | 0.7378 | 0.7441   | 0.5076 | 0.7585          |
 
 
+Running the post-hoc Friedman-Nemenyi statistical procedure on the above table leads to the following results:
+
+![](Final_results/MULTI_Performance.png)
+
+
 
 ### Complexity
 
@@ -301,6 +300,9 @@ The procedure is repeated not only for binary classification tasks, but also for
 | Average        | 63.00 (2.51)         | 61.77     | 60.82    | 15.56         | **5.14** |
 
 
+Similarly, the statistical testing for the complexity of the explanations:
+
+![](Final_results/MULTI_Complexity_by_samples.png)
 
 ### Dissimilarity
 
@@ -321,7 +323,9 @@ The procedure is repeated not only for binary classification tasks, but also for
 | yeast         | 0.9330    | 0.9406   | **0.9662** |
 | Average       | 0.9240    | 0.9380   | **0.9569** |
 
+And the statistical testing for the rule dissimilarity:
 
+![](Final_results/MULTI_Dissimil_by_samples.png)
 
 ## Time-to-event
 
@@ -339,11 +343,16 @@ The procedure is repeated not only for binary classification tasks, but also for
 | lung                     | 0.6216 | **0.6236** | 0.5816       | 0.5904          | 0.5386    | 0.6056          |
 | NHANES I                 | 0.8205 | **0.8209** | 0.7358       | 0.7435          | 0.7584    | 0.8043          |
 | PBC                      | 0.8469 | **0.8467** | 0.7977       | 0.7601          | 0.7780    | 0.8192          |
-| rotterdam (excl. recurr) | 0.7954 | **0.7961** | 0.7581       | 0.7518          | 0.7731    | 0.7668          |
-| rotterdam (incl. recurr) | 0.9038 | **0.9047** | 0.8774       | 0.8418          | 0.8652    | 0.8996          |
+| rotterdam [^1] | 0.7954 | **0.7961** | 0.7581       | 0.7518          | 0.7731    | 0.7668          |
+| rotterdam [^2] | 0.9038 | **0.9047** | 0.8774       | 0.8418          | 0.8652    | 0.8996          |
 | veteran                  | 0.7349 | 0.7349          | 0.6547       | 0.6983          | 0.6546    | **0.7452** |
 | whas500                  | 0.7449 | **0.7458** | 0.6922       | 0.6730          | 0.6763    | 0.7332          |
 | Average                  | 0.7220 | **0.7224** | 0.6691       | 0.6659          | 0.6676    | 0.7040          |
+
+
+Running the post-hoc Friedman-Nemenyi statistical procedure on the above table leads to the following results:
+
+![](Final_results/SURV_Performance.png)
 
 
 ### Complexity
@@ -351,41 +360,51 @@ The procedure is repeated not only for binary classification tasks, but also for
 |                          | Bellatrex (n. rules) | OOB S. Trees   | Small RSF | SDT            |
 |:------------------------:|:--------------------:|:--------------:|:---------:|:--------------:|
 | addicts                  | 10.51 (2.17)         | 9.46           | 10.07     | **5.07**  |
-| breast cancer survival            | 10.82 (2.26)         | 11.02          | 11.73     | **7.91**  |
-| DBCD                     | 21.11 (2.26)         | **16.93** | 19.64     | 17.23          |
+| breast cancer survival   | 10.82 (2.26)         | 11.02          | 11.73     | **7.91**  |
+| DBCD                     | 21.11 (2.26)         | **16.93**      | 19.64     | 17.23     |
 | DLBCL                    | 26.98 (2.40)         | 23.61          | 23.53     | **21.39** |
 | echocardiogram           | 10.15 (2.25)         | 10.18          | 9.73      | **5.75**  |
 | FLChain                  | 31.73 (2.31)         | 32.15          | 31.69     | **15.20** |
-| gbsg2 (19.04)            | 2.33                 | 17.79          | 18.01     | **9.13**  |
+| gbsg2                    | 19.04 (2.33)         | 17.79          | 18.01     | **9.13**  |
 | lung                     | 12.86 (2.29)         | 11.88          | 12.30     | **6.73**  |
 | NHANES I                 | 29.85 (2.08)         | 29.47          | 28.94     | **17.65** |
 | PBC                      | 14.70 (2.28)         | 15.07          | 14.91     | **8.82**  |
-| rotterdam (excl. recurr) | 21.88 (2.18)         | 21.83          | 21.79     | **10.52** |
-| rotterdam (incl. recurr) | 21.83 (2.22)         | 22.90          | 21.48     | **10.73** |
+| rotterdam [^1]           | 21.88 (2.18)         | 21.83          | 21.79     | **10.52** |
+| rotterdam [^2]           | 21.83 (2.22)         | 22.90          | 21.48     | **10.73** |
 | veteran                  | 9.90 (2.33)          | 10.80          | 11.11     | **5.39**  |
-| whas500 (15.76)          | 2.35                 | 15.89          | 15.79     | **8.10**  |
+| whas500                  | 15.76 (2.35)         | 15.89          | 15.79     | **8.10**  |
 | Average                  | 18.42 (2.27)         | 17.78          | 17.91     | **10.69** |
 
+Similarly, the statistical testing for the complexity of the explanations:
+
+![](Final_results/SURV_Complexity_by_samples.png)
 
 ### Dissimilarity
 
 |                          | OOB S.Trees     | Small RSF | Bellatrex       |
 |:------------------------:|:---------------:|:---------:|:---------------:|
-| addicts                  | **0.6032** | 0.4419    | 0.5679          |
-| breast cancer survival            | 0.9657          | 0.9563    | **0.9841** |
+| addicts                  | **0.6032**      | 0.4419    | 0.5679     |
+| breast cancer survival   | 0.9657          | 0.9563    | **0.9841** |
 | DBCD                     | 0.9969          | 0.9978    | **0.9990** |
 | DLBCL                    | 0.9876          | 0.9971    | **0.9994** |
 | echocardiogram           | 0.7952          | 0.7905    | **0.8567** |
 | FLChain                  | 0.6214          | 0.6761    | **0.7430** |
-| gbsg2                    | **0.7691** | 0.7242    | 0.7633          |
+| gbsg2                    | **0.7691**      | 0.7242    | 0.7633     |
 | lung                     | 0.8182          | 0.7743    | **0.8395** |
 | NHANES I                 | 0.7953          | 0.7945    | **0.8391** |
 | PBC                      | 0.8495          | 0.8239    | **0.8664** |
-| rotterdam (excl. recurr) | **0.7958** | 0.7333    | 0.7614          |
-| rotterdam (incl. recurr) | 0.7501          | 0.7541    | **0.8187** |
+| rotterdam [^1]           | **0.7958**      | 0.7333    | 0.7614     |
+| rotterdam  [^2]          | 0.7501          | 0.7541    | **0.8187** |
 | veteran                  | 0.7904          | 0.7461    | **0.8167** |
-| whas500                  | **0.8503** | 0.7977    | 0.8305          |
+| whas500                  | **0.8503**      | 0.7977    | 0.8305     |
 | Average                  | 0.8135          | 0.7863    | **0.8352** |
+
+[^1]: excl. ``recurr`` covariate
+[^2]: incl. ``recurr`` covariate
+
+And the statistical testing for the rule dissimilarity:
+
+![](Final_results/SURV_Dissimil_by_samples.png)
 
 
 ## Regression
@@ -415,6 +434,9 @@ The procedure is repeated not only for binary classification tasks, but also for
 | wine quality white  | 0.0645 | **0.0623** | 0.0774    | 0.0833 | 0.0810          | 0.0923          | 0.0996 | 0.0938 |
 | Average             | 0.0679 | **0.0674** | 0.0772    | 0.0832 | 0.0788          | 0.0942          | 0.1090 | 0.0890 |
 
+Running the post-hoc Friedman-Nemenyi statistical procedure on the above table leads to the following results:
+
+![](Final_results/REGRESS_Performance.png)
 
 
 ### Complexity
@@ -442,6 +464,9 @@ The procedure is repeated not only for binary classification tasks, but also for
 | wine quality white  | 29.23 (2.11)         | 28.77     | 28.82    | 12.35         | 14.20 | **4.20** |
 | Average             | 22.54 (2.28)         | 22.32     | 22.30    | 8.61          | 13.53 | **4.27** |
 
+Similarly, the statistical testing for the complexity of the explanations:
+
+![](Final_results/REGRESS_Complexity_by_samples.png)
 
 ### Dissimilarity
 
@@ -467,6 +492,11 @@ The procedure is repeated not only for binary classification tasks, but also for
 | wine quality red    | 0.4333          | 0.4422   | **0.4544** |
 | wine quality white  | **0.3232** | 0.3061   | 0.3185          |
 | Average             | 0.4171          | 0.4483   | **0.5459** |
+
+
+And the statistical testing for the rule dissimilarity:
+
+![](Final_results/REGRESS_Dissimil_by_samples.png)
 
 ## Multi-target regression
 
@@ -495,6 +525,9 @@ The procedure is repeated not only for binary classification tasks, but also for
 | wq      | 0.1681 | **0.1610** | 0.1774          | 0.1791          | 0.1806   | 0.1849 | 0.1828 |
 | Average | 0.0531 | **0.0511** | 0.0562          | 0.0593          | 0.0591   | 0.0758 | 0.0715 |
 
+Running the post-hoc Friedman-Nemenyi statistical procedure on the above table leads to the following results:
+
+![](Final_results/MTR_Performance.png)
 
 ### Complexity
 
@@ -521,6 +554,9 @@ The procedure is repeated not only for binary classification tasks, but also for
 | wq              | 30.08 (2.74)         | 29.28     | 29.04    | 8.74          | **4.09** |
 | Average         | 23.10 (2.47)         | 23.48     | 23.54    | 8.00          | **4.15** |
 
+Similarly, the statistical testing for the complexity of the explanations:
+
+![](Final_results/MTR_Complexity_by_samples.png)
 
 ### Dissimilarity
 
@@ -548,4 +584,154 @@ The procedure is repeated not only for binary classification tasks, but also for
 | Average | 0.5977    | 0.6326   | **0.7145** |
 
 
+And the statistical testing for the rule dissimilarity:
 
+![](Final_results/MTR_Dissimil_by_samples.png)
+
+
+## Ablation study
+
+### Binary classification dataset
+
+|                | Bellatrex       | no step 1       | no step 3       | no steps 1 & 3  |
+|----------------|-----------------|-----------------|-----------------|-----------------|
+| blood          | 0.7041          |       **0.7050**| 0.7005          | 0.6975          |
+| B.C. diagn.    | 0.9867          |       **0.9872**| 0.9865          | 0.9823          |
+| B.C. original  |       **0.9954**| 0.9934          | 0.9953          | 0.9922          |
+| B.C. progn.    | 0.5348          | 0.5226          |       **0.5441**| 0.4822          |
+| B.C. coimba    | 0.7508          | 0.7677          |       **0.7723**| 0.7600          |
+| Col. Green     |       **0.9449**| 0.8987          | 0.8385          | 0.9205          |
+| Col. Hinselm.  | 0.6229          | 0.4708          | 0.6042          |       **0.6396**|
+| Col. Schiller  | 0.5923          |       **0.6754**| 0.6077          | 0.6569          |
+| divorce        |       **0.9471**| 0.9457          | 0.9412          | 0.9401          |
+| Flowmeters     |       **0.9771**| 0.9514          | 0.9500          | 0.9286          |
+| haberman       | 0.6786          | 0.6726          | 0.6769          |       **0.6832**|
+| hcc-survival   |       **0.8250**| 0.7638          | 0.8058          | 0.7412          |
+| ionosphere     |       **0.9812**| 0.9768          | 0.9737          | 0.9444          |
+| LSVT voice     |       **0.8882**| 0.8654          | 0.8243          | 0.8618          |
+| mamographic    |       **0.8510**| 0.8467          | 0.8494          | 0.8396          |
+| musk           |       **0.9475**| 0.9298          | 0.9230          | 0.8757          |
+| parkinson      |       **0.9128**| 0.8824          | 0.9005          | 0.8340          |
+| risk factors   | 0.9339          | 0.9309          |       **0.9351**| 0.9339          |
+| simul. crashes |       **0.9012**| 0.8875          | 0.8629          | 0.7775          |
+| sonar          |       **0.9117**| 0.8928          | 0.8864          | 0.8141          |
+| SPECT          | 0.7489          | 0.7524          | 0.7500          |       **0.7680**|
+| SPECTF         | 0.7920          |       **0.8177**| 0.7918          | 0.7478          |
+| vertebral      | 0.9477          |       **0.9501**| 0.9499          | 0.9414          |
+| wholesale      | 0.9525          |       **0.9549**| 0.9529          | 0.9455          |
+| Average        |       **0.8470**| 0.8351          | 0.8343          | 0.8212          |
+
+And the corresponding post-hoc statistical test:
+
+![](Final_results/BIN_Ablation.png)
+
+
+### Multi-label classification data
+
+|               | Bellatrex       | no step 1       | no step 3       | no steps 1 & 3 |
+|---------------|-----------------|-----------------|-----------------|--------------|
+| birds         |       **0.8190**| 0.7914          | 0.8184          | 0.7859       |
+| CAL500        |       **0.5428**| 0.5375          | 0.5394          | 0.5320       |
+| emotions      |       **0.8205**| 0.8000          |       **0.8205**| 0.7523       |
+| enron         |       **0.7707**| 0.7443          | 0.7576          | 0.7154       |
+| flags         | 0.7237          | 0.6877          |       **0.7317**| 0.6854       |
+| genbase       | 0.9977          |       **0.9992**| 0.9976          | 0.9984       |
+| langlog       |       **0.6075**| 0.5848          | 0.5995          | 0.6071       |
+| medical       |       **0.9497**| 0.9299          | 0.9365          | 0.9137       |
+| ng20          |       **0.9225**| 0.9089          | 0.9082          | 0.8491       |
+| scene         |       **0.9195**| 0.8993          | 0.9171          | 0.8377       |
+| slashdot      |       **0.8186**| 0.7985          | 0.8035          | 0.7770       |
+| stackex chess |       **0.6928**| 0.6819          | 0.6776          | 0.6596       |
+| yeast         |       **0.6777**| 0.6771          | 0.6623          | 0.6243       |
+| Average       |       **0.7894**| 0.7723          | 0.7823          | 0.7491       |
+
+And the corresponding post-hoc statistical test:
+
+![](Final_results/MULTI_Ablation.png)
+
+### Time-to-event data
+
+|                          | Bellatrex       | no step 1       | no step 3       | no steps 1 & 3  |
+|--------------------------|-----------------|-----------------|-----------------|-----------------|
+| addicts                  |       **0.6512**| 0.6411          | 0.6503          | 0.6451          |
+| B.C. survival            | 0.6417          | 0.6060          |       **0.6440**| 0.6245          |
+| DBCD                     |       **0.7534**| 0.7330          | 0.7072          | 0.5923          |
+| DLBCL                    |       **0.6357**| 0.5762          | 0.6118          | 0.5423          |
+| echocardiogram           | 0.4166          | 0.4199          | 0.4212          |       **0.4799**|
+| FLChain                  | 0.8330          |       **0.8331**| 0.8317          | 0.8188          |
+| gbsg2                    |       **0.7035**| 0.7030          | 0.7025          | 0.6776          |
+| lung                     | 0.6236          |       **0.6265**| 0.6175          | 0.5949          |
+| NHANES I                 | 0.8209          | 0.8136          |       **0.8215**| 0.8070          |
+| PBC                      |       **0.8467**| 0.8417          | 0.8457          | 0.8076          |
+| rotterdam (excl. recurr) |       **0.7961**|       **0.7961**| 0.7958          | 0.7870          |
+| rotterdam (incl. recurr) | 0.9047          |       **0.9069**| 0.9050          | 0.8945          |
+| veteran                  | 0.7349          | 0.7277          |       **0.7389**| 0.7130          |
+| whas500                  | 0.7458          | 0.7412          |       **0.7466**| 0.7373          |
+| Average                  |       **0.7224**| 0.7122          | 0.7175          | 0.6946          |
+
+
+And the corresponding post-hoc statistical test:
+
+![](Final_results/SURV_Ablation.png)
+
+
+### Regression data
+
+|                     | Bellatrex       | no step 1       | no step 3       | no steps 1 & 3 |
+|---------------------|-----------------|-----------------|-----------------|--------------|
+| airfoil             |       **0.0374**| 0.0389          | 0.0377          | 0.0427       |
+| AmesHousing         | 0.0230          | 0.0243          |       **0.0228**| 0.0277       |
+| auto mpg            |       **0.0525**| 0.0545          | 0.0526          | 0.0571       |
+| bike sharing        |       **0.0481**| 0.0487          |       **0.0481**| 0.0521       |
+| boston housing      | 0.0576          | 0.0587          |       **0.0569**| 0.0620       |
+| california housing  | 0.0611          | 0.0629          |       **0.0610**| 0.0654       |
+| car imports         | 0.0360          | 0.0367          |       **0.0359**| 0.0403       |
+| Computer hardware   | 0.0297          | 0.0294          |       **0.0293**| 0.0305       |
+| concrete compress   | 0.0396          | 0.0418          |       **0.0393**| 0.0449       |
+| concrete slump data | 0.0734          | 0.0744          |       **0.0727**| 0.0742       |
+| ENB2012 cooling     | 0.0338          |       **0.0335**| 0.0336          | 0.0338       |
+| ENB2012 heating     | 0.0111          | 0.0112          |       **0.0110**| 0.0117       |
+| forest fires        |       **0.3032**| 0.3084          | 0.3044          | 0.3081       |
+| PRSA data           | 0.0361          | 0.0363          |       **0.0360**| 0.0388       |
+| slump dataset       | 0.0680          | 0.0688          |       **0.0663**| 0.0730       |
+| students maths      | 0.1550          | 0.1554          |       **0.1538**| 0.1623       |
+| wine quality all    | 0.0710          | 0.0711          |       **0.0692**| 0.0748       |
+| wine quality red    | 0.0808          | 0.0825          |       **0.0776**| 0.0792       |
+| wine quality white  | 0.0623          | 0.0614          |       **0.0611**| 0.0645       |
+| Average             | 0.0674          | 0.0684          |       **0.0668**| 0.0707       |
+
+
+And the corresponding post-hoc statistical test:
+
+![](Final_results/REGRESS_Ablation.png)
+
+
+### Multi-target regression data
+
+|         | Bellatrex       | no step 1       | no step 3       |  no steps 1 & 3 |
+|---------|-----------------|-----------------|-----------------|-----------------|
+| andro   | 0.0911          | 0.0968          | 0.0899          |       **0.0865**|
+| atp1d   | 0.0479          | 0.0483          |       **0.0467**| 0.0545          |
+| atp7d   | 0.0443          | 0.0437          |       **0.0413**| 0.0720          |
+| edm     | 0.1068          | 0.1083          |       **0.0982**| 0.1037          |
+| enb     | 0.0225          | 0.0231          |       **0.0224**| 0.0232          |
+| ENB2012 | 0.0234          | 0.0236          |       **0.0231**| 0.0240          |
+| jura    |       **0.0678**| 0.0703          | 0.0687          | 0.0732          |
+| oes10   |       **0.0220**| 0.0237          | 0.0225          | 0.0269          |
+| oes97   |       **0.0296**| 0.0310          | 0.0298          | 0.0350          |
+| osales  |       **0.0361**| 0.0376          | 0.0362          | 0.0413          |
+| rf1     |       **0.0019**| 0.0022          |       **0.0019**| 0.0025          |
+| rf2     | 0.0031          | 0.0033          |       **0.0030**| 0.0043          |
+| scm1d   | 0.0249          | 0.0264          |       **0.0247**| 0.0288          |
+| scm20d  | 0.0296          | 0.0307          |       **0.0292**| 0.0353          |
+| scpf    | 0.0105          | 0.0104          | 0.0105          |       **0.0103**|
+| sf1     |       **0.0726**| 0.0731          | 0.0727          | 0.0741          |
+| sf2     | 0.0318          |       **0.0313**|       **0.0313**| 0.0316          |
+| slump   | 0.1433          | 0.1387          | 0.1426          |       **0.1357**|
+| wq      | 0.1610          | 0.1639          |       **0.1608**| 0.1696          |
+| Average | 0.0511          | 0.0519          |       **0.0503**| 0.0543          |
+
+
+And the corresponding post-hoc statistical test:
+
+![](Final_results/MTR_Ablation.png)
