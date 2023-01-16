@@ -6,7 +6,7 @@ tuned_hyperparams/
 EXAMPLE/
 predictions/
 GUI-plots-Niels/
-paths-print/
+ArXiv-paper/
 RF_analysis.py
 *.py
 *.ini
