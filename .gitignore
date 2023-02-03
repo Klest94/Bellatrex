@@ -8,6 +8,7 @@ predictions/
 GUI-plots-Niels/
 ArXiv-paper/
 RF_analysis.py
+requirements_detailed.txt
 *.py
 *.ini
 *.bak
