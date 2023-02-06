@@ -1,7 +1,7 @@
 import numpy as np
+import pandas as pd
 import os
 os.environ["OMP_NUM_THREADS"] = "1" # avoids memory leak UserWarning caused by KMeans
-import pandas as pd
 import datetime
 import warnings
 #import re
