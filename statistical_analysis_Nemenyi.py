@@ -11,7 +11,7 @@ from utilities import rename_data_index
 
 get_ipython().run_line_magic('matplotlib', 'inline')
 
-SETUP = "mtr"
+SETUP = "bin"
 PROJ_METHOD = "PCA"
 FEAT_REPRESENTATION = "by_samples"
 STRUCTURE = "rules"
@@ -172,10 +172,6 @@ df_complete.rename(columns={"10_rules_perf" : "SIRUS",
                             }, inplace=True, errors="ignore")
 
 
-
-
-#%%
-
 #### dissimilarity analysis
 
 df_dissim = pd.concat([df_competing[common_dissim_list],
@@ -229,7 +225,6 @@ df_ablations.rename(columns={"Bellatrex, wt.": "Bellatrex"}, inplace=True, error
 
 
 
-#%%
 ### rename table columns for better plotting readability ###
 
 if SETUP not in ["surv"]:
@@ -335,8 +330,11 @@ smaller_is_better = False if SETUP in ["bin", "multi", "surv"] else True
 
 from scipy import stats
 
+#%%
+
 def orange_plot(df, filename, is_ascending, save_outputs, exclude=[],
-                plot_title="Nemenyi test", reverse_ranks=False):
+                plot_title="Nemenyi test", reverse_ranks=False,
+                dpi_figure=100):
     
     # is ascending: for computing ranks. If true lowest ir ranked 1
     # reverse ranks: if true, greatest average rank is plotted to the left
@@ -369,19 +367,27 @@ def orange_plot(df, filename, is_ascending, save_outputs, exclude=[],
                                   lowv=plot_top, highv=plot_bott,
                                   width=3.7, textspace=1,
                                   reverse=reverse_ranks)
-    
+    plt.rcParams['figure.dpi'] = dpi_figure
     plt.tight_layout()
     plt.title(plot_title)
+    figsize = plt.rcParams['figure.figsize']
+        
+    figsize[1] = figsize[1]*1.1
+    
+    plt.rcParams['figure.figsize'] = figsize
+
 
     if SAVE_OUTPUTS == True: # some setting here (and the few lines above, are off)
         plt.savefig(os.path.join(results_folder, SETUP.upper() + "_" + filename + ".png"))#,
                     #bbox_inches="tight")
-        plt.savefig(os.path.join(results_folder, SETUP.upper() + "_" + filename + ".pdf"),
-                    bbox_inches='tight', pad_inches=0, transparent=True)
+        plt.savefig(os.path.join(results_folder, SETUP.upper() + "_" + filename + ".pdf")
+                    , bbox_inches='tight', pad_inches=0.1, transparent=True
+                    )
 
     return plt.show()
 
 
+#%%
 
 def output_latex(df, col_format, highlight_min, drop_cols=[], exclude=[]): # {:,.4f}
     assert isinstance(col_format, str)
@@ -422,23 +428,27 @@ df_dissim_anal.rename(columns={"Bellatrex, wt.": "Bellatrex"}, inplace=True, err
 df_rules_anal.rename(columns={"Bellatrex, wt.": "Bellatrex"}, inplace=True, errors="ignore")
 
 
-orange_plot(df_analysis, "Performance", smaller_is_better, save_outputs=False,
+orange_plot(df_analysis, "Performance", smaller_is_better, save_outputs=True,
             exclude=["Bellatrex, simple"],
-            plot_title="Performance comparison") # perf: higher is better except (mt)r
+            plot_title="Performance comparison",
+            dpi_figure=300) # perf: higher is better except (mt)r
 
-orange_plot(df_dissim_anal, "Dissimil_"+FEAT_REPRESENTATION, False, save_outputs=False,
+orange_plot(df_dissim_anal, "Dissimil_"+FEAT_REPRESENTATION, False, save_outputs=True,
             exclude=["n. rules"],
-            plot_title="Dissimilarity comparison") #dissim: higher is better
+            plot_title="Dissimilarity comparison",
+            dpi_figure=300) #dissim: higher is better
 
 orange_plot(df_rules_anal, "Complexity_"+FEAT_REPRESENTATION, is_ascending=True,
             save_outputs=False,
             exclude=["n. rules", "HS (display)", "RuleCOSI+ (display)",
                      "R(S)F n_splits", "RF", "RSF"],#, "HS (show)", "RuleCOSI (show)"],
             plot_title="Complexity of explanations",
-            reverse_ranks=False) #rules: lower is better
+            reverse_ranks=False,
+            dpi_figure=300) #rules: lower is better
 
-orange_plot(df_ablations_anal, "Ablation", smaller_is_better, save_outputs=False, exclude=["n. trees"],
-            plot_title="Ablation study") #ablat. perf: higher is better except (mt)r
+orange_plot(df_ablations_anal, "Ablation", smaller_is_better, save_outputs=True, exclude=["n. trees"],
+            plot_title="Ablation study",
+            dpi_figure=300) #ablat. perf: higher is better except (mt)r
 
 df_nrules = df_compare_rules.pop("n. rules")
 df_compare_rules.insert(1, "n. rules", df_nrules)
@@ -451,12 +461,11 @@ for df in [df_complete, df_dissim, df_compare_rules, df_ablations]:
     
 #%%
 
-
 latex_perfs = output_latex(df_complete, '{:,.4f}', smaller_is_better,
                            exclude=["RF", "RSF"],
                            drop_cols=["Bellatrex, simple"])
 
-latex_diss = output_latex(df_dissim, '{:,.4f}', False, drop_cols=["n. rules"])
+latex_diss = output_latex(df_dissim, '{:,.4f}', False, exclude=["n. rules"])
 
 latex_rules = output_latex(df_compare_rules, '{:,.2f}', True,
                            drop_cols=["RF", "RSF", "HS (display)", "RuleCOSI+ (display)", "R(S)F n_splits"],
@@ -524,26 +533,23 @@ def plot_pareto_frontier(Xs, Ys, maxX=True, maxY=True, fontsize=12):
     
     return None
 
-fig, ax = plt.subplots()
 
-# plt.rcParams.update({
-#     "text.usetex": True,
-#     "font.family": "Helvetica"
-# })
+fig, ax = plt.subplots(figsize=(7, 4), dpi=300)
 
 plt.rcParams['text.usetex'] = True
-plt.rcParams["figure.figsize"] = (6, 3.7)
-FIG_FONT = 18
+# fig.set_size_inches(7.5, 4)
+# fig.set_dpi(100)
+FIG_FONT = 15
 
 #plt.figure(figsize=(5,3), dpi=80)
-ax.scatter(x, y)
+ax.scatter(x, y, s=FIG_FONT-6)
 plt.title("Performance-interpretability trade-off", fontsize=FIG_FONT+2)
 
 # We change the fontsize of minor ticks label 
 ax.tick_params(axis='both', which='major', labelsize=FIG_FONT-2)
 ax.tick_params(axis='both', which='minor', labelsize=FIG_FONT-4)
 
-plot_pareto_frontier(x,y, maxX=True, maxY=(not smaller_is_better), fontsize=FIG_FONT-4)
+plot_pareto_frontier(x,y, maxX=True, maxY=(not smaller_is_better), fontsize=FIG_FONT-5)
 
 if smaller_is_better:
     ax.invert_yaxis()
@@ -559,11 +565,14 @@ pad_prop = 0.05 #add some padding to the plot ( increase axis range)
 # formula works also when axis are flipped (pads top and right corner anyway)
 y_lims[1] = y_lims[1]+(y_lims[1]-y_lims[0])*(pad_prop) 
 x_lims[1] = x_lims[1]+(x_lims[1]-x_lims[0])*(pad_prop/2)
-    
+
+text_pad = 1.5*1e-3
 
 plt.xlabel('$1 / \mathcal{C}$', fontsize=FIG_FONT+1)
 for i, txt in enumerate(names):
-    ax.annotate(txt, (x[i], y[i]), fontsize=FIG_FONT)
+    ax.annotate(txt, xy=(x[i], y[i]), 
+                xytext=(x[i]+text_pad, y[i]+text_pad),
+                fontsize=FIG_FONT)
 
 ax.set_ylim(tuple(y_lims))
 ax.set_xlim(tuple(x_lims))

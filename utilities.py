@@ -620,8 +620,11 @@ def custom_axes_limit(bunch_min_value, bunch_max_value, RF_pred, is_binary):
 
     ## LocalMethod inputs: plot_data_bunch, plot_kmeans, tuned_method, self.clf.n_outputs_
 def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
-                           base_font_size=12, show_ax_ticks="auto"):
+                           base_font_size=12, show_ax_ticks="auto",
+                           plot_dpi=120):
     
+    small_size = 40
+    big_size = 220
     
     if show_ax_ticks == "auto":
         show_ax_ticks = False if base_font_size > 15 else True
@@ -638,7 +641,7 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     custom_gridspec = {'width_ratios': [3, 0.2, 3, 0.2]}
 
     
-    fig, (ax1, ax2, ax3, ax4) = pylab.subplots(1, 4, figsize=(10, 4.5), dpi=120,
+    fig, (ax1, ax2, ax3, ax4) = pylab.subplots(1, 4, figsize=(10, 4.5), dpi=plot_dpi,
                                     gridspec_kw=custom_gridspec)
     # (scatter1, cb1, scatter2, cb2)
     
@@ -668,14 +671,14 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     ax1.scatter(x_normal, y_normal,
                c=color_normal,
                cmap=None,
-               s=40,
+               s=small_size,
                marker="o",
                edgecolors=(1, 1, 1, 0.5))
     
     ax1.scatter(x_selected, y_selected,
                c=color_selected,
                cmap=None,
-               s=220,
+               s=big_size,
                marker="*",
                edgecolors="black")
 
@@ -759,14 +762,14 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         ax3.scatter(x_normal, y_normal,
                    c=real_colors[[not x for x in is_final_candidate]],
                    #cmap=cmap2,
-                   s=40,
+                   s=small_size,
                    marker="o",
                    edgecolors=(1,1,1,0.5))
         
         ax3.scatter(x_selected, y_selected,
                    c=real_colors[is_final_candidate],
                    #cmap=cmap2,
-                   s=200,
+                   s=big_size,
                    marker="*",
                    edgecolors="black")
         
@@ -822,14 +825,14 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         ax3.scatter(x_normal, y_normal,
                    c=normal_rule_loss,
                    cmap=color_map,
-                   s=40,
+                   s=small_size,
                    marker="o",
                    edgecolors=(1,1,1,0.5))
         
         ax3.scatter(x_selected, y_selected,
                    c=final_candidate_loss,
                    cmap=color_map,
-                   s=180,
+                   s=big_size,
                    marker="*",
                    edgecolors="black")
         

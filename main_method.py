@@ -22,7 +22,7 @@ from LocalMethod_class import Bellatrex
 #get_ipython().run_line_magic('matplotlib', 'inline')
 
 
-SETUP = "bin"
+SETUP = "regress"
 PROJ_METHOD = "PCA"
 
 SAVE_PREDS = False # if True: save: predictions, tuned_hyperparams and dataframe
@@ -30,7 +30,7 @@ SAVE_PREDS = False # if True: save: predictions, tuned_hyperparams and dataframe
 OVERWRITE_DF = False # save performance df as csv, potentially overwriting smth
 
 # reduce MAX_TEST_SIZE for quick code testing
-MAX_TEST_SIZE = 5 #if set >= 100, it takes the (original) value X_test.shape[0]
+MAX_TEST_SIZE = 999 #if set >= 100, it takes the (original) value X_test.shape[0]
 
 N_FOLDS = 1
 p_grid = {
@@ -56,7 +56,7 @@ TAIL_NOTES = "p1" # ONLY FOR FINAL CSV FILE
 # think it through...
 NOTES = EXTRA_NOTES + PROJ_METHOD + "_" + FEAT_REPRESENTATION + "_"
 
-testing_dnames = dnames[0:5]#[:4]
+testing_dnames = dnames[4:5]#[:4]
 #testing_dnames = [dnames[i] for i in [4, 6, 8, 10, 11]]
 ##########################################################################
 
@@ -194,8 +194,8 @@ for folder in testing_dnames:
         tot_n_splits = 0 # total for the whole fold j        
         stored_info = []
         
-        for i in range(N): #for every sample in the test set: predict
-        #for i in [41, 45, 65]: #, 41, 42, 45, 46, 47, 59 64, 73, 74, 80, 83, 97
+        #for i in range(N): #for every sample in the test set: predict
+        for i in [41, 45, 65]: #, 41, 42, 45, 46, 47, 59 64, 73, 74, 80, 83, 97
             
             if VERBOSE >= 0:
                 print("sample i={} fold j={}," 

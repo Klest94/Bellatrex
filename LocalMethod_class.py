@@ -14,6 +14,7 @@ import numpy as np
 class Bellatrex:
     
     FONT_SIZE = 20
+    DPI_FIGURE = 300
     
     def __init__(self, clf, set_up, verbose,
                  proj_method="MDS",
@@ -217,7 +218,8 @@ class Bellatrex:
             
             plot_preselected_trees(plot_data_bunch, plot_kmeans,
                                    tuned_method, final_extract_trees,
-                                   base_font_size=self.FONT_SIZE)
+                                   base_font_size=self.FONT_SIZE, 
+                                   plot_dpi=self.DPI_FIGURE)
             
             # from utilities import plot_no_clustering
             # plot_no_clustering(plot_data_bunch)  # for a plot in manuscript
