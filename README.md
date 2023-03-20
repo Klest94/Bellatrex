@@ -4,10 +4,13 @@
 Random Forest models can be difficult to interpret, and Bellatrex addresses this challenge by generating explanations that are easy to understand and providing insights into how the model arrived at its predictions. Belllatrex does so by Building Explanations through a LocalLy AccuraTe Rule EXtractor (hence the name: Bellatrex) for a given test instance, with only a few diverse rules.
 
 To illustrate how Bellatrex works, let's consider an example. When a user provides a test instance to Bellatrex, the tool begins by 1) pre-selecting a subset of the rules used to make the prediction. It then creates 2) a vector representation of such rules and 3) projects them to a low-dimensional space. Bellatrex then 4) clusters such representations to pick a rule from each cluster to explain the instance prediction. One rule per cluster is shown to the end user through evisually appealing plots, and the tool's GUI allows users to explore similar rules to those extracted.
-
-
-![A schematic illustration of Bellatrex](illustration_Bellatrex.png)
-
+            
+<p align="center">
+  <img src="https://github.com/Klest94/Bellatrex/blob/main/illustration_Bellatrex.png?raw=true" alt="Sublime's custom image"/>
+</p>
+<p>
+  <em>Overview representation of Bellatrex, starting from top left, proceeding clockwise, we reach the output and explanation on the bottom left.</em>
+</p>
 
 Another strength of Bellatrex lies in its ability to handle many different prediction tasks within `scikit-learn` implementations of Random Forests. For instance, Bellatrex can generate explanations for binary classification and multi-label predictions  tasks with `RandomForestClassifier`, as well as single- or multi-output regression tasks with `RandomForestRegressor`. Moreover, Bellatrex is compatible with scikit-survival's `RandomSurvivalForest`, allowing it to generate explanations for time-to-event predictions in the presence of right-censored data.
 
@@ -23,13 +26,15 @@ This repository contains:
  
 To ensure that Bellatrex runs correctly, use a Python environment that matches the requirements indicated in `requirements.txt`. Slightly older versions might also work, but `DeprecationWarning` messages will be raised. Compatibility with Linux or OS architectures has not been tested.
 
-The user can replicate the examples from the paper by  running the 
+To get started, the user can replicate some simple examples by running the 
 `tutorial.py` script.
 
 
 # Additional material (draft)
 
-We will drop stuff upon acceptance of the paper, and refer to the paper directly
+We will drop stuff upon acceptance of the paper, and refer to the paper directly.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 In order not to overcrowd the final manuscript with tables and plots, we share here some details about the datasets employed in the comparison as well as an extended version of the results.
 
