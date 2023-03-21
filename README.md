@@ -32,7 +32,9 @@ To get started, the user can replicate some simple examples by running the
 
 # Additional material (draft)
 
-We will drop stuff upon acceptance of the paper, and refer to the paper directly.
+I would drop this part upon acceptance of the paper, since it's included in the paper Appendix already.
+
+consider adding a detailed example: take an instance adn a trained RF, go through the code in `tutorial.py` and exlain what is being done step by step.
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
