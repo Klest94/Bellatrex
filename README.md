@@ -22,12 +22,19 @@ This repository contains:
 - the detailed final results and relative statistical analysis of the manuscript for the BELLATREX method, currently under revision.
 - the model's code, prediction, and tuned hyperparameters. To be shared upon acceptance.
 
-## Instructions
+## Tutorial
  
 To ensure that Bellatrex runs correctly, use a Python environment that matches the requirements indicated in `requirements.txt`. Slightly older versions might also work, but `DeprecationWarning` messages will be raised. Compatibility with Linux or OS architectures has not been tested.
 
+For example, create an Anaconda environment with:
+```
+conda create --name bellatrex-trial python=3.9
+```
+
+
 To get started, the user can replicate some simple examples by running the 
 `tutorial.py` script.
+
 
 
 # Additional material (draft)
