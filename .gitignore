@@ -16,6 +16,7 @@ predictions/survival/*
 GUI-plots-Niels/
 ArXiv-paper/
 RF_analysis.py
+trial XGBoost.py
 *.ini
 *.bak
 R_scripts/
