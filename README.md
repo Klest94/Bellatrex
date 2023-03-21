@@ -5,12 +5,19 @@ Random Forest models can be difficult to interpret, and Bellatrex addresses this
 
 To illustrate how Bellatrex works, let's consider an example: when a user provides a test instance to Bellatrex, the tool begins by 1) pre-selecting a subset of the rules used to make the prediction; it then creates 2) a vector representation of such rules and 3) projects them to a low-dimensional space; Bellatrex then 4) clusters such representations to pick a rule from each cluster to explain the instance prediction. One rule per cluster is shown to the end user through visually appealing plots, and the tool's GUI allows users to explore similar rules to those extracted.
             
-<p align="center">
-  <img src="https://github.com/Klest94/Bellatrex/blob/main/illustration_Bellatrex.png?raw=true" alt="Sublime's custom image"/>
-</p>
-<p>
-  <em>Overview representation of Bellatrex, starting from top left, proceeding clockwise, we reach the output and explanation on the bottom left.</em>
-</p>
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/Klest94/Bellatrex/blob/main/illustration_Bellatrex.png?raw=true" alt="Bellatrex image"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <em>Overview representation of Bellatrex, starting from top left, proceeding clockwise, we reach the output and explanation on the bottom left.</em>
+    </td>
+  </tr>
+</table>
+
 
 Another strength of Bellatrex lies in its ability to handle several prediction tasks within `scikit-learn` implementations of Random Forests. For instance, Bellatrex can generate explanations for binary classification and multi-label predictions  tasks with `RandomForestClassifier`, as well as single- or multi-output regression tasks with `RandomForestRegressor`. Moreover, Bellatrex is compatible with scikit-survival's `RandomSurvivalForest`, allowing it to generate explanations for time-to-event predictions in the presence of right-censored data.
 
@@ -22,6 +29,7 @@ This repository contains:
 - the detailed final results and relative statistical analysis of the manuscript for the BELLATREX method, currently under revision.
 - the model's code, prediction, and tuned hyperparameters. To be shared upon acceptance.
 
+<<<<<<< Updated upstream
 ## Tutorial
  
 To ensure that Bellatrex runs correctly, use a Python environment that matches the requirements indicated in `requirements.txt`. Slightly older versions might also work, but `DeprecationWarning` messages will be raised. Compatibility with Linux or OS architectures has not been tested.
@@ -36,6 +44,234 @@ To get started, the user can replicate some simple examples by running the
 `tutorial.py` script.
 
 
+=======
+# Set-up
+
+To ensure that Bellatrex runs correctly, use a Python environment that matches the requirements indicated in `requirements.txt`. To minimize the chances of encountering compatibility issues, we advice to install the needed packages on a new (conda) environment with:
+```
+conda create --name bellatrex-trial python=3.9
+```
+And proceed by installing the packages listed in the `requirements.txt` file, namely:
+```
+conda install numpy==1.23.4
+conda install pandas==1.5.4
+conda install matplotlib==3.6.2
+conda install scikit-learn==1.1.3
+conda install scikit-survival==0.19.0 # in case of error, try one of these:
+    conda install -c sebp scikit-survival
+    conda install -c conda-forge scikit-survival 
+```
+
+
+Older versions might also work, but `DeprecationWarning` messages will be raised, newer versions are also likley to work byt have not been tested. Compatibility with Linux or OS architectures has not been tested.
+
+## Graphical User Interface
+
+For an enhanced user experience that includes interactive plots, the following packages need to be installed through pip (not available on conda):
+```
+pip install dearpygui==1.6.2 
+pip install dearpygui-ext==0.9.5
+```
+
+# Bellatrex tutorial
+
+After making sure that the needed packages are installed, we can dive into the `tutorial.py` code.
+
+## Step 1: import libraries and set parameters
+
+Import the required libraries and set the parameters for the grid search, data folder paths, and other configuration variables.
+
+```
+import numpy as np
+import os
+os.environ["OMP_NUM_THREADS"] = "1" # avoids memory leak UserWarning caused by KMeans
+import pandas as pd
+
+from sksurv.ensemble import RandomSurvivalForest
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
+
+from utilities import score_method, output_X_y
+from utilities import format_targets, format_RF_preds
+#from plot_tree_patch import plot_tree_patched
+
+from LocalMethod_class import Bellatrex
+
+# reduce MAX_TEST_SIZE for quick code testing
+MAX_TEST_SIZE = 10 #if set >= 100, it takes the (original) value X_test.shape[0]
+
+p_grid = {
+    "n_trees": [0.2, 0.5, 0.8],
+    "n_dims": [2, 5, None],
+    "n_clusters": [1, 2, 3]
+    }
+
+##########################################################################
+root_folder = os.getcwd()
+
+data_folder = os.path.join(root_folder, "datasets")
+
+''' choose appropriate learning task wth SETUP parameter '''
+SETUP = "mtr" # "bin", or "mtr" 
+
+VERBOSE = 3
+
+PLOT_GUI = False
+'''  levels of verbosity in this script:
+    - >= 1.0: print best params, their achieved fidelity,
+              and the scoring method used to compute such performance
+    - >= 2.0 print final tree idx cluster sizes
+    - >= 3.0: plot representation of the extracted trees (two plots)
+    - >= 4.0 plot trees with GUI (if PLOT_GUI == True)
+    - >= 4.0 plot trees without GUI (if PLOT_GUI == False)
+    - >= 5.0: print params and performance during GridSearch
+'''
+
+# running different RFs or different performance measures according to the 
+# prediction scenarios. So far we have implemented the following 5 cases:
+binary_key_list = ["bin", "binary"]
+survival_key_list = ["surv", "survival"]
+multi_label_key_list = ["multi", "multi-l", "multi-label", "mtc"]
+regression_key_list = ["regression", "regress", "regr"]
+mt_regression_key_list = ["multi-target", "multi-t", "mtr"]
+
+```
+
+## Step 2: Load and preprocess Data
+
+Load training and testing data from the `.csv` files, split them into features (X) and targets (y), and preprocess the data by formatting the target variables according to the prediction scenarios. Instantiate the appropriate `RandomForest` model.
+
+```
+df_train = pd.read_csv(os.path.join(data_folder, SETUP + '_tutorial_train.csv'))
+df_test = pd.read_csv(os.path.join(data_folder, SETUP + '_tutorial_test.csv'))
+
+X_train, y_train = output_X_y(df_train, SETUP)
+X_test, y_test = output_X_y(df_test, SETUP)
+
+X_train = X_train.drop("Unnamed: 0", axis=1, errors="ignore", inplace=False)
+X_test = X_test.drop("Unnamed: 0", axis=1, errors="ignore", inplace=False)
+
+assert X_train.isnull().sum().sum() < 1 #make sure there are no null values
+assert X_test.isnull().sum().sum() < 1 #make sure there are no null values
+
+# for quick testing, set a small MAX_TEST_SIZE
+X_test = X_test[:MAX_TEST_SIZE]
+y_test = y_test[:MAX_TEST_SIZE]
+
+orig_n_labels = y_test.shape[1] #meaningful only in multi-output
+
+
+# set target variable to correct format depending on the prediciton
+# scenarios.E.g. set np.recarray fo survival data, or normalise data 
+# in case of single and multi-target regression
+
+y_train, y_test = format_targets(y_train, y_test, SETUP, VERBOSE)
+
+
+### instantiate original R(S)F estimator
+if SETUP.lower() in survival_key_list:
+    rf = RandomSurvivalForest(n_estimators=100, min_samples_split=10,
+                              random_state=0)
+
+elif SETUP.lower() in binary_key_list + multi_label_key_list:
+    rf = RandomForestClassifier(n_estimators=100, min_samples_split=5,
+                                random_state=0)
+    
+elif SETUP.lower() in regression_key_list + mt_regression_key_list:
+    rf = RandomForestRegressor(n_estimators=100, min_samples_split=5,
+                               random_state=0)
+
+```
+
+## Step 3: Instantiate and fit the Model
+
+Once the Random Forest is instantiated, the `fit` method in Bellatrex trains the Random Forest and set the parameters for Bellatrex.
+
+```
+#fit RF here. The hyperparameters are given      
+Bellatrex_fitted = Bellatrex(rf, SETUP,
+                            p_grid=p_grid,
+                            proj_method="PCA",
+                            dissim_method="rules",
+                            feature_represent="weighted",
+                            n_jobs=1,
+                            verbose=VERBOSE,
+                            plot_GUI=PLOT_GUI).fit(X_train, y_train)
+
+
+# store, for every sample in the test set, the predictions from the
+# local method and the original R(S)F
+N = min(X_test.shape[0], MAX_TEST_SIZE)        
+y_pred = []
+
+stored_info = [] #store extra info such as optimal hyperparameters (for each instance)
+
+```
+
+# Step 4: Make predictions, output explanations
+
+Loop through the test set, make predictions using the Bellatrex local method, and store the results.
+
+```
+for i in range(N): #for every sample in the test set: call .predict
+          
+    # call the .predict method. The hyperparamters were given in the .fit.
+    # Now they are actively used and tuned for every instance
+    '''
+    the .predict ouputs:
+        - the local prediction 
+        - information about the Bellatrex instance: optimal parameters,
+                    final extracted trees/rules, their weight in the prediction, etc... 
+    
+    '''
+    y_local_pred, sample_info = Bellatrex_fitted.predict(X_test, i)  #tuning is also done within the .predict method
+    
+    # append all test sample predictions in y_pred
+    y_pred.append(y_local_pred) # store for debuggind and analysis
+    
+        
+y_ens_pred = format_RF_preds(rf, X_test, SETUP)
+
+# adapt to numpy array (N, L) where N = samples, L = labels (if L>1)
+#y_ens_pred = np.transpose(np.array(y_ens_pred)[:,:,1])
+if SETUP.lower() not in multi_label_key_list + mt_regression_key_list :
+    y_pred = np.array(y_pred).ravel() #force same array format
+          
+# sometimes the y_pred is not an array as expected, here we gauranatee it is
+y_pred = np.array(y_pred)
+
+#in case of quick testing with few samples (less than 100)
+y_test = y_test[:MAX_TEST_SIZE]
+y_ens_pred = y_ens_pred[:MAX_TEST_SIZE]
+```
+
+The output explanation will consist in a few rules extracted from the original Random Forest.
+
+
+# Step 5: Evaluate performance
+
+Also, compute the performance of Bellatrex compared to the original RandomForest model.
+
+```
+cv_fold_local = score_method(y_test, y_pred, #list or array, right?
+                                SETUP)     #workaround for now
+
+cv_fold_ensemble = score_method(y_test, y_ens_pred, #list or array, right?
+                                SETUP)
+
+
+performances = pd.DataFrame({
+                "Original R(S)F" : np.round(np.nanmean(cv_fold_ensemble),4),
+                "Bellatrex": np.round(np.nanmean(cv_fold_local),4),
+                }, index=[0] 
+                )
+        
+if SETUP.lower() in multi_label_key_list + mt_regression_key_list:
+    performances.insert(1, "n labels", orig_n_labels) # add extra info
+
+print(performances)
+```
+>>>>>>> Stashed changes
 
 # Additional material (draft)
 

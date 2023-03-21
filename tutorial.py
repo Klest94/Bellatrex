@@ -27,23 +27,11 @@ root_folder = os.getcwd()
 
 data_folder = os.path.join(root_folder, "datasets")
 
+''' choose appropriate learning task wth SETUP parameter '''
+SETUP = "mtr" # "bin", or "mtr" 
 
-SETUP = "mtr" # "bin", or "mtr", 
-
-# running different RFs or different performance measures according to the 
-# prediction scenarios. So far we have implemented the following 5 cases:
-binary_key_list = ["bin", "binary"]
-survival_key_list = ["surv", "survival"]
-multi_label_key_list = ["multi", "multi-l", "multi-label", "mtc"]
-regression_key_list = ["regression", "regress", "regr"]
-mt_regression_key_list = ["multi-target", "multi-t", "mtr"]
-
-##########################################################################
-
-
-
-#%%
 VERBOSE = 3
+
 PLOT_GUI = False
 '''  levels of verbosity in this script:
     - >= 1.0: print best params, their achieved fidelity,
@@ -55,6 +43,17 @@ PLOT_GUI = False
     - >= 5.0: print params and performance during GridSearch
 '''
 
+# running different RFs or different performance measures according to the 
+# prediction scenarios. So far we have implemented the following 5 cases:
+binary_key_list = ["bin", "binary"]
+survival_key_list = ["surv", "survival"]
+multi_label_key_list = ["multi", "multi-l", "multi-label", "mtc"]
+regression_key_list = ["regression", "regress", "regr"]
+mt_regression_key_list = ["multi-target", "multi-t", "mtr"]
+
+
+
+#%%
  
 df_train = pd.read_csv(os.path.join(data_folder, SETUP + '_tutorial_train.csv'))
 df_test = pd.read_csv(os.path.join(data_folder, SETUP + '_tutorial_test.csv'))
@@ -74,7 +73,7 @@ y_test = y_test[:MAX_TEST_SIZE]
 
 orig_n_labels = y_test.shape[1] #meaningful only in multi-output
 
-#%%
+
 # set target variable to correct format depending on the prediciton
 # scenarios.E.g. set np.recarray fo survival data, or normalise data 
 # in case of single and multi-target regression
@@ -95,6 +94,7 @@ elif SETUP.lower() in regression_key_list + mt_regression_key_list:
     rf = RandomForestRegressor(n_estimators=100, min_samples_split=5,
                                random_state=0)
 
+#%%
 
 #fit RF here. The hyperparameters are given      
 Bellatrex_fitted = Bellatrex(rf, SETUP,
