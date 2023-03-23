@@ -133,12 +133,20 @@ class Bellatrex:
         
         ETrees = TreeExtraction(self.proj_method, self.dissim_method,
                                 self.feature_represent,
-                                self.n_trees, self.n_dims, self.n_clusters,
+                                # referred as (\tau, d, K) in the paper
+                                self.n_trees, self.n_dims, self.n_clusters, 
                                 self.pre_select_trees,
                                 self.fidelity_measure,
                                 self.clf,
                                 oracle_sample,
                                 self.set_up, sample, self.verbose)
+        
+        
+        ''' the TreeExtraction method does most of the computation,
+        Hyperparamter optmimisation takes place here, where all possible 
+        TreeExtraction( \tau, d, K)  candidates are compared and the hyperparameter
+        combination with highest fidelity is selected.
+        '''
         
         # setting default "best", params in case of error
         best_params = {"n_clusters": 2, "n_dims": 2, "n_trees": 20}
@@ -165,32 +173,33 @@ class Bellatrex:
                 if perf > best_perf:
                     best_perf = perf
                     best_params = params
-                    
-        elif self.n_jobs > 1:
-            warnings.warn('Not implemented correctly yet')
+
+        # this piece of code does not work yet                    
+        # elif self.n_jobs > 1:
+        #     warnings.warn('Not implemented correctly yet')
             
-            #function to be called in parallel processing:
-            def run_candidate(**params):
-                try: #better replace with real exception or
-                # add more conditions...
-                    candidate = ETrees.set_params(**params).extract_trees()
-                    perf = candidate.score(self.fidelity_measure, oracle_sample)
-                except: # e.g. a ConvergeWarning from kmeans
-                    warnings.warning('Warning, something went wrong, skipping candidate:', params)
-                    perf = -np.inf
-                return perf, params
+        #     #function to be called in parallel processing:
+        #     def run_candidate(**params):
+        #         try: #better replace with real exception or
+        #         # add more conditions...
+        #             candidate = ETrees.set_params(**params).extract_trees()
+        #             perf = candidate.score(self.fidelity_measure, oracle_sample)
+        #         except: # e.g. a ConvergeWarning from kmeans
+        #             warnings.warning('Warning, something went wrong, skipping candidate:', params)
+        #             perf = -np.inf
+        #         return perf, params
             
-            perfs, params_list = zip(*Parallel(n_jobs=self.n_jobs, prefer="threads")(
-                    delayed(run_candidate)(**params) for params in grid_list))
+        #     perfs, params_list = zip(*Parallel(n_jobs=self.n_jobs, prefer="threads")(
+        #             delayed(run_candidate)(**params) for params in grid_list))
             
-            best_idx = np.argsort(perfs)[::-1][0] # take top performing index
-            best_perf = perfs[best_idx]
-            best_params = params_list[best_idx]
+        #     best_idx = np.argsort(perfs)[::-1][0] # take top performing index
+        #     best_perf = perfs[best_idx]
+        #     best_params = params_list[best_idx]
+        
             
         if best_perf == -np.inf: # if still the case, everything went wrong...
             warnings.warn("The GridSearch did not find any optimum, setting default parameters")
             
-        ## end if/else parallelisation block    
 
         # closed "GridSearch" loop, storing score of the best configuration
         #if best_perf > -np.inf: # everything alright
@@ -214,7 +223,7 @@ class Bellatrex:
 
             #if tuned_method.n_trees == 50 and tuned_method.n_clusters >= 2:
 
-            plot_kmeans, plot_data_bunch= tuned_method.final_tree_representation()
+            plot_kmeans, plot_data_bunch= tuned_method.preselect_represent_cluster_trees()
             
             plot_preselected_trees(plot_data_bunch, plot_kmeans,
                                    tuned_method, final_extract_trees,
@@ -290,9 +299,7 @@ class Bellatrex:
             for j in range(self.clf.n_classes_):
                 y[i,j] = self.predict(X, i)[j] #other outputs are TreeExtraction method and other         
         return y
-    
-    #def score(self. fidelity_measure="fidelity"):
-        
+            
         
         
         

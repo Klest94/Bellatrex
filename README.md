@@ -44,34 +44,33 @@ To get started, the user can replicate some simple examples by running the
 `tutorial.py` script.
 
 
-=======
 # Set-up
 
 To ensure that Bellatrex runs correctly, use a Python environment that matches the requirements indicated in `requirements.txt`. To minimize the chances of encountering compatibility issues, we advice to install the needed packages on a new (conda) environment with:
 ```
-conda create --name bellatrex-trial python=3.9
+conda create --name bellatrex-tutorial python=3.9
 ```
 And proceed by installing the packages listed in the `requirements.txt` file, namely:
 ```
-conda install numpy==1.23.4
-conda install pandas==1.5.4
-conda install matplotlib==3.6.2
 conda install scikit-learn==1.1.3
 conda install scikit-survival==0.19.0 # in case of error, try one of these:
     conda install -c sebp scikit-survival
     conda install -c conda-forge scikit-survival 
+conda install matplotlib==3.6.2
+
 ```
+This will also install dependencies such as `numpy` and `pandas`.
 
+Older versions of the aformentioned packages might work, but `DeprecationWarning` messages will be raised. Newer versions are likley to work but have not been tested; compatibility with Linux or OS architectures has not been tested.
 
-Older versions might also work, but `DeprecationWarning` messages will be raised, newer versions are also likley to work byt have not been tested. Compatibility with Linux or OS architectures has not been tested.
+## Enable Graphical User Interface
 
-## Graphical User Interface
-
-For an enhanced user experience that includes interactive plots, the following packages need to be installed through pip (not available on conda):
+For an enhanced user experience that includes interactive plots, install the following packages through pip (not available on conda):
 ```
 pip install dearpygui==1.6.2 
 pip install dearpygui-ext==0.9.5
 ```
+To activate the GUI, set the `plot_gui = True`.
 
 # Bellatrex tutorial
 
@@ -139,7 +138,7 @@ mt_regression_key_list = ["multi-target", "multi-t", "mtr"]
 
 ## Step 2: Load and preprocess Data
 
-Load training and testing data from the `.csv` files, split them into features (X) and targets (y), and preprocess the data by formatting the target variables according to the prediction scenarios. Instantiate the appropriate `RandomForest` model.
+Load training and testing data from the `.csv` files, split them into features X and targets (y), and preprocess the data by formatting the target variables according to the prediction scenarios. Instantiate the appropriate `RandomForest` model.
 
 ```
 df_train = pd.read_csv(os.path.join(data_folder, SETUP + '_tutorial_train.csv'))
@@ -208,7 +207,7 @@ stored_info = [] #store extra info such as optimal hyperparameters (for each ins
 
 ```
 
-# Step 4: Make predictions, output explanations
+## Step 4: Make predictions, output explanations
 
 Loop through the test set, make predictions using the Bellatrex local method, and store the results.
 
@@ -245,10 +244,125 @@ y_test = y_test[:MAX_TEST_SIZE]
 y_ens_pred = y_ens_pred[:MAX_TEST_SIZE]
 ```
 
-The output explanation will consist in a few rules extracted from the original Random Forest.
+The output explanation consists in a few rules extracted from the original Random Forest. Most of the computation happens at this stage whithin the `.predict` method, more explicitely within the `TreeExtraction` class that is instantiated at this stage. It is worth diving into it more details,
+and look into the `preselect_represent_cluster_trees` method, that does most of the job.
+
+### Step 4a: tree pre-selection
+
+The first step consists in selecting a subset of trees from the RF, with the goal of eliminating outliers.
+This is performed by computing, for a given instance $\bm{x}$ to explain, how far a single tree prediction is cmapred to the ensemble prediction. This is performed by `calcul_tree_proximity_loss` function, and the best $\tau$ trees are kept for the later steps.
+
+### Step 4b tree representation as vectors
+
+The second step consists in representing each of the preselected trees $\mathcal{T}_i$ as a vector.
+Given the local nature of Bellatrex, we folow a novel, path-based approach, where the vector epresentation for $\mathcal{T}_i$ also depends on the instance of interest $\bm{x}$. More specifically, we follow $\bm{x}$ as it traverses the tree and we keep track of the input covariates used to perform each split.
+Next, we assign for each split at node $k$ a contribution to the vector representation that is proportional to the number of instances $n(k)$ traversing the node during the training phase of the tree learner. The procedure is performed by `tree_splits_to_vector` function. For more details, refer to our paper **cite here**.
+
+**example figure here?**
+
+### Step 4c: dimensionality reduction
+
+Next, we project such tree vector representations to a low-dimensional space using Principal Component Analysis (PCA). The idea is to remove noise, to improve computational efficiency for later steps, and to enable a better visualisation of the subsequent clustering.
+
+### Step 4d: final rule extraction
+
+Finally, we perform clustering on the vector representations using a standard clustering method, such as K-Means++. By doing so, we group the vectors into $K$ clusters, we identify the vector closest to each cluster centre and pick the corresponding rule $\mathcal{T}_{\tau_k}$ as a representative for explaining the outcome of the model. The rules extracted with this procedure are what we call _final rules_.
 
 
-# Step 5: Evaluate performance
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/Klest94/Bellatrex/blob/main/plot_blood_i65.png?raw=true" alt="Bellatrex image"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <em> Situation after the pre-selected trees have been clustered. For this instance, 3 clusters lead to the most faithful prediction (highlighted on the left). The 3 rules clostest to the cluster center are selected and shown to the end user as an explanation (starred shape). The right side of the plot highlights the predicted labels of the single trees. </em>
+    </td>
+  </tr>
+</table>
+
+### Step 4e: Bellatrex prediction
+
+Finally, given the $K$ clusters, the corresponding final rules $\mathcal{T}_{\tau_k}$, and the instance $\bm{x}$, we build a surrogate model prediction as follows:
+
+$$\tilde{y} = \sum_{k=1}^K w_k ~\mathcal{T}_{\tau_k}(\bm{x})$$
+
+Where $w_k$ represents the weight given to the cluster $k$. We define $w_k$ as the proportion of the $\tau$ pre-selected rules that are part of the cluster. In other words, the surrogate model predicts a weighted average of the selected rules.
+
+### Bellatrex explanation
+
+The sample 
+
+```
+  X_0   X_1   X_2    X_3
+   4    6    1500   35
+```
+
+The output expalanation of Bellatrex consists in the $K$ final rules, these rules are shown to the end user.
+
+```
+Baseline prediction: 0.2346 	 (weight = 0.24)
+node   0: w: 1.000 2        >  875.00 (2        = 1500.00)  -->  0.3021
+node  76: w: 0.521 0        <=   6.50 (0        =   4.00)  -->  0.4611
+node  77: w: 0.289 2        <= 3125.00 (2        = 1500.00)  -->  0.4110
+node  78: w: 0.230 3        <=  42.00 (3        =  35.00)  -->  0.5806
+node  79: w: 0.149 3        >   15.50 (3        =  35.00)  -->  0.5309
+node  83: w: 0.132 3        >   27.00 (3        =  35.00)  -->  0.6400
+node  99: w: 0.071 3        <=  37.50 (3        =  35.00)  -->  0.6047
+node 100: w: 0.061 3        <=  36.00 (3        =  35.00)  -->  0.6190
+node 101: w: 0.059 1        <=  11.50 (1        =   6.00)  -->  0.6000
+node 102: w: 0.056 2        <= 2625.00 (2        = 1500.00)  -->  0.6316
+node 103: w: 0.051 0        <=   4.50 (0        =   4.00)  -->  0.6667
+node 104: w: 0.049 1        <=   9.50 (1        =   6.00)  -->  0.6129
+node 105: w: 0.042 1        <=   8.50 (1        =   6.00)  -->  0.6786
+node 106: w: 0.039 3        >   28.50 (3        =  35.00)  -->  0.6087
+node 108: w: 0.029 1        <=   7.50 (1        =   6.00)  -->  0.5714
+node 109: w: 0.024 1        <=   6.50 (1        =   6.00)  -->  0.6111
+node 110: w: 0.020 2        >  1125.00 (2        = 1500.00)  -->  0.5833
+node 112: w: 0.012 3        >   33.50 (3        =  35.00)  -->  0.5000
+leaf 114: predicts:0.5000
+```
+
+```
+Baseline prediction: 0.2346 	 (weight = 0.42)
+node   0: w: 1.000 1        >    4.50 (1        =   6.00)  -->  0.3536
+node  74: w: 0.442 0        <=   4.50 (0        =   4.00)  -->  0.5031
+node  75: w: 0.260 1        <=  15.00 (1        =   6.00)  -->  0.4380
+node  76: w: 0.224 3        <=  43.50 (3        =  35.00)  -->  0.6341
+node  77: w: 0.135 3        >   15.50 (3        =  35.00)  -->  0.6000
+node  79: w: 0.123 1        <=  13.50 (1        =   6.00)  -->  0.6164
+node  80: w: 0.118 2        >  1375.00 (2        = 1500.00)  -->  0.6491
+node  88: w: 0.093 0        >    2.50 (0        =   4.00)  -->  0.4667
+node 100: w: 0.047 3        >   21.50 (3        =  35.00)  -->  0.5385
+node 102: w: 0.042 3        <=  38.50 (3        =  35.00)  -->  0.6500
+node 103: w: 0.034 3        >   30.50 (3        =  35.00)  -->  0.8571
+node 111: w: 0.012 3        <=  36.50 (3        =  35.00)  -->  0.7500
+leaf 112: predicts:0.7500
+```
+
+```
+Baseline prediction: 0.2299 	 (weight = 0.34)
+node   0: w: 1.000 0        <=   4.50 (0        =   4.00)  -->  0.3469
+node   1: w: 0.511 1        >    4.50 (1        =   6.00)  -->  0.4647
+node  39: w: 0.284 2        <= 6250.00 (2        = 1500.00)  -->  0.4479
+node  40: w: 0.268 0        >    2.50 (0        =   4.00)  -->  0.3820
+node  72: w: 0.142 3        <=  42.50 (3        =  35.00)  -->  0.6122
+node  73: w: 0.084 2        <= 2375.00 (2        = 1500.00)  -->  0.5750
+node  74: w: 0.068 3        <=  40.50 (3        =  35.00)  -->  0.5278
+node  75: w: 0.066 1        <=   8.50 (1        =   6.00)  -->  0.5588
+node  76: w: 0.063 3        >   27.00 (3        =  35.00)  -->  0.4118
+node  84: w: 0.035 1        >    5.50 (1        =   6.00)  -->  0.3636
+node  88: w: 0.023 3        >   31.00 (3        =  35.00)  -->  0.6000
+node  90: w: 0.013 3        >   34.50 (3        =  35.00)  -->  0.3333
+leaf  92: predicts:0.3333
+```
+
+
+
+
+
+## Step 5: Evaluate performance
 
 Also, compute the performance of Bellatrex compared to the original RandomForest model.
 
@@ -271,7 +385,6 @@ if SETUP.lower() in multi_label_key_list + mt_regression_key_list:
 
 print(performances)
 ```
->>>>>>> Stashed changes
 
 # Additional material (draft)
 

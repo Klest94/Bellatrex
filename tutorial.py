@@ -14,7 +14,7 @@ from utilities import format_targets, format_RF_preds
 from LocalMethod_class import Bellatrex
 
 # reduce MAX_TEST_SIZE for quick code testing
-MAX_TEST_SIZE = 10 #if set >= 100, it takes the (original) value X_test.shape[0]
+MAX_TEST_SIZE = 100 #if set >= 100, it takes the (original) value X_test.shape[0]
 
 p_grid = {
     "n_trees": [0.2, 0.5, 0.8], # [100] for "noTrees_" ablation
@@ -28,9 +28,9 @@ root_folder = os.getcwd()
 data_folder = os.path.join(root_folder, "datasets")
 
 ''' choose appropriate learning task wth SETUP parameter '''
-SETUP = "mtr" # "bin", or "mtr" 
+SETUP = "surv" # "bin", or "mtr" 
 
-VERBOSE = 3
+VERBOSE = 4
 
 PLOT_GUI = False
 '''  levels of verbosity in this script:
@@ -114,7 +114,8 @@ y_pred = []
 
 stored_info = [] #store extra info such as optimal hyperparameters (for each instance)
 
-for i in range(N): #for every sample in the test set: call .predict
+# for i in range(N): #for every sample in the test set: call .predict
+for i in [41, 45, 65]:
           
     # call the .predict method. The hyperparamters were given in the .fit.
     # Now they are actively used and tuned for every instance

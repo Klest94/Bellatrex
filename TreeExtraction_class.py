@@ -92,10 +92,10 @@ class TreeExtraction: # (LocalMethod) is it convenient if it inherits?
 
         '''this is the main function, does the following:
            raw_tree data:
-            - compute tree loss, ( and sort for pre-filtering)
+            - compute tree loss, (and sort for pre-filtering)
             - computes vectos_to_matrix,
             - performs dim_reduction step
-           cluster_extract_final_trees
+           extract_final_trees
             - clusters the output tree-representations and select centers ( with weights)
         '''
         ''' HL bunch properties:
@@ -105,15 +105,17 @@ class TreeExtraction: # (LocalMethod) is it convenient if it inherits?
                   RF_pred=RF_pred,      ---> RF original prediction
                   loss=HL_losses)       ---> distance ( loss) to full RF prediction 
         '''
-        kmeans, HL_bunch = self.final_tree_representation()
+        kmeans, HL_bunch = self.preselect_represent_cluster_trees()
         
         self.final_trees_idx, \
-        self.cluster_sizes = self.cluster_extract_final_trees(HL_bunch.proj_data,
+        self.cluster_sizes = self.extract_final_trees(HL_bunch.proj_data,
                                                               HL_bunch.index, kmeans)
         return self
     
 
-    def final_tree_representation(self):
+    def preselect_represent_cluster_trees(self):
+        
+        
         ### pre-selection step:
         tree_local_losses, RF_pred = self.calcul_tree_proximity_loss(self.sample) #w.r.t. to sample we want to explain
         
@@ -148,8 +150,6 @@ class TreeExtraction: # (LocalMethod) is it convenient if it inherits?
         
         if self.proj_method == "PCA":
             pass #no pairwise distance calculation
-
-            
            
         # for MDS, a transformation to distance square matrix is needed first
         elif self.proj_method == "MDS":
@@ -175,8 +175,8 @@ class TreeExtraction: # (LocalMethod) is it convenient if it inherits?
         # dim_reduction calls either PCA or MDS, according to proJ-method variable
         proj_trees = self.dim_reduction(tree_matrix) # from pandas to numpy. Indexes stored in Bunch
         
-        
-        if not all(isinstance(y, float) for y in HL_preds): # if not floats...
+        # y needs to contain all floats...
+        if not all(isinstance(y, float) for y in HL_preds): 
             if HL_preds[0].size < 2:    # but is single target output
                 HL_preds = [float(y) for y in HL_preds] # fix to float
                 RF_pred = float(RF_pred)            # fix to float
@@ -205,8 +205,8 @@ class TreeExtraction: # (LocalMethod) is it convenient if it inherits?
             #output info in the same format so that the cases are indistinguishable
             one_label = np.zeros(proj_trees.shape[0], dtype=np.int8)
             one_center = np.mean(proj_trees, axis=0) 
-            
-            kmeans = Bunch(labels_=one_label, #fake kmeans instance
+            # mimic a kmeans instance
+            kmeans = Bunch(labels_=one_label, #kmeans.lables_ is a 1D array of 1s only (single class)
                            cluster_centers_= np.array([one_center]) # kmeans.centers_ is a 2D array
                            ) 
                 
@@ -372,7 +372,7 @@ class TreeExtraction: # (LocalMethod) is it convenient if it inherits?
         
         return proj_trees
     
-    def cluster_extract_final_trees(self, proj_trees_data, origin_indeces, kmeans):
+    def extract_final_trees(self, proj_trees_data, origin_indeces, kmeans):
         
 
         cluster_sizes = np.bincount(kmeans.labels_)
