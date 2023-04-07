@@ -10,6 +10,7 @@ import pylab
 import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm
 from matplotlib.ticker import FormatStrFormatter
+from matplotlib.ticker import FuncFormatter
 from sklearn import tree
 import sklearn
 import sksurv
@@ -24,10 +25,9 @@ def rule_print_inline(tree, sample, weight=None):
     print(sample.to_string())
     print('#'*54)
     node_indicator = clf.decision_path(sample.values)
-    #leaf_id = clf.apply(sample)
-    
+    #leaf_id = clf.apply(sample)    
+
     node_weights = clf.tree_.n_node_samples/(clf.tree_.n_node_samples[0])
-    #n_nodes = clf.tree_.node_count
     children_left = clf.tree_.children_left
     children_right = clf.tree_.children_right
     feature = clf.tree_.feature
@@ -63,9 +63,16 @@ def rule_print_inline(tree, sample, weight=None):
         #else:
         #    KeyError("n_classes > 1, not implemented yet.")            
         # multi-output Survival Tree does not exist yet
-        partial_preds = tree.tree_.value[:,-1, 0] # CHF at last time point
-                            # values: [node, times, [H(node), S(node)]]
-    
+        
+        # node label, plotting risk score
+        # tree.tree_.value: np array of [node, time, [H(node), S(node)]]
+        #                                              ^idx 0   ^idx 1
+        # currently: 'integral' of the CHF (without taking into account time spacing)
+        # coherent with the .predict method
+        partial_preds = np.sum(tree.tree_.value[:,:, 0], axis=1)
+        # alternative:
+        # partial_preds = tree.tree_.value[:,-1, 0] # CHF at last time point
+                            
     else:
         raise ValueError('Tree learner not recognized, or not implemented')
     
@@ -74,7 +81,7 @@ def rule_print_inline(tree, sample, weight=None):
     else:
         print('Baseline prediction: {:.4f} \t (weight = {:.2f})'.format(partial_preds[0], weight))
 
-    for node_id in node_index[:-1]: #internal nodes ( exclude leaf)
+    for node_id in node_index[:-1]: #internal nodes (exclude leaf)
         # continue to the next node if it is a leaf node
         #if leaf_id[sample_id] == node_id:
         #    continue
@@ -116,7 +123,7 @@ def rule_print_inline(tree, sample, weight=None):
         KeyError("check tree method, is it correct?")
 
     print(
-        "leaf {node:3}: predicts:{predict:5.4f}".format(
+        "\nleaf {node:3}: predicts:{predict:5.4f}".format(
             node=node_index[-1],
             predict=float(y_pred)
         )
@@ -423,18 +430,19 @@ def output_X_y(df, set_up):
     if set_up in ["bin", "binary"] + ["regress", "regression"]:   
         y_cols = df.columns[-1:] #as list of single element
 
-    if set_up in ["surv", "survival"]:        
+    elif set_up in ["surv", "survival"]:        
 
         df[df.columns[-2]] = df[df.columns[-2]].astype('bool') # needed for correct recarray
         y_cols = df.columns[-2:]
 
 
-    if set_up in ["mtr", "multi-target"]:        
+    elif set_up in ["mtr", "multi-target"]:        
         y_cols = [col for col in df.columns if "target_" in col]
     
-    if set_up in ["mtc", "multi-label"]:         
+    elif set_up in ["mtc", "multi-label"]:         
         y_cols = [col for col in df.columns if "label" in col or "tag_" in col]
-        
+    else:
+        raise ValueError('Setup {} not recognized'.format(set_up))
     
     y = df[y_cols]
     X = df[df.columns[~df.columns.isin(y_cols)]]
@@ -517,7 +525,6 @@ def preparing_data(set_up, datapath, folder, n_folds=5, stratify=True):
         print("X size:", X.shape)
         y = pd.DataFrame(data, columns=label_cols)
         print("y size:", y.shape)
-        #y = (y - y.min())/(y.max() - y.min()) # scale to [0-1]        
         y = (y-y.min())/(y.max()-y.min()) # min-max normalization (per target)
         y_strat = None # and stratify is set to False
     
@@ -626,6 +633,20 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     small_size = 40
     big_size = 220
     
+    # Custom formatter function for colorabar on ax4
+    # not working correctly..
+    def custom_formatter(x, pos): # pos paramter to comply with expected signature
+        if np.abs(x) < 1e-7: # 0.00 for near zero values
+            return f"{x:.2f}"
+        if 1e-2 <= np.abs(x) < 1:
+            return f"{x:.2f}"  # 2 decimal digits for numbers between -1 and 1
+        elif 1 <= np.abs(x) < 10:
+            return f"{x:.1f}"  # 1 decimal digit 
+        elif 10 <= np.abs(x) < 100:
+            return f"{x:.0f}"  # 0 decimal digits (round to nearest integer)
+        else: # 1e-7 < np.abs(x) < 1e-2 or  np.abs(x) > 100
+            return f"{x:.1e}"  # Scientific notation with 2 significant digits
+    
     if show_ax_ticks == "auto":
         show_ax_ticks = False if base_font_size > 15 else True
     
@@ -723,7 +744,8 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     
     # colorab on axis 2 out of 4.
     cb = mpl.colorbar.Colorbar(ax2, cmap=cmap, norm=norm,
-        spacing='proportional', ticks=tickz, boundaries=norm_bins, format='%1i')
+        spacing='proportional', ticks=tickz, boundaries=norm_bins,
+        format='%1i')
         #label="cluster membership")
     cb.ax.set_yticklabels(labels)  # vertically oriented colorbar
     cb.ax.tick_params(labelsize=base_font_size-1) #ticks font size
@@ -783,6 +805,7 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         pred_tick = np.round(float(tuned_method.local_prediction()), 3)
         
         cb2 = mpl.colorbar.Colorbar(ax4, cmap=cmap2, norm=norm_preds,
+                                    format=FuncFormatter(custom_formatter),
                                     label="predicted: " + str(pred_tick))
         ax3.set_title('Rule-path predictions', fontdict={'fontsize': base_font_size+2})
         
@@ -790,9 +813,11 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         #if isinstance(tuned_method.clf, sksurv.ensemble.RandomSurvivalForest)
         
         ## add to colorbar a line corresponding to LTreeX prediction
-        cb2.ax.plot([0, 1], [plot_data_bunch.pred]*2, color='grey', linewidth=1)
-        cb2.ax.plot([0.02, 0.98], [pred_tick]*2, color='black', linewidth=2.5, marker="P")
-        
+        cb2.ax.plot([0, 1], [plot_data_bunch.pred]*2, color='grey',
+                    linewidth=1)
+        cb2.ax.plot([0.02, 0.98], [pred_tick]*2, color='black', linewidth=2.5,
+                    marker="P")
+                
         
         if isinstance(tuned_method.clf, sksurv.ensemble.RandomSurvivalForest):
             cb2.set_label("Cumul.Hazard: "+ str(pred_tick),
@@ -841,7 +866,15 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         cb2.ax.plot([0, 1], [plot_data_bunch.loss]*2, color='grey', linewidth=1)
 
     # end indentation single-target vs multi-target case
-    ax4.yaxis.set_major_formatter(FormatStrFormatter('%.2g'))
+    
+    ticks_to_plot = ax4.get_yticks()
+    
+    if np.abs(np.min(ticks_to_plot)) < 1e-3 and np.abs(np.max(ticks_to_plot)) > 1e-2:
+        min_index = np.argmin(ticks_to_plot)
+        ticks_to_plot[min_index] = 0
+        ax4.set_yticks(ticks_to_plot)
+
+    ax4.yaxis.set_major_formatter(FuncFormatter(custom_formatter))
     ax4.minorticks_off()
     
     cb2.ax.tick_params(labelsize=base_font_size-3) #ticks font size
@@ -859,24 +892,6 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     return #plottable_data, labels
 
 
-
-# class Format_class:
-    
-#     RAND_SEED = 0
-#     BINARY_KEYS = ["bin", "binary"]
-#     SURVIVAL_KEYS = ["surv", "survival"]
-#     REGRESSION_KEYS = ["regress", "regression", "regr"]
-#     MTC_KEYS = ["multi-l", "multi-label", "mtc", "multi"]
-#     MTR_KEYS = ["multi-t", "multi-target", "mtr"]
-     
-#     def __init__(self,
-#                  set_up,
-#                  verbose=0):
-        
-#         self.set_up=set_up
-#         self.verbose=verbose
-        
-
 def format_targets(y_train, y_test, SETUP, verbose=0):
     
     BINARY_KEYS = ["bin", "binary"]
@@ -885,8 +900,10 @@ def format_targets(y_train, y_test, SETUP, verbose=0):
     MTC_KEYS = ["multi-l", "multi-label", "mtc", "multi"]
     MTR_KEYS = ["multi-t", "multi-target", "mtr"]
     
-    # adapt data format ( especially target y) to prediction task
-    
+    # This function sets target variable to the correct format depending 
+    # on the prediciton scenarios.E.g. sets np.recarray for survival data,
+    # or normalises data for single and multi-target regression tasks.
+
     if SETUP.lower() in BINARY_KEYS+ REGRESSION_KEYS:
         y_train = y_train.values
         y_test = y_test.values
@@ -919,7 +936,6 @@ def format_targets(y_train, y_test, SETUP, verbose=0):
     # formatting y target complete
     
     return y_train, y_test
-
 
 
 def format_RF_preds(rf, X_test, SETUP):

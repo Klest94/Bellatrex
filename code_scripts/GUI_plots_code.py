@@ -7,7 +7,7 @@ from sklearn.decomposition import PCA
 #from utilities import plot_my_tree
 from plot_tree_patch import plot_tree_patched
 from utilities import rule_print_inline, custom_axes_limit
-
+from matplotlib.ticker import FuncFormatter
 #DPG setup
 import dearpygui.dearpygui as dpg
 from dearpygui_ext.themes import create_theme_imgui_light
@@ -280,13 +280,15 @@ def make_interactive_plot(plots, plotheight=400,borderpercent=0.1,
                 averagecoord = [sum(x)/len(x) for x in zip(*coords)]
                 averagecoords.append(averagecoord)
         
+    sample_index = other_inputs.sample.index[0]
 
-    
     #DPG build windows
-    with dpg.window(tag="MainWindow", width=windowwidth, height=windowheight,no_title_bar=True, no_move=True,no_resize=True):
+    with dpg.window(tag="MainWindow", width=windowwidth,
+                    label="Explaining sample "+ str(sample_index) + ", close the window to go to the next sample",
+                    height=windowheight, no_title_bar=False,
+                    no_move=True,no_resize=True):
         with dpg.group(horizontal=True):
             for plot in plots:
-                
                 # Adds interactable plot
                 with dpg.plot(tag="Plot"+plot.name,height=plotheight,width=plotheight):
                     
@@ -349,6 +351,21 @@ def plot_with_interface(plot_data_bunch, kmeans,
     def rgbaconv(mpl_rgba):
         dpg_rgba=[i*255 for i in mpl_rgba]
         return dpg_rgba
+    
+    
+    # Custom formatter function for colorabar on ax4
+    # not working correctly..
+    def custom_formatter(x, pos): # pos paramter to comply with expected signature
+        if np.abs(x) < 1e-7: # 0.00 for near zero values
+            return f"{x:.2f}"
+        if 1e-2 <= np.abs(x) < 1:
+            return f"{x:.2f}"  # 2 decimal digits for numbers between -1 and 1
+        elif 1 <= np.abs(x) < 10:
+            return f"{x:.1f}"  # 1 decimal digit 
+        elif 10 <= np.abs(x) < 100:
+            return f"{x:.0f}"  # 0 decimal digits (round to nearest integer)
+        else: # 1e-7 < np.abs(x) < 1e-2 or  np.abs(x) > 100
+            return f"{x:.1e}"  # Scientific notation with 2 significant digits
     
     #repeat PCA to 2 dimensions for projected trees
     #(original proj dimension can be > 2)
@@ -449,11 +466,17 @@ def plot_with_interface(plot_data_bunch, kmeans,
                 cb2.ax.plot([0, 1], [plot_data_bunch.loss]*2, color='grey',
                             linewidth=1)
             
-            ax.yaxis.set_major_formatter(mpl.ticker.FormatStrFormatter('%.3g'))
-            #ax.yaxis.set_major_formatter(mpl.ticker.FormatStrFormatter('%.3f'))
+            # ax.yaxis.set_major_formatter(mpl.ticker.FormatStrFormatter('%.2g'))            
+            ticks_to_plot = ax.get_yticks()
             
-            ax.minorticks_off()
+            if np.abs(np.min(ticks_to_plot)) < 1e-3 and np.abs(np.max(ticks_to_plot)) > 1e-2:
+                min_index = np.argmin(ticks_to_plot)
+                ticks_to_plot[min_index] = 0
+                ax.set_yticks(ticks_to_plot)
 
+            ax.yaxis.set_major_formatter(FuncFormatter(custom_formatter))
+            ax.minorticks_off()
+            
             
             if isinstance(plot_data_bunch.RF_pred, float): #single output case
                 norms=[norm_preds(plot_data_bunch.pred[i]) for i in range(len(cluster_memb))]

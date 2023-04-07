@@ -8,8 +8,8 @@ from sklearn.cluster import KMeans
 from sklearn.neighbors import KDTree
 import sksurv
 
-from TreeRepresentation_utils import tree_splits_to_vector#tree_vector
-from TreeRepresentation_utils import rule_splits_to_vector, add_emergency_noise
+from code_scripts.TreeRepresentation_utils import tree_splits_to_vector#tree_vector
+from code_scripts.TreeRepresentation_utils import rule_splits_to_vector, add_emergency_noise
 
 #, Jaccard_trees or Jaccard_rules
 from sklearn.utils import Bunch

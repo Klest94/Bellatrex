@@ -2,6 +2,7 @@
 __pycache__/
 MS_BASE_static/
 MS_BASE_dynamic/
+augmentation_project/
 tuned_hyperparams/binary/*
 tuned_hyperparams/MTR/*
 tuned_hyperparams/multi_label/*
