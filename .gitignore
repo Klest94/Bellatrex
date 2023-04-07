@@ -2,6 +2,8 @@
 __pycache__/
 MS_BASE_static/
 MS_BASE_dynamic/
+code_scripts/Bellatrex_on_MSBase.py
+code_scripts/trial XGBoost.py
 augmentation_project/
 tuned_hyperparams/binary/*
 tuned_hyperparams/MTR/*
@@ -16,8 +18,7 @@ predictions/regression/*
 predictions/survival/*
 GUI-plots-Niels/
 ArXiv-paper/
-RF_analysis.py
-trial XGBoost.py
+
 *.ini
 *.bak
 R_scripts/
