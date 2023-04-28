@@ -18,7 +18,6 @@ predictions/regression/*
 predictions/survival/*
 GUI-plots-Niels/
 ArXiv-paper/
-
 *.ini
 *.bak
 R_scripts/

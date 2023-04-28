@@ -2,7 +2,7 @@ import numpy as np
 #from TreeExtraction_class import TreeExtraction
 #from TreeRepresentation import Jaccard_trees
 #from TreeRepresentation import Jaccard_rules
-from TreeRepresentation_utils import tree_splits_to_vector, rule_splits_to_vector
+from code_scripts.TreeRepresentation_utils import tree_splits_to_vector, rule_splits_to_vector
 
 
 class TreeDissimilarity:

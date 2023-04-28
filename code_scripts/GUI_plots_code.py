@@ -5,8 +5,8 @@ import warnings
 import os
 from sklearn.decomposition import PCA
 #from utilities import plot_my_tree
-from plot_tree_patch import plot_tree_patched
-from utilities import rule_print_inline, custom_axes_limit
+from code_scripts.plot_tree_patch import plot_tree_patched
+from code_scripts.utilities import rule_print_inline, custom_axes_limit
 from matplotlib.ticker import FuncFormatter
 #DPG setup
 import dearpygui.dearpygui as dpg
@@ -87,10 +87,10 @@ def make_interactive_plot(plots, plotheight=400,borderpercent=0.1,
                         real_plot_depth = my_clf[tree_index].tree_.max_depth
     
                     
-                        smart_width = 1 + 1.5*np.sqrt(real_plot_leaves**1.5)
+                        smart_width = 1 + 1.0*np.sqrt(real_plot_leaves**1.5)
                         smart_width = int(smart_width)
                         
-                        smart_height = real_plot_depth*1.4
+                        smart_height = real_plot_depth*0.9
                         smart_height = int(smart_height)
                         #print("figsize:", (smart_width, smart_height))
                         fig, ax = plt.subplots(figsize=(smart_width, smart_height))
@@ -106,8 +106,9 @@ def make_interactive_plot(plots, plotheight=400,borderpercent=0.1,
                             plot_tree_patched(the_tree,
                                       max_depth=max_depth,
                                       feature_names=feature_names,
-                                      fontsize=6)
-                            plt.title("Candidate %i predicting sample %i" % (tree_index, sample_index))
+                                      fontsize=12)
+                            plt.rcParams["font.size"] = 14 
+                            plt.title("Tree %i predicting sample %i" % (tree_index, sample_index))
                             plt.savefig(tree_name_png)
                             plt.show()
 
@@ -328,7 +329,7 @@ def make_interactive_plot(plots, plotheight=400,borderpercent=0.1,
 
     
 def plot_with_interface(plot_data_bunch, kmeans,
-                           tuned_method,
+                           input_method,
                            max_depth=None,
                            clusterplots=[True,False]):
 
@@ -377,7 +378,7 @@ def plot_with_interface(plot_data_bunch, kmeans,
     cluster_memb = kmeans.labels_
     
     #cluster_memb = 
-    final_ts_idx = tuned_method.final_trees_idx
+    final_ts_idx = input_method.final_trees_idx
     
     
     is_final_candidate = [plot_data_bunch.index[i] in final_ts_idx for i in range(len(plot_data_bunch.index))]
@@ -462,7 +463,7 @@ def plot_with_interface(plot_data_bunch, kmeans,
                 
                 
                 cb2 = mpl.colorbar.Colorbar(ax, cmap=color_map, norm=norm_preds,
-                                            label=str(tuned_method.fidelity_measure)+' loss')
+                                            label=str(input_method.fidelity_measure)+' loss')
                 cb2.ax.plot([0, 1], [plot_data_bunch.loss]*2, color='grey',
                             linewidth=1)
             
@@ -511,7 +512,8 @@ def plot_with_interface(plot_data_bunch, kmeans,
                     ValueError("expecting float, got {} instead".format(type(plot_data_bunch.loss)))
         plots.append(interactable_plot(plotindex, points,clustered=clustered))
     make_interactive_plot(plots,plotheight=400,borderpercent=0.1,
-                          other_inputs=tuned_method)
+                          other_inputs=input_method,
+                          max_depth=max_depth)
     
     plt.show()
     

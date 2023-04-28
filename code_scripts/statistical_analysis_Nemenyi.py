@@ -2,7 +2,7 @@ import numpy as np
 import os
 import pandas as pd
 
-SAVE_OUTPUTS = True
+SAVE_OUTPUTS = False
 
 #from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
@@ -24,6 +24,9 @@ NOTES = PROJ_METHOD + "_" + FEAT_REPRESENTATION + "_"
 ##########################################################################
 #root_folder = "C:/Users/u0135479/Documents/GitHub/Explain-extract-trees/"
 root_folder = os.getcwd()
+if root_folder.endswith("code_scripts"):
+    root_folder = os.path.dirname(root_folder) 
+    os.chdir(root_folder)
 
 results_folder = os.path.join(root_folder, "Final_results")
 

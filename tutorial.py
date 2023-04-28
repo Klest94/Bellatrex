@@ -3,14 +3,13 @@
 @institution:  KU Leuven
 """
 import os
-os.environ["OMP_NUM_THREADS"] = "1" # avoids memory leak UserWarning caused by KMeans
+os.environ["OMP_NUM_THREADS"] = "1" # avoids memory leak caused by K-Means
 import numpy as np
 import pandas as pd
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 from sksurv.ensemble import RandomSurvivalForest
-
 
 from code_scripts.utilities import score_method, output_X_y
 from code_scripts.utilities import format_targets, format_RF_preds
@@ -51,7 +50,7 @@ performed by a RandomForestRegressor
 
 SETUP = "bin"
 VERBOSE = 3
-PLOT_GUI = False
+PLOT_GUI = True
 
 '''  levels of verbosity in this script:
     - >= 1.0: print best params, their achieved fidelity,
@@ -109,7 +108,8 @@ Bellatrex_fitted = Bellatrex(rf, SETUP,
                             n_jobs=1,
                             verbose=VERBOSE,
                             plot_GUI=PLOT_GUI,
-                            dpi_figure=80).fit(X_train, y_train)
+                            plot_max_depth=5,
+                            dpi_figure=100).fit(X_train, y_train)
 
 
 # store, for every sample in the test set, the Bellatrex predictions

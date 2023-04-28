@@ -13,5 +13,5 @@ pip install dearpygui-ext==0.9.5
 ### requirements for statistical testing (not for the Bellatrex itself) ###
 # orange==3.30.2 (Not compatible with spyder 5.2.2 ?)
 #with PIP:
-pip install orange==0.30.2
+pip install orange==3.30.2
 

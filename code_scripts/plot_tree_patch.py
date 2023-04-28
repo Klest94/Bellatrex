@@ -268,8 +268,8 @@ class _BaseTreeExporter(object):
             if criterion != "logrank":
                 node_string += (str(round(tree.impurity[node_id], self.precision))
                                 + characters[4])
-            elif criterion == "logrank":
-                node_string += ("NaN" + characters[4])
+            elif criterion == "logrank": #assigned manually in this patch
+                node_string += "\n"#("NaN" + characters[4])
 
         # Write node sample count
         if labels:

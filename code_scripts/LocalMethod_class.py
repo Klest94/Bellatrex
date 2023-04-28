@@ -1,9 +1,7 @@
 from code_scripts.TreeExtraction_class import TreeExtraction
 from sklearn.model_selection import ParameterGrid
 from code_scripts.utilities import plot_preselected_trees, rule_print_inline
-# from plot_tree_patch import plot_tree_patched
 from joblib import Parallel, delayed
-# import matplotlib.pyplot as plt
 import os
 import warnings
 import numpy as np
@@ -122,9 +120,9 @@ class Bellatrex:
         sample = X[idx:idx+1]
         
         if self.ys_oracle != None:
-            oracle_sample = self.ys_oracle.iloc[idx] #pick needed one
+            self.ys_oracle = self.ys_oracle.iloc[idx] #pick needed one
         else:
-            oracle_sample  = None
+            self.ys_oracle  = None
 
                         
         param_grid = {              #lists or single entries
@@ -141,6 +139,7 @@ class Bellatrex:
         grid_list = list(ParameterGrid(param_grid))
         best_perf = -np.inf
         
+        
         ETrees = TreeExtraction(self.proj_method, self.dissim_method,
                                 self.feature_represent,
                                 # referred as (\tau, d, K) in the paper
@@ -148,7 +147,7 @@ class Bellatrex:
                                 self.pre_select_trees,
                                 self.fidelity_measure,
                                 self.clf,
-                                oracle_sample,
+                                self.ys_oracle,
                                 self.set_up, sample, self.verbose)
         
         
@@ -161,17 +160,12 @@ class Bellatrex:
         # setting default "best", params in case of error
         best_params = {"n_clusters": 2, "n_dims": 2, "n_trees": 20}
         
-        
-        if self.n_jobs > 1:
-            warnings.warn('Multiprocessing does not work yet, do not use'
-                          'n_jobs > 1 (currently: {}). Setting n_jobs=1 for now'.format(self.n_jobs))
-            self.n_jobs=1
-        
+
         if self.n_jobs == 1:
             for params in grid_list: #tuning here:
                 try:
                     candidate = ETrees.set_params(**params).extract_trees()
-                    perf = candidate.score(self.fidelity_measure, oracle_sample)
+                    perf = candidate.score(self.fidelity_measure, self.ys_oracle)
                 except: # e.g. a ConvergeWarning from kmeans
                     print('Warning, something went wrong, skipping candidate:', params)
                     perf = -np.inf
@@ -186,25 +180,54 @@ class Bellatrex:
 
         # this piece of code does not work yet                    
         elif self.n_jobs > 1:
-            warnings.warn('Not implemented correctly yet')
+            warnings.warn('Multiprocessing not optimized, marginal speed-up.')
             
-            #function to be called in parallel processing:
-            def run_candidate(**params):
-                try: #better replace with real exception or
-                # add more conditions...
-                    candidate = ETrees.set_params(**params).extract_trees()
-                    perf = candidate.score(self.fidelity_measure, oracle_sample)
-                except: # e.g. a ConvergeWarning from kmeans
-                    warnings.warning('Warning, something went wrong, skipping candidate:', params)
+            def missing_params_dict(given_params, class_instance):
+                param_names = class_instance.__init__.__code__.co_varnames[1:]
+                
+                param_values = {name: getattr(class_instance, name) for name in param_names}
+                
+                missing_params = {key: value for key, value in param_values.items() if key not in given_params}
+                return missing_params
+            
+            # Example usage
+            provided_params = list(grid_list[0].keys())
+            class_instance = ETrees
+            
+            constant_params = missing_params_dict(provided_params, class_instance)
+            
+            def create_ETrees_instance(constant_params, **params):
+                return TreeExtraction(**constant_params, **params)
+
+            # #function to be called in parallel processing:
+            def run_candidate(create_instance_func, fidelity_measure, ys_oracle,
+                              constant_params, **params):
+                candidate = None
+                try:
+                    # print(f"Running with params: {params}")
+                    etrees_instance = create_instance_func(constant_params, **params)  # Create a new instance using the provided function
+                    candidate = etrees_instance.extract_trees()
+                    perf = candidate.score(fidelity_measure, ys_oracle)
+                    # print(f"Performance: {perf}")
+                    
+                except Exception as e:
+                    warnings.warn(f'Warning, something went wrong ({str(e)}), skipping candidate: {params}')
                     perf = -np.inf
                 return perf, params
+        
+            # Pass the required variables to run_candidate function
+            # passing ETrees class, not instance
+            results = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+                delayed(run_candidate)(create_ETrees_instance, self.fidelity_measure,
+                                       self.ys_oracle, constant_params, **params) for params in grid_list)
             
-            perfs, params_list = zip(*Parallel(n_jobs=self.n_jobs, prefer="threads")(
-                    delayed(run_candidate)(**params) for params in grid_list))
             
-            best_idx = np.argsort(perfs)[::-1][0] # take top performing index
+            perfs, params_list = zip(*results)
+            
+            best_idx = np.argsort(perfs)[::-1][0]  # take top performing index
             best_perf = perfs[best_idx]
             best_params = params_list[best_idx]
+
         
             
         if best_perf == -np.inf: # if still the case, everything went wrong...
@@ -215,7 +238,7 @@ class Bellatrex:
         #if best_perf > -np.inf: # everything alright
         tuned_method = ETrees.set_params(**best_params).extract_trees() # treeExtraction object
         #instant_method = tuned_method.extract_trees() # TreeExtraction object        
-        sample_score = tuned_method.score(self.fidelity_measure, oracle_sample)
+        sample_score = tuned_method.score(self.fidelity_measure, self.ys_oracle)
                         
         final_extract_trees = tuned_method.final_trees_idx
         final_cluster_sizes =  tuned_method.cluster_sizes
@@ -248,9 +271,10 @@ class Bellatrex:
             
         if self.verbose >= 4.0 and self.plot_GUI == True:
             
-            from GUI_plots_code import plot_with_interface
+            from code_scripts.GUI_plots_code import plot_with_interface
             plot_with_interface(plot_data_bunch, plot_kmeans,
-                                tuned_method)
+                                input_method=tuned_method,
+                                max_depth=self.plot_max_depth)
             
             try:
                 os.remove("colourbar0.png")

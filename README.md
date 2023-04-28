@@ -1,5 +1,4 @@
-# Bellatrex
-
+# Welcome to Bellatrex!
 
 Random Forest models can be difficult to interpret, and Bellatrex addresses this challenge by generating explanations that are easy to understand, and by providing insights into how the model arrived at its predictions. Belllatrex does so by Building Explanations through a LocalLy AccuraTe Rule EXtractor (hence the name: Bellatrex) for a given test instance, by extracting only a few, diverse rules.
 
@@ -8,7 +7,7 @@ To illustrate how Bellatrex works, let's consider an example: when a user provid
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/Klest94/Bellatrex/illustration_Bellatrex.png?raw=true" alt="Bellatrex image"/>
+      <img src="https://github.com/Klest94/Bellatrex/figures/illustration_Bellatrex.png?raw=true" alt="Bellatrex image"/>
     </td>
   </tr>
   <tr>
@@ -25,11 +24,11 @@ Another strength of Bellatrex lies in its ability to handle several prediction t
 This repository contains:
 - instructions to run Bellatrex on your machine
 - an overwview of the datasets used to test the effectiveness of the method
-- accesss to the aforementioned (post-processed) datasets
+- accesss to such datasets, as they appear after the pre-processing step. 
 
 # Set-up
  
-To ensure that Bellatrex runs correctly, use a Python environment that matches the requirements indicated in `requirements.txt`. To minimize the chances of encountering compatibility issues, we advice to install the needed packages on a new (conda) environment with:
+To ensure that Bellatrex runs correctly, use a Python environment that matches the requirements indicated in `requirements.txt`. To minimize the chances of encountering compatibility issues, we advice to install the  packages on a new (conda) environment with Anaconda:
 ```
 conda create --name bellatrex-tutorial python=3.9
 ```
@@ -40,11 +39,8 @@ conda install scikit-survival==0.19.0
 conda install matplotlib==3.6.2
 ```
 
-This will also install dependencies such as `numpy` and `pandas`.
-The `scikit-survival` package allows to run time-to-event predictions with `RandomSurvivalForest` and is not a requirement for binary or regression tasks. In case of errors it can also be installed by calling `conda install -c sebp scikit-survival`.
-
-Older versions of the aformentioned packages might work, but `DeprecationWarning` messages will be raised. Newer versions are likley to work but have not been tested; compatibility with Linux or OS architectures has not been tested.
-
+The `scikit-survival` package allows to run time-to-event predictions with`RandomSurvivalForest`. In case of errors it can also be installed by executing the command `conda install -c sebp scikit-survival`.
+Install the Orange library with `conda install orange3==3.30` to replicate the statistical tests reported in the manuscript.
 
 ## Enable Graphical User Interface
 
@@ -54,6 +50,8 @@ pip install dearpygui==1.6.2
 pip install dearpygui-ext==0.9.5
 ```
 To activate the GUI, set the `plot_gui = True`.
+
+**Note:** When running Bellatrex with the GUI for multiple test samples, the program will generate an interactive window. The process may take a couple of seconds, and the the user has to click at least once within the generated window in order to activate the interactive mode. Once this is done, the user can choose to explore the generated rules by clicking on the corresponding representation. To show the Bellatrex explanation for the next sample, close the interactive window and wait until Bellatrex generates the explanation for the new sample.
 
 # Bellatrex tutorial
 
@@ -68,11 +66,16 @@ import os
 import numpy as np
 import pandas as pd
 
+os.environ["OMP_NUM_THREADS"] = "1" # avoids memory leak UserWarning caused by KMeans
+
 from utilities import score_method, output_X_y
 from utilities import format_targets, format_RF_preds
 from LocalMethod_class import Bellatrex
 
-os.environ["OMP_NUM_THREADS"] = "1" # avoids memory leak UserWarning caused by KMeans
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
+from sksurv.ensemble import RandomSurvivalForest
+
 
 # reduce MAX_TEST_SIZE for quick code testing
 MAX_TEST_SIZE = 10 #if set >= 100, it takes the (original) value X_test.shape[0]
@@ -142,20 +145,14 @@ y_train, y_test = format_targets(y_train, y_test, SETUP, VERBOSE)
 
 ####### instantiate R(S)F whose predictions will be explained #######
 if SETUP.lower() in ['surv']:
-
-    from sksurv.ensemble import RandomSurvivalForest
     rf = RandomSurvivalForest(n_estimators=100, min_samples_split=10,
                               random_state=0)
 
 elif SETUP.lower() in ['bin','mlc']:
-    
-    from sklearn.ensemble import RandomForestClassifier
     rf = RandomForestClassifier(n_estimators=100, min_samples_split=5,
                                 random_state=0)
     
 elif SETUP.lower() in ['regress', 'mtr']:
-    
-    from sklearn.ensemble import RandomForestRegressor
     rf = RandomForestRegressor(n_estimators=100, min_samples_split=5,
                                random_state=0)
 
@@ -174,8 +171,9 @@ Bellatrex_fitted = Bellatrex(rf, SETUP,
                             feature_represent="weighted",
                             n_jobs=1,
                             verbose=VERBOSE,
-                            plot_GUI=PLOT_GUI).fit(X_train, y_train)
-
+                            plot_GUI=PLOT_GUI,
+                            plot_max_depth=5,
+                            dpi_figure=100).fit(X_train, y_train)
 
 # store, for every sample in the test set, the predictions from the
 # local method and the original R(S)F
@@ -210,21 +208,20 @@ if SETUP.lower() not in multi_label_key_list + mt_regression_key_list :
 y_pred = np.array(y_pred)
 ```
 
-The output explanation consists in a few rules extracted from the original Random Forest. Most of the computation happens at this stage whithin the `.predict` method, more explicitely within the `TreeExtraction` class that is instantiated at this stage. It is worth diving into it more details,
+The output explanation consists in a few rules extracted from the original Random Forest. Most of the computation happens at this stage whithin the `.predict` method, more explicitly within the `TreeExtraction` class that is instantiated at this stage. It is worth diving into it more details,
 and look into the `preselect_represent_cluster_trees` method, that does most of the job.
 
 ### Step 4a: tree pre-selection
 
 The first step consists in selecting a subset of trees from the RF, with the goal of eliminating outliers.
-This is performed by computing, for a given instance $\bm{x}$ to explain, how far a single tree prediction is cmapred to the ensemble prediction. This is performed by `calcul_tree_proximity_loss` function, and the best $\tau$ trees are kept for the later steps.
+This is performed by computing, for a given instance `x` to explain, how far a single tree prediction is cmapred to the ensemble prediction. This is performed by `calcul_tree_proximity_loss` function, and the best $\tau$ trees are kept for the later steps.
 
 ### Step 4b tree representation as vectors
 
 The second step consists in representing each of the preselected trees $\mathcal{T}_i$ as a vector.
-Given the local nature of Bellatrex, we folow a novel, path-based approach, where the vector epresentation for $\mathcal{T}_i$ also depends on the instance of interest $\bm{x}$. More specifically, we follow $\bm{x}$ as it traverses the tree and we keep track of the input covariates used to perform each split.
-Next, we assign for each split at node $k$ a contribution to the vector representation that is proportional to the number of instances $n(k)$ traversing the node during the training phase of the tree learner. The procedure is performed by `tree_splits_to_vector` function. For more details, refer to our paper **cite here**.
+Given the local nature of Bellatrex, we folow a novel, path-based approach, where the vector epresentation for $\mathcal{T}_i$ also depends on the instance of interest `x`. More specifically, we follow `x` as it traverses the tree and we keep track of the input covariates used to perform each split.
+Next, we assign for each split at node $k$ a contribution to the vector representation that is proportional to the number of instances $n(k)$ traversing the node during the training phase of the tree learner. The procedure is performed by `tree_splits_to_vector` function. For more details, refer to the [paper](https://arxiv.org/abs/2203.15511).
 
-**example figure here?**
 
 ### Step 4c: dimensionality reduction
 
@@ -237,7 +234,7 @@ Finally, we perform clustering on the vector representations using a standard cl
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/Klest94/Bellatrex/plot_blood_i65.png?raw=true" alt="Plotting rule representation"/>
+      <img src="https://github.com/Klest94/Bellatrex/figures/plot_blood_i65.png?raw=true" alt="Plotting rule representation"/>
     </td>
   </tr>
   <tr>
@@ -250,7 +247,7 @@ Finally, we perform clustering on the vector representations using a standard cl
 
 ### Step 4e: Bellatrex prediction
 
-Finally, given the $K$ clusters, the corresponding final rules $\mathcal{T}_{\tau_k}$, and the instance $\bm{x}$, we build a surrogate model prediction as follows:
+Finally, given the $K$ clusters, the corresponding final rules $\mathcal{T}_{\tau_k}$, and the instance `x`, we build a surrogate model prediction as follows:
 
 $$\tilde{y} = \sum_{k=1}^K w_k ~\mathcal{T}_{\tau_k}(\bm{x})$$
 
@@ -270,7 +267,7 @@ The output expalanation of Bellatrex of this sample consists of 3 final rules,  
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/Klest94/Bellatrex/plot_blood_i01.png?raw=true" alt="Bellatrex example"/>
+      <img src="https://github.com/Klest94/Bellatrex/figures/plot_blood_i01.png?raw=true" alt="Bellatrex example"/>
     </td>
   </tr>
   <tr>

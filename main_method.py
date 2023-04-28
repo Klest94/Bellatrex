@@ -4,25 +4,21 @@ import os
 os.environ["OMP_NUM_THREADS"] = "1" # avoids memory leak UserWarning caused by KMeans
 import datetime
 import warnings
-#import re
-#warnings.filterwarnings("ignore", category=UserWarning)
+
 from datetime import date
 from sksurv.ensemble import RandomSurvivalForest
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
-from utilities import get_data_list, score_method
-from utilities import format_targets, format_RF_preds
-from TreeDissimilarity_class import TreeDissimilarity
-from TreeRepresentation_utils import count_rule_length
+from code_scripts.utilities import get_data_list, score_method
+from code_scripts.utilities import format_targets, format_RF_preds
+from code_scripts.TreeDissimilarity_class import TreeDissimilarity
+from code_scripts.TreeRepresentation_utils import count_rule_length
 #from plot_tree_patch import plot_tree_patched
 
-from LocalMethod_class import Bellatrex
-#from IPython import get_ipython
-#get_ipython().run_line_magic('matplotlib', 'inline')
+from code_scripts.LocalMethod_class import Bellatrex
 
-
-SETUP = "regress"
+SETUP = "surv"
 PROJ_METHOD = "PCA"
 
 SAVE_PREDS = False # if True: save: predictions, tuned_hyperparams and dataframe
@@ -30,9 +26,10 @@ SAVE_PREDS = False # if True: save: predictions, tuned_hyperparams and dataframe
 OVERWRITE_DF = False # save performance df as csv, potentially overwriting smth
 
 # reduce MAX_TEST_SIZE for quick code testing
-MAX_TEST_SIZE = 999 #if set >= 100, it takes the (original) value X_test.shape[0]
+MAX_TEST_SIZE = 50 #if set >= 100, it takes the (original) value X_test.shape[0]
 
-N_FOLDS = 1
+N_FOLDS = 3
+
 p_grid = {
     "n_trees": [0.2, 0.5, 0.8], # [100] for "noTrees_" ablation
     "n_dims": [2, 5, None], #None = no dim reduction   #Ablation: noDims_
@@ -45,7 +42,6 @@ FEAT_REPRESENTATION = "weighted" # "simple" or "by_samples" # or
 FINAL_SCORING = "L2" # L2 or cosine
 
 ##########################################################################
-#root_folder = "C:/Users/u0135479/Documents/GitHub/Explain-extract-trees/"
 root_folder = os.getcwd()
 
 dnames, data_scenario_folder, scenario = get_data_list(SETUP, root_folder) #scenario has extra "/"
@@ -53,15 +49,15 @@ dnames, data_scenario_folder, scenario = get_data_list(SETUP, root_folder) #scen
 # <-- add to name of stored y-s and y_preds ??
 EXTRA_NOTES = "trial_"  # noDims_ or noTrees_ or Ablat2_ or trial_
 TAIL_NOTES = "p1" # ONLY FOR FINAL CSV FILE
-# think it through...
+
 NOTES = EXTRA_NOTES + PROJ_METHOD + "_" + FEAT_REPRESENTATION + "_"
 
-testing_dnames = dnames[4:5]#[:4]
+testing_dnames = dnames[0:3]#[:4]
 #testing_dnames = [dnames[i] for i in [4, 6, 8, 10, 11]]
 ##########################################################################
 
 
-from utilities import validate_paramater_run
+from code_scripts.utilities import validate_paramater_run
 validate_paramater_run(p_grid, EXTRA_NOTES, N_FOLDS)
 
 print("running on datasets:")
@@ -69,8 +65,8 @@ print(testing_dnames)
 
 #%%
 # N JOBS NOT WORKING CORRECTLY!!!!
-JOBS = 1 # n_jobs for R(S)F learner (and now also ETrees candidate choice!)
-VERBOSE = 4
+JOBS = 4 # n_jobs for R(S)F learner (and now also ETrees candidate choice!)
+VERBOSE = 1
 PLOT_GUI = False
 '''  levels of verbosity in this script:
     - >= 0.0: sample i and fold j print, ensemble and local score.
@@ -194,8 +190,7 @@ for folder in testing_dnames:
         tot_n_splits = 0 # total for the whole fold j        
         stored_info = []
         
-        #for i in range(N): #for every sample in the test set: predict
-        for i in [41, 45, 65]: #, 41, 42, 45, 46, 47, 59 64, 73, 74, 80, 83, 97
+        for i in range(N): #for every sample in the test set: predict
             
             if VERBOSE >= 0:
                 print("sample i={} fold j={}," 

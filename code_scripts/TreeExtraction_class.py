@@ -19,9 +19,7 @@ import matplotlib.pyplot as plt
 
 #from sklearn.tree import export_text
 
-
-
-class TreeExtraction: # (LocalMethod) is it convenient if it inherits?
+class TreeExtraction:# is it convenient if it inherits?
     
     RAND_SEED = 0
     BINARY_KEYS = ["bin", "binary"]
@@ -31,12 +29,12 @@ class TreeExtraction: # (LocalMethod) is it convenient if it inherits?
     MTR_KEYS = ["multi-t", "multi-target", "mtr"]
     
     def __init__(self, proj_method, dissim_method,
-                 feature_represent,
-                 n_trees, n_dims, n_clusters,
-                 pre_select_loss, fidelity_measure,
-                 clf, oracle_sample,
-                 set_up, sample, verbose,
-                 output_explain=True):
+                  feature_represent,
+                  n_trees, n_dims, n_clusters,
+                  pre_select_loss, fidelity_measure,
+                  clf, oracle_sample,
+                  set_up, sample, verbose,
+                  output_explain=True):
         # consider inheriting from LocalMethod, smth like:
         # LocalMethod.__init__(self) (??)
         self.proj_method = proj_method
@@ -55,6 +53,19 @@ class TreeExtraction: # (LocalMethod) is it convenient if it inherits?
         self.final_trees_idx= None #non extracted yet
         self.cluster_sizes = None #non extracted yet
         self.output_explain = output_explain
+
+
+# class TreeExtraction(Bellatrex):
+#     def __init__(self, **kwargs):
+#         # If parameters are not provided for TreeExtraction, use the default values from LocalMethod
+#         parent_instance = Bellatrex()
+#         for key, value in parent_instance .__dict__.items():
+#             if key not in kwargs:
+#                 kwargs[key] = value
+
+#         # Call the __init__ method of BaseClass using super() and **kwargs
+#         super().__init__(**kwargs)    
+
         
     # adaptation of n_trees to case where the proportion is given instead, is
     # is handled in the .fit of LocalMethod
@@ -68,11 +79,13 @@ class TreeExtraction: # (LocalMethod) is it convenient if it inherits?
                 "n_clusters":  self.n_clusters
                 }
    	
-    def set_params(self, **parameters):
-        for parameter, value in parameters.items():
-            setattr(self, parameter, value)
+    def set_params(self, **params):
+        for key, value in params.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+            else:
+                raise ValueError(f"Invalid parameter: {key}")
         return self
-    
         '''
         the .extract_trees summarises the whole method's procedure,
         the steps are:
