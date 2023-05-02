@@ -1,6 +1,6 @@
 # Welcome to Bellatrex!
 
-Random Forest models can be difficult to interpret, and Bellatrex addresses this challenge by generating explanations that are easy to understand, and by providing insights into how the model arrived at its predictions. Belllatrex does so by Building Explanations through a LocalLy AccuraTe Rule EXtractor (hence the name: Bellatrex) for a given test instance, by extracting only a few, diverse rules.
+Random Forest models can be difficult to interpret, and Bellatrex addresses this challenge by generating explanations that are easy to understand, and by providing insights into how the model arrived at its predictions. Bellatrex does so by Building Explanations through a LocalLy AccuraTe Rule EXtractor (hence the name: Bellatrex) for a given test instance, by extracting only a few, diverse rules. See [the published paper](https://ieeexplore.ieee.org/abstract/document/10105927) for more details.
 
 To illustrate how Bellatrex works, let's consider an example: when a user provides a test instance to Bellatrex, the tool begins by 1) pre-selecting a subset of the rules used to make the prediction; it then creates 2) a vector representation of such rules and 3) projects them to a low-dimensional space; Bellatrex then 4) clusters such representations to pick a rule from each cluster to explain the instance prediction. One rule per cluster is shown to the end user through visually appealing plots, and the tool's GUI allows users to explore similar rules to those extracted.
             
@@ -32,7 +32,7 @@ To ensure that Bellatrex runs correctly, use a Python environment that matches t
 ```
 conda create --name bellatrex-tutorial python=3.9
 ```
-and proceed by installing the packages listed in the `requirements.txt` file, namely:
+activare the environment and proceed by installing the packages listed in the `requirements.txt` file, namely:
 ```
 conda install scikit-learn==1.1.3
 conda install scikit-survival==0.19.0 
@@ -234,7 +234,7 @@ Finally, we perform clustering on the vector representations using a standard cl
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/Klest94/Bellatrex/figures/plot_blood_i65.png?raw=true" alt="Plotting rule representation"/>
+      <img src="https://github.com/Klest94/Bellatrex/blob/main/figures/plot_blood_i65.png?raw=true" alt="Plotting rule representation"/>
     </td>
   </tr>
   <tr>
@@ -249,7 +249,7 @@ Finally, we perform clustering on the vector representations using a standard cl
 
 Finally, given the $K$ clusters, the corresponding final rules $\mathcal{T}_{\tau_k}$, and the instance `x`, we build a surrogate model prediction as follows:
 
-$$\tilde{y} = \sum_{k=1}^K w_k ~\mathcal{T}_{\tau_k}(\bm{x})$$
+$$\tilde{y} = \sum_{k=1}^K w_k ~\mathcal{T}_{\tau_k}(x)$$
 
 Where $w_k$ represents the weight given to the cluster $k$. We define $w_k$ as the proportion of the $\tau$ pre-selected rules that are part of the cluster. In other words, the surrogate model predicts a weighted average of the selected rules.
 
@@ -267,7 +267,7 @@ The output expalanation of Bellatrex of this sample consists of 3 final rules,  
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/Klest94/Bellatrex/figures/plot_blood_i01.png?raw=true" alt="Bellatrex example"/>
+      <img src="https://github.com/Klest94/Bellatrex/blob/main/figures/plot_blood_i01.png?raw=true" alt="Bellatrex example"/>
     </td>
   </tr>
   <tr>
@@ -349,3 +349,4 @@ if SETUP.lower() in multi_label_key_list + mt_regression_key_list:
 
 print(performances)
 ```
+
