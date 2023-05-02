@@ -7,7 +7,7 @@ To illustrate how Bellatrex works, let's consider an example: when a user provid
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/Klest94/Bellatrex/figures/illustration_Bellatrex.png?raw=true" alt="Bellatrex image"/>
+      <img src="https://github.com/Klest94/Bellatrex/blob/main/figures/illustration_Bellatrex.png?raw=true" alt="Bellatrex image"/>
     </td>
   </tr>
   <tr>
