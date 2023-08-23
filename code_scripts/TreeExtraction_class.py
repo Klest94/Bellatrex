@@ -5,6 +5,7 @@ from sklearn.metrics.pairwise import cosine_distances
 from sklearn.manifold import MDS #, TSNE
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
+os.environ["OMP_NUM_THREADS"] = "1" # avoids memory leak caused by K-Means
 from sklearn.neighbors import KDTree
 import sksurv
 
@@ -27,6 +28,8 @@ class TreeExtraction:# is it convenient if it inherits?
     REGRESSION_KEYS = ["regress", "regression", "regr"]
     MTC_KEYS = ["multi-l", "multi-label", "mtc", "multi"]
     MTR_KEYS = ["multi-t", "multi-target", "mtr"]
+    MSA_KEYS = ["multi-sa", "multi-variate-sa", "mvsa"]
+
     
     def __init__(self, proj_method, dissim_method,
                   feature_represent,
@@ -211,7 +214,9 @@ class TreeExtraction:# is it convenient if it inherits?
         #    warnings.filterwarnings("error", category=UserWarning, module='sklearn')
             
         if self.n_clusters > 1: # K-Means is performed on the projected trees
-            kmeans = KMeans(n_clusters = self.n_clusters, max_iter=5000,
+            kmeans = KMeans(n_clusters=self.n_clusters,
+                            init='k-means++', n_init=10,
+                            max_iter=5000,
                     random_state=TreeExtraction.RAND_SEED).fit(proj_trees)
             
         else: #avoid running K-Means (raises warning)
@@ -544,9 +549,9 @@ class TreeExtraction:# is it convenient if it inherits?
                 RF_preds = [rf[i].predict(sample)[:,1].ravel()
                             for i in range(rf.n_estimators)]
 
-                RF_pred_curve = rf.predict_survival_function([sample], return_array=False)
-                RF_pred_curves = [rf[i].predict_survival_function([sample], return_array=False)
-                                  for i in range(rf.n_estimators)]
+                # RF_pred_curve = rf.predict_survival_function([sample], return_array=False)
+                # RF_pred_curves = [rf[i].predict_survival_function([sample], return_array=False)
+                #                   for i in range(rf.n_estimators)]
                 
             else:
                 raise KeyError("Set-up {} is not recognised".format(self.set_up))

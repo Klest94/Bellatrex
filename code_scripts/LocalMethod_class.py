@@ -5,13 +5,18 @@ from joblib import Parallel, delayed
 import os
 import warnings
 import numpy as np
+import sklearn
+from sklearn.utils.validation import check_is_fitted
+import sksurv
 
 class Bellatrex:
     
     FONT_SIZE = 20
     
-    def __init__(self, clf, set_up, verbose,
-                 proj_method="MDS",
+    def __init__(self, clf, set_up="auto", 
+                 force_refit=False,
+                 verbose=0,
+                 proj_method="PCA",
                  dissim_method="rules",
                  feature_represent="weighted",
                  p_grid = {"n_trees": [0.2, 0.5, 0.8],
@@ -30,6 +35,7 @@ class Bellatrex:
         
         self.clf = clf #(un)fitted instance of R(S)F
         self.set_up = set_up 
+        self.force_refit = force_refit
         self.proj_method = proj_method
         self.dissim_method = dissim_method
         self.feature_represent = feature_represent
@@ -80,13 +86,10 @@ class Bellatrex:
         if "n_clusters" not in self.p_grid.keys():
             self.n_clusters = [1, 2, 3] # set to default if not existing
         else:
-            self.n_clusters = self.p_grid["n_clusters"]     # CAN BE A LIST  
-            
-        if self.verbose >= 0:
-            print("fitting and validating inputs...")
+            self.n_clusters = self.p_grid["n_clusters"]     # CAN BE A LIST
         
         if min(self.n_trees) <= 0:
-            raise ValueError("n_trees must be > 0")
+            raise ValueError("n_trees must be all > 0")
         
         if min(self.n_trees) < 1.0 and max(self.n_trees) > 1.0:
             raise ValueError('The list of n_trees must either indicate a proportion'
@@ -97,25 +100,67 @@ class Bellatrex:
             raise ValueError("n_trees cannot be greater than n_estimators")        
         
         #if proportions fo trees are given correctly, as expected
-        if 0 < max(self.n_trees) <= 1.0 and 0 < min(self.n_trees):
-            # round to closest integer
-            self.n_trees = (np.array(self.n_trees)*self.clf.n_estimators+0.5).astype(int)
+        # transform them to integer values for later steps
+        if np.array([isinstance(i, float) for i in self.n_trees]).all():
+            if 0 < max(self.n_trees) <= 1.0 and 0 < min(self.n_trees):
+                # round to closest integer
+                self.n_trees = (np.array(self.n_trees)*self.clf.n_estimators+0.5).astype(int)
 
-        
+    def is_fitted(self): #auxiliary function that returns boolean
+        try:
+            check_is_fitted(self.clf) #only with sklearn models (but works with all of them)
+            return  True
+        except:
+            return False
+
+
     def fit(self, X, y): #works as inteded   #add n_jobs
     
         # check whther the input value of the grid are admissible        
         self._validate_p_grid()
         
-        self.clf = self.clf.fit(X, y)
-        if self.verbose >= 0:
-            print("... fitting complete")
+        if self.force_refit == False and self.is_fitted():
+            print("Model is already fitted, building explanation.")
+        else:
+            if self.verbose >= 0:
+                print("Fitting the model...", end='')
+            self.clf.fit(X, y)
+            if self.verbose >= 0:
+                print(" fitting complete")
+            
         if self.verbose >= 2:
             print("oracle_sample is: {}".format(self.ys_oracle))
             
+            
+        if self.set_up == "auto": # automatically determine scenario based on fitted classifier
+            if isinstance(self.clf, sklearn.ensemble.RandomForestClassifier):
+                if self.clf.n_outputs_ == 1:
+                    self.set_up = 'binary'
+                else:
+                    self.set_up = 'multi-label'
+            elif isinstance(self.clf, sklearn.ensemble.RandomForestRegressor):
+                if y.ndims < 2 or self.clf.n_outputs_ == 1:
+                    self.set_up = 'regression'
+                else:
+                    self.set_up = 'multi-target'
+            elif isinstance(self.clf, sksurv.ensemble.forest.RandomSurvivalForest):
+                if self.clf.n_outputs_ == self.clf.unique_times_.shape[0]:
+                    self.set_up = 'survival'
+                else:
+                    self.set_up = 'multi-variate-sa'
+                    raise ValueError('n_outputs_ shape != unique_times_ shape: {} != {}\n'
+                                     'Note that multi-event Survival analysis is '
+                                     'not supported yet'.format(self.clf.n_outputs_.shape,
+                                                                self.clf.unique_times_.shape))
+            else:
+                raise ValueError("Provided model is not recognized or compatible with Bellatrex:", self.clf)
+                
+            if self.verbose > 0:
+                print("Automatically set scenario to: ", self.set_up)
+            
         return self
     
-    def predict(self, X, idx, as_object=True): 
+    def explain(self, X, idx, as_object=True): 
                 
         sample = X[idx:idx+1]
         
@@ -180,7 +225,8 @@ class Bellatrex:
 
         # this piece of code does not work yet                    
         elif self.n_jobs > 1:
-            warnings.warn('Multiprocessing not optimized, marginal speed-up.')
+            warnings.warn('Multiprocessing is not optimized, and the speed-up is marginal. \
+Set n_jobs = 1 to avoid this warning')
             
             def missing_params_dict(given_params, class_instance):
                 param_names = class_instance.__init__.__code__.co_varnames[1:]
@@ -229,7 +275,6 @@ class Bellatrex:
             best_params = params_list[best_idx]
 
         
-            
         if best_perf == -np.inf: # if still the case, everything went wrong...
             warnings.warn("The GridSearch did not find any optimum, setting default parameters")
             
@@ -264,11 +309,10 @@ class Bellatrex:
         if self.verbose >= 4.0 and self.plot_GUI  == False:
             
             for tree_idx, cluster_size in zip(final_extract_trees, final_cluster_sizes):
-                
+                #if X.shape[1] < 10: # or improve rule_print_inline function!
                 rule_print_inline(self.clf[tree_idx], sample,
-                                  cluster_size/np.sum(final_cluster_sizes))
+                                      cluster_size/np.sum(final_cluster_sizes))
     
-            
         if self.verbose >= 4.0 and self.plot_GUI == True:
             
             from code_scripts.GUI_plots_code import plot_with_interface
@@ -314,5 +358,6 @@ class Bellatrex:
         if not self.set_up in ["surv", "survival"]:
             raise ValueError("Input set-up is not a time-to-event!")
         return ValueError("Not implemented yet")
+
 
         

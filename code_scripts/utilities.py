@@ -6,24 +6,46 @@ from sklearn.decomposition import PCA
 import matplotlib as mpl
 import pylab
 
-
 import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm
-from matplotlib.ticker import FormatStrFormatter
+# from matplotlib.ticker import FormatStrFormatter
 from matplotlib.ticker import FuncFormatter
 from sklearn import tree
 import sklearn
 import sksurv
+from sksurv.ensemble import RandomSurvivalForest
 
 from sklearn.tree import _tree
 
 def rule_print_inline(tree, sample, weight=None):
     
     clf = tree
-    print("\n")
-    print('#'*20, '   SAMPLE   ', '#'*20)
-    print(sample.to_string())
+    print('#'*16, '   SAMPLE   ', '#'*16)
+    node_indicator = clf.decision_path(sample.values)
+    # Set to store the unique feature indices used in the rule sets
+    unique_features = set()
+
+    feature = clf.tree_.feature
+    threshold = clf.tree_.threshold
+    X_test = sample
+    sample_id = 0
+
+    # obtain ids of the nodes `sample_id` goes through, i.e., row `sample_id`
+    node_index = node_indicator.indices[
+        node_indicator.indptr[sample_id] : node_indicator.indptr[sample_id + 1]
+    ]
+    
+    for node_id in node_index[:-1]: #internal nodes (exclude leaf)
+        unique_features.add(feature[node_id])
+
+    # Print only the relevant features
+    # print(sample.iloc[:, list(unique_features)].to_string())
+    # Print only the relevant features with :.2f
+    unique_features_formatted = sample.iloc[:, list(unique_features)].applymap(lambda x: '{:.2f}'.format(x))
+    print(unique_features_formatted.to_string())
     print('#'*54)
+
+
     node_indicator = clf.decision_path(sample.values)
     #leaf_id = clf.apply(sample)    
 
@@ -755,7 +777,7 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     #####   RIGHT PLOT (predictions or losses)  #####
     
     if tuned_method.clf.n_outputs_ == 1 or isinstance(tuned_method.clf,
-                                        sksurv.ensemble.RandomSurvivalForest): # single output, color on predictions
+                                        RandomSurvivalForest): # single output, color on predictions
     
     
         ### right figure scatterplot here (ax3 and ax4):
@@ -810,7 +832,7 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         ax3.set_title('Rule-path predictions', fontdict={'fontsize': base_font_size+2})
         
         
-        #if isinstance(tuned_method.clf, sksurv.ensemble.RandomSurvivalForest)
+        #if isinstance(tuned_method.clf, RandomSurvivalForest)
         
         ## add to colorbar a line corresponding to LTreeX prediction
         cb2.ax.plot([0, 1], [plot_data_bunch.pred]*2, color='grey',
@@ -819,7 +841,7 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
                     marker="P")
                 
         
-        if isinstance(tuned_method.clf, sksurv.ensemble.RandomSurvivalForest):
+        if isinstance(tuned_method.clf, RandomSurvivalForest):
             cb2.set_label("Cumul.Hazard: "+ str(pred_tick),
                           size=base_font_size-3)
 

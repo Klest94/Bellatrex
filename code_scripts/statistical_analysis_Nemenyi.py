@@ -618,7 +618,6 @@ latex_perfs = latex_perfs.replace(r"average", "\\midrule \nAverage")
 latex_diss = latex_diss.replace(r"average", "\\midrule \nAverage")
 latex_rules = latex_rules.replace(r"average", "\\midrule \nAverage")
 
-
 latex_perfs = latex_perfs.replace(", wt.", "")
 
 

@@ -66,7 +66,7 @@ print(testing_dnames)
 #%%
 # N JOBS NOT WORKING CORRECTLY!!!!
 JOBS = 4 # n_jobs for R(S)F learner (and now also ETrees candidate choice!)
-VERBOSE = 1
+VERBOSE = 4
 PLOT_GUI = False
 '''  levels of verbosity in this script:
     - >= 0.0: sample i and fold j print, ensemble and local score.
@@ -96,6 +96,8 @@ survival_key_list = ["surv", "survival"]
 multi_label_key_list = ["multi", "multi-l", "multi-label", "mtc"]
 regression_key_list = ["regression", "regress", "regr"]
 mt_regression_key_list = ["multi-target", "multi-t", "mtr"]
+multi_sa_key_list = ["multi-sa", "multi-variate-sa", "mvsa"]
+
 #%%
 print("##########################################")
 print("SETUP: {}, STRUCTURE: {}, PROJ: {}".format(SETUP, STRUCTURE, PROJ_METHOD))
@@ -172,7 +174,7 @@ for folder in testing_dnames:
         
 
         #fit RF here. The hyperparameters are given      
-        Bellatrex_fitted = Bellatrex(rf, SETUP, 
+        Bellatrex_fitted = Bellatrex(rf, 'auto',
                                   p_grid=p_grid,
                                   proj_method=PROJ_METHOD,
                                   dissim_method=STRUCTURE,
@@ -199,7 +201,7 @@ for folder in testing_dnames:
             # call the .predict method. The hyperparamters were given and
             # and tested within .fit. Now  they are actively used
 
-            y_local_pred, sample_info = Bellatrex_fitted.predict(X_test, i)  #tuning is also done
+            y_local_pred, sample_info = Bellatrex_fitted.explain(X_test, i)  #tuning is also done
             y_pred.append(y_local_pred) # store for debuggind and analysis
 
             # count total number of rulesplits to compute "complexity" as
