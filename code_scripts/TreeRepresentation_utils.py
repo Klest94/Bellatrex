@@ -75,7 +75,7 @@ def rule_splits_to_vector(clf, idx1, feature_represent, sample): # it's a SIMILA
     DT_splits = clf[idx1].tree_.feature
     #surv_tree = clf[idx1]
     
-    # keep only nodes ( indeces) that go through smaple's path
+    # keep only nodes ( indeces) that go through sample's path
     DT_path = clf[idx1].tree_.decision_path(sample.to_numpy().reshape(1,-1).astype(np.float32))
     DT_path  = DT_path.toarray().reshape(-1)
 

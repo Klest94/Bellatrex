@@ -57,22 +57,9 @@ class TreeExtraction:# is it convenient if it inherits?
         self.cluster_sizes = None #non extracted yet
         self.output_explain = output_explain
 
-
-# class TreeExtraction(Bellatrex):
-#     def __init__(self, **kwargs):
-#         # If parameters are not provided for TreeExtraction, use the default values from LocalMethod
-#         parent_instance = Bellatrex()
-#         for key, value in parent_instance .__dict__.items():
-#             if key not in kwargs:
-#                 kwargs[key] = value
-
-#         # Call the __init__ method of BaseClass using super() and **kwargs
-#         super().__init__(**kwargs)    
-
-        
+       
     # adaptation of n_trees to case where the proportion is given instead, is
     # is handled in the .fit of LocalMethod
-    
         
     def get_params(self, deep=True):
         return {"dissim_method": self.dissim_method,
@@ -130,7 +117,6 @@ class TreeExtraction:# is it convenient if it inherits?
     
 
     def preselect_represent_cluster_trees(self):
-        
         
         ### pre-selection step:
         tree_local_losses, RF_pred = self.calcul_tree_proximity_loss(self.sample) #w.r.t. to sample we want to explain
@@ -233,30 +219,46 @@ class TreeExtraction:# is it convenient if it inherits?
 
     def calcul_tree_proximity_loss(self, sample):
         
-        # get number of output labels (only for binary vs multi-label) # IMPROVE, this is a bit werid isn't it?
-        #if isinstance(self.clf, sklearn.ensemble.RandomForestClassifier):
+        # get number of output labels (only for binary vs multi-label)
+        # IMPROVE, this is a bit werid isn't it?
+        # identify output format: single or multi-output?
+        # if dictionary, check format at the root node [0] of the first tree [0]
+        if isinstance(self.clf, dict):
+            out = self.clf['trees'][0]['values'][0]
+            n_outputs = 1 if not hasattr(out, 'size') else out.size  # floats do not have .size
+        else:
+            n_outputs = self.clf.n_outputs_
+            
+        if self.set_up == 'survival':
+            n_outputs = 1
         
-        if self.clf.n_outputs_ > 1: #multi-output set-up
-            tree_preds = np.zeros([self.clf.n_estimators, self.clf.n_outputs_])
+        if n_outputs > 1: #multi-output set-up
+            tree_preds = np.zeros([self.clf.n_estimators, n_outputs])
         else: #single output set-up (binary, survival, regression)
             tree_preds = np.zeros(self.clf.n_estimators)
                
         my_pre_select_loss =  np.zeros(self.clf.n_estimators)
         
-        '''  WARNING:
-            In sklearn v.1.1.3 clf[k] does not inherit feature_names_in_ 
-            from its parent clf ( trained tree ensemble on X_train a DataFrame)
+        '''  NOTE:
+            As of sklearn v.1.1.3 clf[k] does not inherit feature_names_in_ 
+            from its parent clf (trained tree ensemble on X_train a DataFrame)
             
             for this reason, whenever clf[k].predict(sample) is called,
             we call it on the sample.values instead
         '''
         
-        
-        if self.set_up.lower() in self.BINARY_KEYS:
+        if self.set_up.lower() in self.BINARY_KEYS and hasattr(self.clf, 'predict_proba_') :
             RF_pred = self.clf.predict_proba(sample)[0,1]
             #tree_preds = tree_preds.ravel()
             for k in range(self.clf.n_estimators):
                 tree_preds[k] = self.clf[k].predict_proba(sample.values)[0,1]
+                
+        if self.set_up.lower() in self.BINARY_KEYS and not hasattr(self.clf, 'predict_proba_') :
+            RF_pred = self.clf.predict(sample)[0]
+            #tree_preds = tree_preds.ravel()
+            for k in range(self.clf.n_estimators):
+                tree_preds[k] = self.clf[k].predict(sample.values)[0]
+        
                 
         elif self.set_up.lower() in self.SURVIVAL_KEYS + self.REGRESSION_KEYS:
             RF_pred = self.clf.predict(sample)
@@ -548,19 +550,13 @@ class TreeExtraction:# is it convenient if it inherits?
                 RF_pred = rf.predict(sample).ravel()
                 RF_preds = [rf[i].predict(sample)[:,1].ravel()
                             for i in range(rf.n_estimators)]
-
-                # RF_pred_curve = rf.predict_survival_function([sample], return_array=False)
-                # RF_pred_curves = [rf[i].predict_survival_function([sample], return_array=False)
-                #                   for i in range(rf.n_estimators)]
                 
             else:
                 raise KeyError("Set-up {} is not recognised".format(self.set_up))
 
                 
             tree_structure = rf[tree_idx].tree_
-                        
-            #feature_names = [weird list comprehension including _tree.TREE_UNDEFINED]
-                
+                                        
             intervals = {feat : [-np.inf, np.inf] for feat in feature_names}
             
             # this is weird, why does sample change type all of the sudden?

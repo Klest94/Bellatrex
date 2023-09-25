@@ -5,7 +5,7 @@ from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.decomposition import PCA
 import matplotlib as mpl
 import pylab
-
+import warnings
 import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm
 # from matplotlib.ticker import FormatStrFormatter
@@ -14,86 +14,304 @@ from sklearn import tree
 import sklearn
 import sksurv
 from sksurv.ensemble import RandomSurvivalForest
-
+from sksurv.tree import SurvivalTree
 from sklearn.tree import _tree
+from scipy.sparse import csr_matrix, hstack
 
-def rule_print_inline(tree, sample, weight=None):
+class EnsembleWrapper:
     
-    clf = tree
-    print('#'*16, '   SAMPLE   ', '#'*16)
-    node_indicator = clf.decision_path(sample.values)
+    ''' 
+    This class serves as a wrapper for compatibility with 
+    tree ensemble models stored as a list of dictionaries.
+    (see example in https://shap.readthedocs.io/en/stable/example_notebooks/tabular_examples/tree_based_models/Example%20of%20loading%20a%20custom%20tree%20model%20into%20SHAP.html)
+    (link as of shap version 0.41)
+    It is designed to be compatible with RandomForestClassifier,
+    RandomForestRegressor, and RandomSurvivalForest.
+    ''' 
+    
+    class Estimator:
+        
+        class Tree_:
+            def __init__(self, feature, n_node_samples, children_left, 
+                         children_right, threshold, value):
+                self.feature = feature
+                self.n_node_samples = n_node_samples
+                self.children_left = children_left
+                self.children_right = children_right
+                self.threshold = threshold
+                self.value = value
+                
+            
+            @property
+            def n_outputs(self):
+                return len(self.value[0])
+            
+            @property
+            def node_count(self):
+                return len(self.feature)
+
+            def apply(self, X):
+                n_samples = X.shape[0]
+                node_indices = []
+                for i in range(n_samples):
+                    node_indices.append(self._apply_tree(0, X[i, :]))
+                return node_indices
+
+
+            def _apply_tree(self, node_index, sample):
+                if self.children_left[node_index] == -1 and self.children_right[node_index] == -1:
+                    return [node_index]
+                
+                path_indices = [node_index]
+                if sample[self.feature[node_index]] <= self.threshold[node_index]:
+                    path_indices.extend(self._apply_tree(self.children_left[node_index], sample))
+                else:
+                    path_indices.extend(self._apply_tree(self.children_right[node_index], sample))
+                
+                return path_indices
+
+
+            def decision_path(self, X):
+                if isinstance(X, pd.DataFrame):
+                    X = X.to_numpy()
+                node_indices_list = self.apply(X)
+                data, indices, indptr = [], [], [0]
+                for sample_nodes in node_indices_list:
+                    data.extend([1] * len(sample_nodes))
+                    indices.extend(sample_nodes)
+                    indptr.append(len(indices))
+                return csr_matrix((data, indices, indptr), shape=(X.shape[0], self.node_count))
+            
+        
+        # this is the __init__ of the Estimator class ( intermediate layer)
+        def __init__(self, tree_dict):
+            self.tree_ = self.Tree_(
+                tree_dict.get('features'), 
+                tree_dict.get('node_sample_weight'),
+                tree_dict.get('children_left'),
+                tree_dict.get('children_right'),
+                tree_dict.get('thresholds'),
+                tree_dict.get('values')) # needs to be singular: .value!
+            self.n_outputs_ = self.tree_.n_outputs # Inferred from underlying tree_. Assuming values at each leaf is a list of outputs
+
+
+        def predict(self, X):
+            if isinstance(X, pd.DataFrame):
+                X = X.to_numpy()
+            leaf_indices = self.tree_.apply(X)
+            n_samples = X.shape[0]
+            predictions = np.zeros((n_samples, self.n_outputs_))
+
+            for i in range(n_samples):
+                leaf_idx = leaf_indices[i][-1]  # Assuming the last node is the leaf
+                predictions[i, :] = self.tree_.value[leaf_idx]
+                
+            return predictions
+        
+        
+        def decision_path(self, X):
+            return self.tree_.decision_path(X)
+
+    # init EnsembleWrapper here (most external class)
+    def __init__(self, clf_dict):
+        self.estimators_ = [self.Estimator(tree) for tree in clf_dict['trees']]
+        self.n_outputs_ = self.estimators_[0].n_outputs_
+        self.n_estimators = len(self.estimators_)
+        self.n_features_in_ = clf_dict['trees'][0]['n_features_in_']
+        
+        if 'unique_times_' in clf_dict['trees'][0]:
+            self.unique_times_ = clf_dict['trees'][0]['unique_times_']
+        
+    def __getitem__(self, index):
+        return self.estimators_[index]
+    
+    
+    def predict(self, X): # the output format depends on what was stored in the original dict
+        if isinstance(X, pd.DataFrame):
+            X = X.to_numpy()
+    
+        n_samples = X.shape[0]
+        ensemble_predictions = np.zeros((n_samples, self.n_outputs_))
+    
+        for estimator in self.estimators_: #sum over learners, stored dictionaries assume this
+            ensemble_predictions += estimator.predict(X)
+    
+        return ensemble_predictions
+    
+            
+    def decision_path(self, X):
+        
+        if isinstance(X, pd.DataFrame):
+            X = X.to_numpy()
+        
+        all_paths = []
+        n_nodes_ptr = [0]
+        
+        for estimator in self.estimators_:
+            path_csr = estimator.decision_path(X)
+            all_paths.append(path_csr)
+            n_nodes_ptr.append(n_nodes_ptr[-1] + path_csr.shape[1])
+        all_paths_csr = hstack(all_paths).tocsr()
+        
+        return all_paths_csr, np.array(n_nodes_ptr)
+
+
+
+
+def SDT_to_dict(tree_obj, output_format, T_to_bin=None):
+
+    ''' designed to work for SurvivalTree learners of a RandomSurvivalForest
+        guaranteed compatibility with scikit-survival 0.21
+        could also work with classification and regression trees, howeever:
+            - it has not being tested for them
+            - it is less useful (less memery contrains issues with these scikit-learn implementations)
+    '''
+    
+    tree = tree_obj.tree_
+    
+    tree_dict = {
+        "children_left" : tree.children_left,
+        "children_right" : tree.children_right,
+        "children_default" : tree.children_right.copy(), # to be changed when sklern can handle missing values
+        "features" : tree.feature,
+        "thresholds" : tree.threshold,
+        "node_sample_weight": tree.weighted_n_node_samples,
+        "n_features_in_": getattr(tree_obj, "n_features_in_", None),
+        "unique_times_": getattr(tree_obj, "unique_times_", None),
+        "random_state": getattr(tree_obj, "random_state", None)
+    }
+   
+    tree_dict['output_format'] = output_format
+    
+    if tree_dict['unique_times_'] is None and output_format not in ['probability']:
+        raise KeyError('Missing \'unique_times_\' in the tree ensemble. Change output format.')
+        
+    if T_to_bin == None and tree_dict['unique_times_'] is not None:
+        T_to_bin = tree_dict['unique_times_'][len(tree_dict['unique_times_'])//2]
+    
+    
+    if output_format == "survival_curve":
+        tree_dict["values"] = tree.value[:,:, 1]
+    
+    elif output_format == "hazard":
+        tree_dict["values"] = np.mean(tree.value[:,:, 0], axis=1).reshape(-1, 1) #avg CHF over unique_times_
+                
+    elif output_format in ["survival", 'time-to-event']:
+
+        tree_dict["values"] = np.trapz(tree.value[:,:, 1], 
+                                       tree_obj.unique_times_,
+                                       axis=1).reshape(-1, 1) # integrate S(t) over unique_times_
+        # output shape: (n_nodes, 1) with E[S(t)] at each node
+    
+    elif output_format == "probability" and tree_dict['unique_times_'] is not None:
+           
+        index_T = np.argmax(tree_obj.unique_times_ > T_to_bin)-1 #pick last "False" index before "True" appears
+        # it DOES work when all times are > T_bin, as it will again select -1
+        if min(tree_obj.unique_times_) > T_to_bin:
+            index_T = 0
+        # probability of experiencing the event by t=2 -> P(t) = 1 - S(t)
+        tree_dict["values"] = 1 - tree.value[:,index_T, 1].reshape(-1, 1)
+        # Why was the reshape needed? Why single-element arrays like this? Hmm...
+
+    # Tree Classification case:
+    elif output_format == "probability" and tree_dict['unique_times_'] is None:
+        partials = tree.value[:,0,:] # now take average
+        tree_dict["values"] = (partials[:,1] / (partials[:,0] + partials[:,1])).reshape(-1, 1)
+
+    else:
+        ValueError("key value {} not recognized".format(output_format))
+            
+    tree_dict["base_offset"] = tree_dict['values'][0] # root node (0) prediction
+    
+    return tree_dict
+
+
+def tree_list_to_model(tree_list):
+    
+    ''' given each learner is stored as a dict, 
+    create list of such dictionaries so that it is comaptible with the 
+    SHAP library. NOTE that current implementation assumes that the input 
+    custom tree models are additive (?), we therefore need to correct
+    by diving the predicted values accordingly.
+    '''
+    # for t in tree_list: # divide here
+    #     t["values"] = t["values"] / len(tree_list)
+
+    base_offset = np.mean(np.array([t['base_offset'] for t in tree_list]))
+    
+    assert len(set([t['output_format'] for t in tree_list])) == 1 # consistency check
+
+    output_format = tree_list[0]['output_format']
+
+    model_as_dict = {
+        "trees": tree_list, #list of dicts
+        "base_offset": base_offset, # single value (average of array)
+        "output_format": output_format,
+        "input_dtype": np.float32,
+        "internal_dtype": np.float32}
+    
+    return model_as_dict
+
+
+def rule_print_inline(clf_i, sample, weight=None, max_features_print=12):
+    
+    ''' sample is a pd.Series or a single-row pd.DataFrame?? '''
+    ## consider treating it as a numpy array
+    if isinstance(sample, np.ndarray):
+        sample = pd.DataFrame(sample)
+    
+    # node_indicator = clf_i.decision_path(sample)
     # Set to store the unique feature indices used in the rule sets
     unique_features = set()
 
-    feature = clf.tree_.feature
-    threshold = clf.tree_.threshold
-    X_test = sample
-    sample_id = 0
+    node_indicator_csr = clf_i.decision_path(sample.values)    
+    node_weights = clf_i.tree_.n_node_samples/(clf_i.tree_.n_node_samples[0])
+    children_left = clf_i.tree_.children_left
+    children_right = clf_i.tree_.children_right
+    feature = clf_i.tree_.feature
+    threshold = clf_i.tree_.threshold
 
-    # obtain ids of the nodes `sample_id` goes through, i.e., row `sample_id`
-    node_index = node_indicator.indices[
-        node_indicator.indptr[sample_id] : node_indicator.indptr[sample_id + 1]
-    ]
+    node_index = node_indicator_csr.indices[
+        node_indicator_csr.indptr[0] : node_indicator_csr.indptr[1]
+    ] # csr matrix fomratted in this way
     
     for node_id in node_index[:-1]: #internal nodes (exclude leaf)
         unique_features.add(feature[node_id])
 
-    # Print only the relevant features
-    # print(sample.iloc[:, list(unique_features)].to_string())
     # Print only the relevant features with :.2f
+    # take care of selection of sample columns so that 
+    # it stays in the pd.DataFrame format. This works:
     unique_features_formatted = sample.iloc[:, list(unique_features)].applymap(lambda x: '{:.2f}'.format(x))
-    print(unique_features_formatted.to_string())
-    print('#'*54)
-
-
-    node_indicator = clf.decision_path(sample.values)
-    #leaf_id = clf.apply(sample)    
-
-    node_weights = clf.tree_.n_node_samples/(clf.tree_.n_node_samples[0])
-    children_left = clf.tree_.children_left
-    children_right = clf.tree_.children_right
-    feature = clf.tree_.feature
-    threshold = clf.tree_.threshold
-    X_test = sample
-    sample_id = 0    
+      
+    if len(unique_features) <= max_features_print:
+        print('#'*16, '   SAMPLE   ', '#'*16)
+        print(unique_features_formatted.to_string(col_space=4))
+        #alternative: call unique_features.to_string(columns=[colnames here],
+        #                                            justify='center',
+        #                                            float_format='{:.2f}') <- does this work, even?
+        print('#'*54)
+    else:
+        print('Too many features are used in the extracted rules, therefore we', end='')
+        print('skip the printing. \n Increase the max_features_print parameter in case')
     
-    # obtain ids of the nodes `sample_id` goes through, i.e., row `sample_id`
-    node_index = node_indicator.indices[
-        node_indicator.indptr[sample_id] : node_indicator.indptr[sample_id + 1]
-    ]
-    
-    if isinstance(tree, sklearn.tree._classes.DecisionTreeClassifier):
-        if tree.tree_.n_outputs == 1:
-            partials = tree.tree_.value[:,0,:] # now take average
-            partial_preds = partials[:,1] / (partials[:,0] + partials[:,1])
-            
-        else:
-            KeyError("n_classes > 1, not implemented yet.")
- 
-    elif isinstance(tree, sklearn.tree._classes.DecisionTreeRegressor):
-        if tree.tree_.n_outputs == 1:
-            partial_preds = tree.tree_.value.ravel()
-        else:
-            partial_preds = tree.tree_.value[:,:,0]
-
-            # round values, convert to string...
-            # or manage to print a ndarray with .__format__
-            raise ValueError("n_classes > 1, not implemented yet.")
-            
-    elif isinstance(tree, sksurv.tree.SurvivalTree):
-        # if tree.tree_.n_outputs == 1: # implementation is different!!!
-        #else:
-        #    KeyError("n_classes > 1, not implemented yet.")            
-        # multi-output Survival Tree does not exist yet
+    if clf_i.tree_.n_outputs > 1:
+        KeyError("Plotting rules for n_outputs > 1, not implemented yet.") 
         
-        # node label, plotting risk score
-        # tree.tree_.value: np array of [node, time, [H(node), S(node)]]
+    if isinstance(clf_i, sklearn.tree._classes.DecisionTreeClassifier):
+        partials = clf_i.tree_.value[:,0,:] # now take average
+        partial_preds = partials[:,1] / (partials[:,0] + partials[:,1])
+ 
+    elif isinstance(clf_i, sklearn.tree._classes.DecisionTreeRegressor):
+        partial_preds = clf_i.tree_.value.ravel()
+            
+    elif isinstance(clf_i, SurvivalTree):
+        # clf_i.tree_.value: np array of [node, time, [H(node), S(node)]]
         #                                              ^idx 0   ^idx 1
         # currently: 'integral' of the CHF (without taking into account time spacing)
-        # coherent with the .predict method
-        partial_preds = np.sum(tree.tree_.value[:,:, 0], axis=1)
-        # alternative:
-        # partial_preds = tree.tree_.value[:,-1, 0] # CHF at last time point
+        partial_preds = np.sum(clf_i.tree_.value[:,:, 0], axis=1)
+
+    elif isinstance(clf_i, EnsembleWrapper.Estimator):
+         partial_preds =  clf_i.tree_.value.ravel() # seems to be the needed formatting  
                             
     else:
         raise ValueError('Tree learner not recognized, or not implemented')
@@ -105,18 +323,15 @@ def rule_print_inline(tree, sample, weight=None):
 
     for node_id in node_index[:-1]: #internal nodes (exclude leaf)
         # continue to the next node if it is a leaf node
-        #if leaf_id[sample_id] == node_id:
-        #    continue
     
         # check if value of the split feature for sample 0 is below threshold
-        if X_test.iloc[sample_id, feature[node_id]] <= threshold[node_id]:
+        if sample.values[0, feature[node_id]] <= threshold[node_id]:
             threshold_sign = "<="
             next_child = children_left[node_id]
         else:
             threshold_sign = "> "
             next_child = children_right[node_id]
-
-    
+            
         print(
             "node {node:3}: w: {weight:1.3f} "
             "{feature:8} {inequality} {threshold:6.2f}" 
@@ -124,25 +339,20 @@ def rule_print_inline(tree, sample, weight=None):
             "  -->  {partial:5.4f}".format(
                 node=node_id,
                 weight=node_weights[node_id],
-                #sample=sample_id,
-                feature=X_test.columns[feature[node_id]],
-                value=X_test.iloc[sample_id, feature[node_id]],
+                feature=sample.columns[feature[node_id]],
+                value=sample.values[0, feature[node_id]],
                 inequality=threshold_sign,
                 threshold=threshold[node_id],
                 partial=partial_preds[next_child]
                 )
             )
         
-            
-    X_sample = X_test.iloc[sample_id,:].values # numpy.ndarray
-        
-    if hasattr(clf, "predict_proba"):
-        y_pred = clf.predict_proba([X_sample])[:,1]
-    elif hasattr(clf, "predict"):
-        y_pred = clf.predict([X_sample])
+    if hasattr(clf_i, "predict_proba"):
+        y_pred = clf_i.predict_proba(sample.values)[:,1]
+    elif hasattr(clf_i, "predict"):
+        y_pred = clf_i.predict(sample.values)
     else:
-        print(clf)
-        KeyError("check tree method, is it correct?")
+        raise KeyError("check tree method: {},\nIs it correct?".format(clf_i))
 
     print(
         "\nleaf {node:3}: predicts:{predict:5.4f}".format(
@@ -150,95 +360,6 @@ def rule_print_inline(tree, sample, weight=None):
             predict=float(y_pred)
         )
     )
-
-
-
-def rule_print_inline_old(tree, X_test, sample_id):
-    
-    clf = tree
-    node_indicator = clf.decision_path(X_test)
-    #leaf_id = clf.apply(X_test)
-    
-    #node_weights = clf.tree_.n_node_samples/(clf.tree_.n_node_samples[0])
-    #n_nodes = clf.tree_.node_count
-    children_left = clf.tree_.children_left
-    children_right = clf.tree_.children_right
-    feature = clf.tree_.feature
-    threshold = clf.tree_.threshold
-    
-    #prop_samples = clf.
-    
-    
-    # obtain ids of the nodes `sample_id` goes through, i.e., row `sample_id`
-    node_index = node_indicator.indices[
-        node_indicator.indptr[sample_id] : node_indicator.indptr[sample_id + 1]
-    ]
-    
-    if isinstance(tree, sklearn.tree._classes.DecisionTreeClassifier):
-        if tree.tree_.n_outputs == 1:
-            partials = tree.tree_.value[:,0,:] # now take average
-            partial_preds = partials[:,1] / (partials[:,0] + partials[:,1])
-            
-        else:
-            KeyError("n_classes > 1, not implemented yet.")
- 
-    if isinstance(tree, sklearn.tree._classes.DecisionTreeRegressor):
-        if tree.tree_.n_outputs == 1:
-            partial_preds = tree.tree_.value.ravel()
-        else:
-            KeyError("n_classes > 1, not implemented yet.")
-    
-    
-    print('Baseline prediction: {:.4f}'.format(partial_preds[0]))
-    
-    for node_id in node_index[:-1]: #internal nodes ( exclude leaf)
-        # continue to the next node if it is a leaf node
-        #if leaf_id[sample_id] == node_id:
-        #    continue
-    
-        # check if value of the split feature for sample 0 is below threshold
-        if X_test.iloc[sample_id, feature[node_id]] <= threshold[node_id]:
-            threshold_sign = "<="
-            next_child = children_left[node_id]
-        else:
-            threshold_sign = "> "
-            next_child = children_right[node_id]
-
-    
-        print(
-            #"node {node:3}: w: {weight:1.2f} "
-            "{feature:8} {inequality} {threshold:6.2f}" 
-            #" ({feature:8} = {value:6.2f})" 
-            "  -->  {partial:5.4f}".format(
-                #node=node_id,
-                #weight=node_weights[node_id],
-                #sample=sample_id,
-                feature=X_test.columns[feature[node_id]],
-                #value=X_test.iloc[sample_id, feature[node_id]],
-                inequality=threshold_sign,
-                threshold=threshold[node_id],
-                partial=partial_preds[next_child]
-            )
-        )
-        
-            
-    X_sample = X_test.iloc[sample_id,:].values.reshape(1,-1)
-    
-    if hasattr(clf, "predict_proba"):
-        y_pred = clf.predict_proba(X_sample)[:,1]
-    elif hasattr(clf, "predict"):
-        y_pred = clf.predict(X_sample)
-    else:
-        print(clf)
-        KeyError("check tree method, is it correct?")
-
-    print(
-        "leaf {node:3}: predicts:{predict:5.4f}".format(
-            node=node_index[-1],
-            predict=float(y_pred)
-        )
-    )
-
 
 
 

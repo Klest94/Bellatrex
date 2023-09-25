@@ -17,8 +17,11 @@ from code_scripts.TreeRepresentation_utils import count_rule_length
 #from plot_tree_patch import plot_tree_patched
 
 from code_scripts.LocalMethod_class import Bellatrex
+from code_scripts.utilities import EnsembleWrapper
 
-SETUP = "surv"
+from code_scripts.utilities import tree_list_to_model, SDT_to_dict
+
+SETUP = "bin"
 PROJ_METHOD = "PCA"
 
 SAVE_PREDS = False # if True: save: predictions, tuned_hyperparams and dataframe
@@ -26,9 +29,9 @@ SAVE_PREDS = False # if True: save: predictions, tuned_hyperparams and dataframe
 OVERWRITE_DF = False # save performance df as csv, potentially overwriting smth
 
 # reduce MAX_TEST_SIZE for quick code testing
-MAX_TEST_SIZE = 50 #if set >= 100, it takes the (original) value X_test.shape[0]
+MAX_TEST_SIZE = 3 #if set >= 100, it takes the (original) value X_test.shape[0]
 
-N_FOLDS = 3
+N_FOLDS = 1
 
 p_grid = {
     "n_trees": [0.2, 0.5, 0.8], # [100] for "noTrees_" ablation
@@ -52,7 +55,7 @@ TAIL_NOTES = "p1" # ONLY FOR FINAL CSV FILE
 
 NOTES = EXTRA_NOTES + PROJ_METHOD + "_" + FEAT_REPRESENTATION + "_"
 
-testing_dnames = dnames[0:3]#[:4]
+testing_dnames = dnames[0:1]#[:4]
 #testing_dnames = [dnames[i] for i in [4, 6, 8, 10, 11]]
 ##########################################################################
 
@@ -63,7 +66,6 @@ validate_paramater_run(p_grid, EXTRA_NOTES, N_FOLDS)
 print("running on datasets:")
 print(testing_dnames)
 
-#%%
 # N JOBS NOT WORKING CORRECTLY!!!!
 JOBS = 4 # n_jobs for R(S)F learner (and now also ETrees candidate choice!)
 VERBOSE = 4
@@ -79,11 +81,6 @@ PLOT_GUI = False
     - >= 5.0: print params and performance during GridSearch
 '''
 
-
-#dnames = list(filter(lambda f: not f.endswith('.csv'), dnames)) # throws away csv-s
-
-
-
 '''
 SET keywords to be used across the 5 scenarios implememted so far.
 Needed because:
@@ -98,7 +95,7 @@ regression_key_list = ["regression", "regress", "regr"]
 mt_regression_key_list = ["multi-target", "multi-t", "mtr"]
 multi_sa_key_list = ["multi-sa", "multi-variate-sa", "mvsa"]
 
-#%%
+
 print("##########################################")
 print("SETUP: {}, STRUCTURE: {}, PROJ: {}".format(SETUP, STRUCTURE, PROJ_METHOD))
 print("FEAT. REPRESENT: {}, EXTRA NOTES: {}".format(FEAT_REPRESENTATION, EXTRA_NOTES))
@@ -128,7 +125,6 @@ for folder in testing_dnames:
     t1 = datetime.datetime.now()    
     
     j = 0  #outer fold index, (we are performing the outer CV "manually")
-    
     
     # read the (maximum 5) datafolds, generated in advance
         
@@ -162,19 +158,37 @@ for folder in testing_dnames:
         ### instantiate original R(S)F estimator
         if SETUP.lower() in survival_key_list:
             rf = RandomSurvivalForest(n_estimators=100, min_samples_split=10,
-                                        n_jobs=4, random_state=0)
+                                        n_jobs=JOBS, random_state=0)
 
         elif SETUP.lower() in binary_key_list + multi_label_key_list:
             rf = RandomForestClassifier(n_estimators=100, min_samples_split=5,
-                                        n_jobs=4, random_state=0)
+                                        n_jobs=JOBS, random_state=0)
             
         elif SETUP.lower() in regression_key_list + mt_regression_key_list:
             rf = RandomForestRegressor(n_estimators=100, min_samples_split=5,
-                                        n_jobs=4, random_state=0)
+                                        n_jobs=JOBS, random_state=0)
         
+        
+        # dictionary testing for BELLATREX here
+        
+        rf.fit(X_train, y_train)
+        
+        tree_list = []
+            
+        for t in range(rf.n_estimators):
+               
+            tree_dict = SDT_to_dict(rf[t], 'probability',
+                                       T_to_bin=None)
+            tree_list.append(tree_dict)
+               
+        clf1 = tree_list_to_model(tree_list) #normally, you load the dict in this format
+        # adapt the dict into smth comaptible with Belllatrex
+        clf2 = EnsembleWrapper(clf1)
 
-        #fit RF here. The hyperparameters are given      
-        Bellatrex_fitted = Bellatrex(rf, 'auto',
+        #fit RF here. The hyperparameters are given
+        # input either rf or clf1
+        
+        Bellatrex_fitted = Bellatrex(clf1, 'bin',
                                   p_grid=p_grid,
                                   proj_method=PROJ_METHOD,
                                   dissim_method=STRUCTURE,
@@ -185,7 +199,7 @@ for folder in testing_dnames:
         
         # store, for every sample in the test set, the predictions from the
         # local method and the original R(S)F
-        N = min(X_test.shape[0], MAX_TEST_SIZE)        
+        N = min(X_test.shape[0], MAX_TEST_SIZE)
         y_pred = []
         local_dissimil = np.zeros(N)
         # miniRF_dissimil = np.zeros(N)
@@ -212,7 +226,7 @@ for folder in testing_dnames:
                         
             
             ''' input for TreeDissimilarity:
-                - original fitted ensemble estimator ( not the Bellatrex)
+                - original fitted ensemble estimator (not the Bellatrex)
                 - indeces of the final extracted trees
                 - dissimilarity measure to be used.      '''
                 

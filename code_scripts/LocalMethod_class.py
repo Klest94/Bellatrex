@@ -3,15 +3,20 @@ from sklearn.model_selection import ParameterGrid
 from code_scripts.utilities import plot_preselected_trees, rule_print_inline
 from joblib import Parallel, delayed
 import os
+os.environ["OMP_NUM_THREADS"] = '1' # avoids memory leak caused by K-Means
 import warnings
 import numpy as np
 import sklearn
 from sklearn.utils.validation import check_is_fitted
 import sksurv
+import pandas as pd
+from code_scripts.utilities import EnsembleWrapper
+
 
 class Bellatrex:
     
     FONT_SIZE = 20
+    MAX_FEATURE_PRINT = 12
     
     def __init__(self, clf, set_up="auto", 
                  force_refit=False,
@@ -30,7 +35,7 @@ class Bellatrex:
                  plot_GUI=False,
                  output_explain=True,
                  plot_max_depth=None,
-                 dpi_figure=120,
+                 dpi_figure=90,
                  ys_oracle = None):
         
         self.clf = clf #(un)fitted instance of R(S)F
@@ -95,8 +100,14 @@ class Bellatrex:
             raise ValueError('The list of n_trees must either indicate a proportion'
                              ' of trees in the (0,1] interval, or indicate the number'
                              ' of tree learners.')
-                              
-        if max(self.n_trees) > self.clf.n_estimators:
+            
+        # Check that the n_trees provided by the user does not exceed the number of totla trees in the R(S)F
+        # this works for both a fitted sklearn model and a dictionary        
+        
+        # tot_estimators = self.clf['n_estimators'] if isinstance(self.clf, dict) else self.clf.n_estimators
+        tot_estimators = self.clf.n_estimators
+        
+        if max(self.n_trees) > tot_estimators: 
             raise ValueError("n_trees cannot be greater than n_estimators")        
         
         #if proportions fo trees are given correctly, as expected
@@ -104,36 +115,48 @@ class Bellatrex:
         if np.array([isinstance(i, float) for i in self.n_trees]).all():
             if 0 < max(self.n_trees) <= 1.0 and 0 < min(self.n_trees):
                 # round to closest integer
-                self.n_trees = (np.array(self.n_trees)*self.clf.n_estimators+0.5).astype(int)
+                self.n_trees = (np.array(self.n_trees)*tot_estimators+0.5).astype(int)
 
     def is_fitted(self): #auxiliary function that returns boolean
-        try:
-            check_is_fitted(self.clf) #only with sklearn models (but works with all of them)
-            return  True
-        except:
-            return False
-
-
-    def fit(self, X, y): #works as inteded   #add n_jobs
-    
-        # check whther the input value of the grid are admissible        
-        self._validate_p_grid()
         
+        # if a pre-trained dict is passed, consider the model as fitted.
+        # assume therefre that dicts only need to be formatted correctly
+        if isinstance(self.clf, dict):
+            self.clf = EnsembleWrapper(self.clf)
+            return True
+        else: #no dict, normal check if sklearn/sksurv model is fitted or not
+            try:
+                check_is_fitted(self.clf) #only with sklearn models (but works with all of them)
+                return  True
+            except: #check_is_fitted throws exception, we need it to throw 'False'
+                return False
+
+
+    def fit(self, X, y): # works as inteded with sklearn models and trained models stored as compatible dictionaries
+    
+        # firstly fit if needed
         if self.force_refit == False and self.is_fitted():
             print("Model is already fitted, building explanation.")
         else:
             if self.verbose >= 0:
                 print("Fitting the model...", end='')
-            self.clf.fit(X, y)
+            self.clf.fit(X, y, self.n_jobs)
             if self.verbose >= 0:
                 print(" fitting complete")
-            
+                
+        # then check whether the input grid values are admissible        
+        self._validate_p_grid()
+    
         if self.verbose >= 2:
             print("oracle_sample is: {}".format(self.ys_oracle))
             
             
         if self.set_up == "auto": # automatically determine scenario based on fitted classifier
-            if isinstance(self.clf, sklearn.ensemble.RandomForestClassifier):
+            
+            if (isinstance(self.clf, dict) or isinstance(self.clf, EnsembleWrapper)):
+                raise ValueError("Dictionary format (wrapped ensemble) not compatible with \'auto\' set-up selection. Select manually")    
+        
+            elif isinstance(self.clf, sklearn.ensemble.RandomForestClassifier):
                 if self.clf.n_outputs_ == 1:
                     self.set_up = 'binary'
                 else:
@@ -311,7 +334,8 @@ Set n_jobs = 1 to avoid this warning')
             for tree_idx, cluster_size in zip(final_extract_trees, final_cluster_sizes):
                 #if X.shape[1] < 10: # or improve rule_print_inline function!
                 rule_print_inline(self.clf[tree_idx], sample,
-                                      cluster_size/np.sum(final_cluster_sizes))
+                                      weight=cluster_size/np.sum(final_cluster_sizes),
+                                      max_features_print=self.MAX_FEATURE_PRINT)
     
         if self.verbose >= 4.0 and self.plot_GUI == True:
             
