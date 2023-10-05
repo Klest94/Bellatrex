@@ -8,7 +8,7 @@ from sklearn.cluster import KMeans
 os.environ["OMP_NUM_THREADS"] = "1" # avoids memory leak caused by K-Means
 from sklearn.neighbors import KDTree
 import sksurv
-
+from code_scripts.utilities import EnsembleWrapper
 from code_scripts.TreeRepresentation_utils import tree_splits_to_vector#tree_vector
 from code_scripts.TreeRepresentation_utils import rule_splits_to_vector, add_emergency_noise
 
@@ -37,7 +37,7 @@ class TreeExtraction:# is it convenient if it inherits?
                   pre_select_loss, fidelity_measure,
                   clf, oracle_sample,
                   set_up, sample, verbose,
-                  output_explain=True):
+                  output_explain=False):
         # consider inheriting from LocalMethod, smth like:
         # LocalMethod.__init__(self) (??)
         self.proj_method = proj_method
@@ -223,11 +223,10 @@ class TreeExtraction:# is it convenient if it inherits?
         # IMPROVE, this is a bit werid isn't it?
         # identify output format: single or multi-output?
         # if dictionary, check format at the root node [0] of the first tree [0]
-        if isinstance(self.clf, dict):
-            out = self.clf['trees'][0]['values'][0]
-            n_outputs = 1 if not hasattr(out, 'size') else out.size  # floats do not have .size
-        else:
-            n_outputs = self.clf.n_outputs_
+        # if isinstance(self.clf, EnsembleWrapper):
+            # out = self.clf['trees'][0]['values'][0]
+            # n_outputs = 1 if not hasattr(out, 'size') else out.size  # floats do not have .size
+        n_outputs = self.clf.n_outputs_
             
         if self.set_up == 'survival':
             n_outputs = 1
@@ -247,26 +246,29 @@ class TreeExtraction:# is it convenient if it inherits?
             we call it on the sample.values instead
         '''
         
-        if self.set_up.lower() in self.BINARY_KEYS and hasattr(self.clf, 'predict_proba_') :
-            RF_pred = self.clf.predict_proba(sample)[0,1]
-            #tree_preds = tree_preds.ravel()
+        
+        ''' GOAL HERE is to store tree predictions in a consistent format.
+        It should look as the following: ??? check and fill in ???      ''' 
+        
+        if self.set_up.lower() in self.BINARY_KEYS and hasattr(self.clf, 'predict_proba'):
+            RF_pred = self.clf.predict_proba(sample)[0,1] # <- float
             for k in range(self.clf.n_estimators):
-                tree_preds[k] = self.clf[k].predict_proba(sample.values)[0,1]
+                tree_preds[k] = self.clf[k].predict_proba(sample.values)[0,1] # <- floats
                 
-        if self.set_up.lower() in self.BINARY_KEYS and not hasattr(self.clf, 'predict_proba_') :
-            RF_pred = self.clf.predict(sample)[0]
+        elif self.set_up.lower() in self.BINARY_KEYS and not hasattr(self.clf, 'predict_proba'):
+            RF_pred = self.clf.predict(sample)[0] # <- float
             #tree_preds = tree_preds.ravel()
             for k in range(self.clf.n_estimators):
-                tree_preds[k] = self.clf[k].predict(sample.values)[0]
+                tree_preds[k] = self.clf[k].predict(sample.values)[0] # <- floats
         
                 
         elif self.set_up.lower() in self.SURVIVAL_KEYS + self.REGRESSION_KEYS:
-            RF_pred = self.clf.predict(sample)
+            RF_pred = self.clf.predict(sample) # still a float? Or single element array here?
 
             for k in range(self.clf.n_estimators):
                 tree_preds[k] = self.clf[k].predict(sample.values)
         
-        elif self.set_up.lower() in self.MTC_KEYS:
+        elif self.set_up.lower() in self.MTC_KEYS and hasattr(self.clf, 'predict_proba'):
             RF_pred = self.clf.predict_proba(sample) #list of 2d arrays
             #RF_label_list = [lab[:,1][0] for lab in RF_pred]
             RF_label_list = [lab[0][1] for lab in RF_pred] #get prob of posit label
@@ -275,6 +277,21 @@ class TreeExtraction:# is it convenient if it inherits?
             # multi-label needs extra adjustments
             for k in range(self.clf.n_estimators): # add column selection
                 label_probs_list = self.clf[k].predict_proba(sample.values)
+                #label_list = [lab[:,1][0] for lab in label_probs_list]
+                label_list = [lab[0][1] for lab in label_probs_list]
+                tree_preds[k,:] = np.array(label_list).ravel()
+                # predicted (prob.) labels for the given sample
+                
+                
+        elif self.set_up.lower() in self.MTC_KEYS and not hasattr(self.clf, 'predict_proba'):
+            RF_pred = self.clf.predict(sample) #list of 2d arrays
+            #RF_label_list = [lab[:,1][0] for lab in RF_pred]
+            RF_label_list = [lab[0][1] for lab in RF_pred] #get prob of posit label
+            RF_pred = np.array(RF_label_list).ravel()
+            
+            # multi-label needs extra adjustments
+            for k in range(self.clf.n_estimators): # add column selection
+                label_probs_list = self.clf[k].predict(sample.values)
                 #label_list = [lab[:,1][0] for lab in label_probs_list]
                 label_list = [lab[0][1] for lab in label_probs_list]
                 tree_preds[k,:] = np.array(label_list).ravel()
@@ -434,6 +451,10 @@ class TreeExtraction:# is it convenient if it inherits?
             
         else:
             raise ValueError("oracle doesn't have .predict nor .predict_proba method")
+            
+        
+        if isinstance(my_prediction, np.ndarray) and my_prediction.ndim > 2:
+            raise ValueError('The output vector has too many dimensions: {}, maximum is 2.'.format(my_prediction.ndim))
             
         # post processig output format here:
         if self.set_up.lower() in self.BINARY_KEYS + self.REGRESSION_KEYS + self.SURVIVAL_KEYS: # binary, regression, survival

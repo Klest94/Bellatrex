@@ -1,6 +1,7 @@
 from code_scripts.TreeExtraction_class import TreeExtraction
 from sklearn.model_selection import ParameterGrid
 from code_scripts.utilities import plot_preselected_trees, rule_print_inline
+from code_scripts.utilities import rule_to_file, used_feature_set, frmt_preds_to_print
 from joblib import Parallel, delayed
 import os
 os.environ["OMP_NUM_THREADS"] = '1' # avoids memory leak caused by K-Means
@@ -11,12 +12,13 @@ from sklearn.utils.validation import check_is_fitted
 import sksurv
 import pandas as pd
 from code_scripts.utilities import EnsembleWrapper
-
+import matplotlib.pyplot as plt
+from sksurv.ensemble import RandomSurvivalForest
 
 class Bellatrex:
     
-    FONT_SIZE = 20
-    MAX_FEATURE_PRINT = 12
+    FONT_SIZE = 14
+    MAX_FEATURE_PRINT = 10
     
     def __init__(self, clf, set_up="auto", 
                  force_refit=False,
@@ -33,9 +35,10 @@ class Bellatrex:
                  fidelity_measure="L2", 
                  n_jobs=1,
                  plot_GUI=False,
-                 output_explain=True,
                  plot_max_depth=None,
                  dpi_figure=90,
+                 show=True,
+                 print_to_file_name=None, #string with filename, or None if no output should be stored
                  ys_oracle = None):
         
         self.clf = clf #(un)fitted instance of R(S)F
@@ -52,6 +55,8 @@ class Bellatrex:
         self.plot_GUI = plot_GUI
         self.plot_max_depth=plot_max_depth
         self.dpi_figure=dpi_figure
+        self.show = show
+        self.print_to_file_name = print_to_file_name
         self.ys_oracle = None
         
     def _validate_p_grid(self):
@@ -116,6 +121,8 @@ class Bellatrex:
             if 0 < max(self.n_trees) <= 1.0 and 0 < min(self.n_trees):
                 # round to closest integer
                 self.n_trees = (np.array(self.n_trees)*tot_estimators+0.5).astype(int)
+                
+    
 
     def is_fitted(self): #auxiliary function that returns boolean
         
@@ -216,7 +223,8 @@ class Bellatrex:
                                 self.fidelity_measure,
                                 self.clf,
                                 self.ys_oracle,
-                                self.set_up, sample, self.verbose)
+                                self.set_up, sample, self.verbose
+                                )
         
         
         ''' the TreeExtraction method does most of the computation,
@@ -296,10 +304,9 @@ Set n_jobs = 1 to avoid this warning')
             best_idx = np.argsort(perfs)[::-1][0]  # take top performing index
             best_perf = perfs[best_idx]
             best_params = params_list[best_idx]
-
-        
+            
         if best_perf == -np.inf: # if still the case, everything went wrong...
-            warnings.warn("The GridSearch did not find any optimum, setting default parameters")
+            warnings.warn("The GridSearch did not find any meaningful configuration, setting default parameters")
             
 
         # closed "GridSearch" loop, storing score of the best configuration
@@ -310,6 +317,22 @@ Set n_jobs = 1 to avoid this warning')
                         
         final_extract_trees = tuned_method.final_trees_idx
         final_cluster_sizes =  tuned_method.cluster_sizes
+        
+        ''' compute Bellatrex prediction  here as well. Useful for printing in the future '''
+        
+        if not isinstance(self.clf, RandomSurvivalForest):
+            surrogate_pred = [0]*self.clf.n_outputs_
+        else:
+            surrogate_pred = [0]
+        
+        for tree_idx, cluster_size in zip(final_extract_trees, final_cluster_sizes):
+            if hasattr(self.clf[tree_idx], 'predict_proba'):
+                surrogate_pred += self.clf[tree_idx].predict_proba(sample.values)[:,1]*(cluster_size/np.sum(final_cluster_sizes))
+            else:
+                surrogate_pred += self.clf[tree_idx].predict(sample.values)*cluster_size/np.sum(final_cluster_sizes)
+            
+            
+        surrogate_pred_str = frmt_preds_to_print(surrogate_pred,'{:.4f}')
         
         if self.verbose >= 1:
             print("best params:", best_params)
@@ -328,6 +351,28 @@ Set n_jobs = 1 to avoid this warning')
                                    tuned_method, final_extract_trees,
                                    base_font_size=self.FONT_SIZE, 
                                    plot_dpi=self.dpi_figure)
+            if self.show:
+                plt.show()
+                
+            if self.print_to_file_name not in [None, False]:
+                
+                # Overwrite the file to start with an empty file
+                with open(self.print_to_file_name, 'w+') as f:
+                    pass #refreshes the file, closes file as well AFAIK
+                
+                with open(self.print_to_file_name, 'a+') as f:
+                
+                    for idx, cluster_size in zip(final_extract_trees, final_cluster_sizes):
+                        
+                        rule_to_file(self.clf[idx],
+                                     sample, X.columns,
+                                     cluster_size/np.sum(final_cluster_sizes),
+                                     self.MAX_FEATURE_PRINT,
+                                     f)
+                                            
+                    f.write('Bellatrex (surrogate) prediction: {}'.format(surrogate_pred_str))
+                    f.close()
+
                         
         if self.verbose >= 4.0 and self.plot_GUI  == False:
             
@@ -336,7 +381,19 @@ Set n_jobs = 1 to avoid this warning')
                 rule_print_inline(self.clf[tree_idx], sample,
                                       weight=cluster_size/np.sum(final_cluster_sizes),
                                       max_features_print=self.MAX_FEATURE_PRINT)
-    
+        print('Bellatrex (surrogate) prediction:', surrogate_pred_str)
+        
+        if hasattr(self.clf, 'predict_proba'):
+            y_pred_orig = self.clf.predict_proba(sample)[:,1]
+        else:
+            y_pred_orig = self.clf.predict(sample)
+            
+        print('Black box prediction: ' + frmt_preds_to_print(y_pred_orig,'{:.4f}'))
+        print('#'*54)
+        
+        from code_scripts.utilities import return_partial_preds
+        partial_preds = [return_partial_preds(clf_i) for clf_i in self.clf.estimators_]
+
         if self.verbose >= 4.0 and self.plot_GUI == True:
             
             from code_scripts.GUI_plots_code import plot_with_interface

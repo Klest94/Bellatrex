@@ -14,14 +14,13 @@ from code_scripts.utilities import get_data_list, score_method
 from code_scripts.utilities import format_targets, format_RF_preds
 from code_scripts.TreeDissimilarity_class import TreeDissimilarity
 from code_scripts.TreeRepresentation_utils import count_rule_length
-#from plot_tree_patch import plot_tree_patched
 
 from code_scripts.LocalMethod_class import Bellatrex
 from code_scripts.utilities import EnsembleWrapper
 
-from code_scripts.utilities import tree_list_to_model, SDT_to_dict
+from code_scripts.utilities import tree_list_to_model, DT_to_dict
 
-SETUP = "bin"
+SETUP = "mtc"
 PROJ_METHOD = "PCA"
 
 SAVE_PREDS = False # if True: save: predictions, tuned_hyperparams and dataframe
@@ -34,9 +33,9 @@ MAX_TEST_SIZE = 3 #if set >= 100, it takes the (original) value X_test.shape[0]
 N_FOLDS = 1
 
 p_grid = {
-    "n_trees": [0.2, 0.5, 0.8], # [100] for "noTrees_" ablation
-    "n_dims": [2, 5, None], #None = no dim reduction   #Ablation: noDims_
-    "n_clusters": [1, 2, 3],
+    "n_trees": [0.5, 0.8], # [100] for "noTrees_" ablation
+    "n_dims": [None], #None = no dim reduction   #Ablation: noDims_
+    "n_clusters": [2],
     }
 
   
@@ -67,7 +66,7 @@ print("running on datasets:")
 print(testing_dnames)
 
 # N JOBS NOT WORKING CORRECTLY!!!!
-JOBS = 4 # n_jobs for R(S)F learner (and now also ETrees candidate choice!)
+JOBS = 1 # n_jobs for R(S)F learner (and now also ETrees candidate choice!)
 VERBOSE = 4
 PLOT_GUI = False
 '''  levels of verbosity in this script:
@@ -147,7 +146,6 @@ for folder in testing_dnames:
         
         orig_n_labels = y_test.shape[1] #meaningful only in multi-output
 
-        
         # set target variable to correct format depending on the prediciton
         # scenarios.E.g. set np.recarray fo survival data, or normalise data 
         # in case of single and multi-target regression
@@ -158,26 +156,26 @@ for folder in testing_dnames:
         ### instantiate original R(S)F estimator
         if SETUP.lower() in survival_key_list:
             rf = RandomSurvivalForest(n_estimators=100, min_samples_split=10,
-                                        n_jobs=JOBS, random_state=0)
+                                        n_jobs=4, random_state=0)
 
         elif SETUP.lower() in binary_key_list + multi_label_key_list:
             rf = RandomForestClassifier(n_estimators=100, min_samples_split=5,
-                                        n_jobs=JOBS, random_state=0)
+                                        n_jobs=4, random_state=0)
             
         elif SETUP.lower() in regression_key_list + mt_regression_key_list:
             rf = RandomForestRegressor(n_estimators=100, min_samples_split=5,
-                                        n_jobs=JOBS, random_state=0)
+                                        n_jobs=4, random_state=0)
         
         
         # dictionary testing for BELLATREX here
         
         rf.fit(X_train, y_train)
-        
+                
         tree_list = []
             
         for t in range(rf.n_estimators):
                
-            tree_dict = SDT_to_dict(rf[t], 'probability',
+            tree_dict = DT_to_dict(rf, t, 'auto',
                                        T_to_bin=None)
             tree_list.append(tree_dict)
                
@@ -188,13 +186,15 @@ for folder in testing_dnames:
         #fit RF here. The hyperparameters are given
         # input either rf or clf1
         
-        Bellatrex_fitted = Bellatrex(clf1, 'bin',
+        Bellatrex_fitted = Bellatrex(rf, SETUP,
                                   p_grid=p_grid,
                                   proj_method=PROJ_METHOD,
                                   dissim_method=STRUCTURE,
                                   feature_represent=FEAT_REPRESENTATION,
                                   n_jobs=JOBS,
                                   verbose=VERBOSE,
+                                  show=True,
+                                  print_to_file_name='trial-file.txt',
                                   plot_GUI=PLOT_GUI).fit(X_train, y_train)
         
         # store, for every sample in the test set, the predictions from the
@@ -210,7 +210,7 @@ for folder in testing_dnames:
             
             if VERBOSE >= 0:
                 print("sample i={} fold j={}," 
-                      "data: {}".format(i, j, folder.split(".csv", 1)[0]))
+                      " data: {}".format(i, j, folder.split(".csv", 1)[0]))
                   
             # call the .predict method. The hyperparamters were given and
             # and tested within .fit. Now  they are actively used
@@ -241,15 +241,12 @@ for folder in testing_dnames:
             
             if SETUP.lower() in multi_label_key_list + mt_regression_key_list:
                 y_true = y_test.iloc[i,:].values
-                #y_local_pred =  sample_info.local_prediction()
                 
             elif SETUP.lower() in survival_key_list:
                 y_true = y_test[i]
-                #y_local_pred = float(sample_info.local_prediction())
 
             else: #binary and (single-target) regression
                 y_true = float(y_test[i])
-                #y_local_pred = float(sample_info.local_prediction())
                 
             ### binary and survival need a float()
             #consider adding y_oracle prediction

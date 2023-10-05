@@ -25,3 +25,5 @@ R_scripts/
 .RData
 .Rhistory
 trial XGBoost.py
+figures/Method fig1 simplified.pdf
+figures/Method fig1 simplified.svg
