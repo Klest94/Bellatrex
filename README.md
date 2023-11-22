@@ -1,3 +1,7 @@
+<p align="center">
+<img src="figures/bellatrex-logo.png" alt="Bellatrex Logo" width="50%"/>
+</p>
+
 # Welcome to Bellatrex!
 
 Random Forest models can be difficult to interpret, and Bellatrex addresses this challenge by generating explanations that are easy to understand, and by providing insights into how the model arrived at its predictions. Bellatrex does so by Building Explanations through a LocalLy AccuraTe Rule EXtractor (hence the name: Bellatrex) for a given test instance, by extracting only a few, diverse rules. See [the published paper](https://ieeexplore.ieee.org/abstract/document/10105927) for more details.
