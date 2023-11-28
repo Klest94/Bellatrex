@@ -6,298 +6,88 @@ from sklearn.decomposition import PCA
 import matplotlib as mpl
 import pylab
 import warnings
+from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm
-# from matplotlib.ticker import FormatStrFormatter
 from matplotlib.ticker import FuncFormatter
 from sklearn import tree
 import sklearn
 import sksurv
 from sksurv.ensemble import RandomSurvivalForest
 from sksurv.tree import SurvivalTree
-from sklearn.tree import _tree
-from scipy.sparse import csr_matrix, hstack
+from sklearn.tree import _tree # to check things like _tree.TREE_UNDEFINED
+from code_scripts.wrapper_class import EnsembleWrapper
 
-class EnsembleWrapper:
+
+def concatenate_helper(y_pred, y_local_pred, axis=0):
     
-    ''' 
-    This class serves as a wrapper for compatibility with 
-    tree ensemble models stored as a list of dictionaries.
-    (see example in https://shap.readthedocs.io/en/stable/example_notebooks/tabular_examples/tree_based_models/Example%20of%20loading%20a%20custom%20tree%20model%20into%20SHAP.html)
-    (link as of shap version 0.41)
-    It is designed to be compatible with RandomForestClassifier,
-    RandomForestRegressor, and RandomSurvivalForest.
-    ''' 
+    if y_pred.shape[0] == 0: #if still empty (no rows added)
     
-    class Estimator:
-        
-        class Tree_:
-            def __init__(self, feature, n_node_samples, children_left, 
-                         children_right, threshold, value, feature_names_in_):
-                self.feature = feature
-                self.n_node_samples = n_node_samples
-                self.children_left = children_left
-                self.children_right = children_right
-                self.threshold = threshold
-                self.value = value
-                self.feature_names_in_ = feature_names_in_
-                
-            
-            @property
-            def n_outputs(self):
-                return len(self.value[0])
-            
-            @property
-            def node_count(self):
-                return len(self.feature)
-            
-
-
-            def apply(self, X):
-                n_samples = X.shape[0]
-                node_indices = []
-                for i in range(n_samples):
-                    node_indices.append(self._apply_tree(0, X[i, :]))
-                return node_indices
-
-
-            def _apply_tree(self, node_index, sample):
-                if self.children_left[node_index] == -1 and self.children_right[node_index] == -1:
-                    return [node_index]
-                
-                path_indices = [node_index]
-                if sample[self.feature[node_index]] <= self.threshold[node_index]:
-                    path_indices.extend(self._apply_tree(self.children_left[node_index], sample))
-                else:
-                    path_indices.extend(self._apply_tree(self.children_right[node_index], sample))
-                
-                return path_indices
-
-
-            def decision_path(self, X):
-                if isinstance(X, pd.DataFrame):
-                    X = X.to_numpy()
-                node_indices_list = self.apply(X)
-                data, indices, indptr = [], [], [0]
-                for sample_nodes in node_indices_list:
-                    data.extend([1] * len(sample_nodes))
-                    indices.extend(sample_nodes)
-                    indptr.append(len(indices))
-                return csr_matrix((data, indices, indptr), shape=(X.shape[0], self.node_count))
-            
-        
-        # this is the __init__ of the Estimator class (intermediate layer)
-        def __init__(self, tree_dict):
-            self.tree_ = self.Tree_(  # ORDER IS IMPORTANT! Check how class Tree_ is initialized
-                # The .get method returns None if key is missing
-                tree_dict.get('features'), 
-                tree_dict.get('node_sample_weight'),
-                tree_dict.get('children_left'),
-                tree_dict.get('children_right'),
-                tree_dict.get('thresholds'),
-                tree_dict.get('values'), # needs to be singular: .value!
-                tree_dict.get('feature_names_in_'),
-                ) 
-            self.n_outputs_ = self.tree_.n_outputs # Inferred from underlying tree_. 
-            
-
-        def predict(self, X):
-            if isinstance(X, pd.DataFrame):
-                X = X.to_numpy()
-            leaf_indices = self.tree_.apply(X)
-            n_samples = X.shape[0]
-            predictions = np.zeros((n_samples, self.n_outputs_))
-
-            for i in range(n_samples):
-                leaf_idx = leaf_indices[i][-1]  # Assuming the last node is the leaf
-                predictions[i, :] = self.tree_.value[leaf_idx]
-                
-            return predictions
-        
-        
-        def decision_path(self, X):
-            return self.tree_.decision_path(X)
-
-    # init EnsembleWrapper here (most external class)
-    def __init__(self, clf_dict):
-        self.estimators_ = [self.Estimator(tree) for tree in clf_dict['trees']]
-        self.n_outputs_ = self.estimators_[0].n_outputs_
-        self.n_estimators = len(self.estimators_)
-        self.n_features_in_ = clf_dict['trees'][0]['n_features_in_']
-        self.feature_names_in_ = clf_dict['trees'][0]['feature_names_in_']
-
-        
-        if 'unique_times_' in clf_dict['trees'][0]:
-            self.unique_times_ = clf_dict['trees'][0]['unique_times_']
-        
-    def __getitem__(self, index):
-        return self.estimators_[index]
+        # Initialize final_array columns based on the first new_array
+        if y_local_pred.ndim == 2: #if output is 2D array
+            y_pred = np.empty((0, y_local_pred.shape[1])) #for (n_samples, n_outputs)
+        if y_local_pred.ndim == 1: #if 1D array instead
+            y_pred = np.empty(0) #for (n_samples,)
     
-    
-    def predict(self, X): # the output format depends on what was stored in the original dict
-        if isinstance(X, pd.DataFrame):
-            X = X.to_numpy()
-    
-        n_samples = X.shape[0]
-        ensemble_predictions = np.zeros((n_samples, self.n_outputs_))
-    
-        for estimator in self.estimators_: #sum over learners, stored dictionaries assume this
-            ensemble_predictions += estimator.predict(X)
-    
-        return ensemble_predictions / self.n_estimators # assuming NON additive ensemble here
-    
-            
-    def decision_path(self, X):
-        
-        if isinstance(X, pd.DataFrame):
-            X = X.to_numpy()
-        
-        all_paths = []
-        n_nodes_ptr = [0]
-        
-        for estimator in self.estimators_:
-            path_csr = estimator.decision_path(X)
-            all_paths.append(path_csr)
-            n_nodes_ptr.append(n_nodes_ptr[-1] + path_csr.shape[1])
-        all_paths_csr = hstack(all_paths).tocsr()
-        
-        return all_paths_csr, np.array(n_nodes_ptr)
+    # concatenate along first axis (works in any case)
+    return np.concatenate((y_pred, y_local_pred), axis=axis)
 
 
+def predict_helper(clf, X_train):
 
-def DT_to_dict(clf_obj, idx, output_format, T_to_bin=2):
+    ''' INPUTS:
+    - clf: either a RandomForestClassfier, or RandomForestRegressor, or a EnsembleWrapper instance generated by Bellatrex_train
+    - input data (usually the one where the model has been trained on)
 
-    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-    from sksurv.tree import SurvivalTree
-    
-    ''' Compatible with single output trees only, at the moment.
-        compatible with SurvivalTree learners of a RandomSurvivalForest
-        (scikit-survival 0.21)
-        with DecisionTreeClassifier and DecisionTreeRegressor from RandomForest-s
-        (scikit-learn 1.2.2)     
     '''
-    tree_obj = clf_obj[idx]
-    tree = tree_obj.tree_
     
-    tree_dict = {
-        "children_left" : tree.children_left,
-        "children_right" : tree.children_right,
-        "children_default" : tree.children_right.copy(), # to be changed when sklearn can handle missing values
-        "features" : tree.feature,
-        "thresholds" : tree.threshold,
-        "node_sample_weight": tree.weighted_n_node_samples,
-        "n_features_in_": getattr(tree_obj, "n_features_in_", None),
-        "feature_names_in_": getattr(clf_obj, "feature_names_in_", None),
-        "unique_times_": getattr(tree_obj, "unique_times_", None),
-        "is_event_time_": getattr(tree_obj, "is_event_time_", None),
-        "random_state": getattr(tree_obj, "random_state", None),
-        "ensemble_class": clf_obj.__class__.__name__,
-        "learner_class": tree_obj.__class__.__name__
-    }
-   
-    tree_dict['output_format'] = output_format
-    
-    if isinstance(tree_obj, SurvivalTree):
-    
-        if tree_dict['unique_times_'] is None and output_format not in ['probability']:
-            raise KeyError('Missing \'unique_times_\' in the tree ensemble.')
-        
-        if T_to_bin == None and tree_dict['unique_times_'] is not None: # select median time to (any) event
-            T_to_bin = tree_dict['unique_times_'][len(tree_dict['unique_times_'])//2]
-    
-        if output_format == "predict_survival_curve":
-            tree_dict["values"] = tree.value[:,:, 1]
-    
-        elif output_format in ["hazard", "auto"]:
-            #sum CHF over unique_times_ that have an event (imitating SurvivalTree .predict)
-            tree_dict["values"] = np.sum(tree.value[:,tree_dict['is_event_time_'], 0], 
-                                          axis=1).reshape(-1, 1) 
-                
-        elif output_format in ["survival", 'time-to-event']:
-    
-            tree_dict["values"] = np.trapz(tree.value[:,:, 1], 
-                                           tree_obj.unique_times_,
-                                           axis=1).reshape(-1, 1) # integrate S(t) over unique_times_
-            # output shape: (n_nodes, 1) with E[S(t)] at each node
-    
-        elif output_format == "probability":
-            # pick last "False" index before "True" appears
-            index_T = np.argmax(tree_obj.unique_times_ > T_to_bin)-1
-            # it DOES work when all times are > T_bin, as it will again select -1
-            if min(tree_obj.unique_times_) > T_to_bin:
-                index_T = 0
-            # probability of experiencing the event by t=2 -> P(t) = 1 - S(t)
-            tree_dict["values"] = 1 - tree.value[:,index_T, 1].reshape(-1, 1)
-            # Why was the reshape needed? Why single-element arrays like this? Hmm...
+    from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+    from sksurv.ensemble import RandomSurvivalForest
+    from sksurv.tree import SurvivalTree
             
+    ''' GOAL HERE is to store tree predictions in a consistent format.
+    It should look as (n_samples, n_outputs) for multi-output, 
+    and (n_samples,) for single output''' 
+        
+    # WHEN EXTENDING TO other tree-based learners (e.g. ExtraTrees) consider 
+    # checking for n_outputs and n_classes instead of check with isinstance
+    
+    if isinstance(clf, (RandomForestClassifier, DecisionTreeClassifier)) and clf.n_outputs_ == 1:        
+        return clf.predict_proba(X_train)[:,1]
+    elif isinstance(clf, (RandomForestClassifier, DecisionTreeClassifier)) and clf.n_outputs_ > 1:        
+        return np.array(clf.predict_proba(X_train))[:,:,1].T
+    elif isinstance(clf, (RandomForestRegressor, DecisionTreeRegressor, 
+                          RandomSurvivalForest, SurvivalTree)):
+        return clf.predict(X_train)
+    elif isinstance(clf, (EnsembleWrapper, EnsembleWrapper.Estimator)):
+        ypred = clf.predict(X_train)
+        if ypred.shape[1] == 1: # if output of shape: (n_samples, 1)
+            return ypred.ravel() #consistency with sklearn output shape: (n_samples,)
         else:
-            raise ValueError('Input not recognized. Double check')
-            
-    # Decision Tree Classifier case here:
-    elif isinstance(tree_obj, DecisionTreeClassifier) and output_format in ["probability", "auto"]:
-        partials = tree.value[:,0,:] # output for 2 classes, now take average
-        tree_dict["values"] = (partials[:,1] / (partials[:,0] + partials[:,1])).reshape(-1, 1)
-    
-    elif isinstance(tree_obj, DecisionTreeRegressor) and output_format in ["probability", "auto"]:
-        tree_dict["values"] = tree.value[:,0,0].reshape(-1, 1) # output (n_nodes, 1)
-        
+            return ypred
     else:
-        raise ValueError("Combination of learner \'{}\' and scenario \'{}\' not recognized".format(tree_obj.__class__.__name__, output_format))
-            
-    tree_dict["base_offset"] = tree_dict['values'][0] # root node (0) prediction
+        raise ValueError('Tree learner \'{}\' not recognized, or not implemented yet'.format(clf.__class__.__name__))
+             
     
-    return tree_dict
 
-
-def tree_list_to_model(tree_list):
-    
-    ''' given each learner is stored as a dict, create a list of 
-    such dictionaries.
-    NOTE that this is NOT directly compatible with the SHAP library, 
-    which assumes that the input custom tree models are additive 
-    
-    To use SHAP, the user needs to divide the predicted values accordingly.
-    See commmented lines below '''
-    
-    # for t in tree_list: # divide here
-    #     t["values"] = t["values"] / len(tree_list)
-
-    base_offset = np.mean(np.array([t['base_offset'] for t in tree_list]))
-    
-    assert len(set([t['output_format'] for t in tree_list])) == 1 # consistency check
-    assert len(set([t['ensemble_class'] for t in tree_list])) == 1 # consistency check
-
-
-    output_format = tree_list[0]['output_format']
-    ensemble_class = tree_list[0]['ensemble_class']
-
-
-    model_as_dict = {
-        "trees": tree_list, #list of dicts
-        "base_offset": base_offset, # single value (average of array)
-        "output_format": output_format,
-        "ensemble_class": ensemble_class,
-        "input_dtype": np.float32,
-        "internal_dtype": np.float32}
-    
-    return model_as_dict
-
-
-def frmt_preds_to_print(y_pred, format_string='{:.4f}') -> str:
+def frmt_preds_to_print(y_pred, format_single='{:.4f}', format_vect='{:.3f}') -> str:
     
     # if 2-d, the only acceptable option is that it is a nested 1-d vector
     if isinstance(y_pred, np.ndarray) and y_pred.ndim == 2:
-        if y_pred.shape[1] != 1:
-            raise ValueError('Output vector must be 1d, or a nested 1d vector in 2d')
+        if y_pred.shape[0] > 1:
+            raise ValueError('Output vector must be 1d, or with size (1,p)')
         y_pred = y_pred.ravel()
     
     # whether it is real 1-d vector (n,), or a float in disguise
     if isinstance(y_pred, np.ndarray):
-        y_pred_str = ", ".join(format_string.format(val) for val in y_pred)
+        y_pred_str = ", ".join(format_vect.format(val) for val in y_pred)
         
     elif isinstance(y_pred, float):
-        y_pred_str = format_string.format(y_pred)
+        y_pred_str = format_single.format(y_pred)
         
+    elif isinstance(y_pred, str):
+        warnings.warn('y_pred is already a string. You might be calling the formatting function twice')
     else:
         raise ValueError('Format for y_pred not recognized')
     
@@ -305,12 +95,19 @@ def frmt_preds_to_print(y_pred, format_string='{:.4f}') -> str:
 
 def return_partial_preds(clf_i):
     
-    if isinstance(clf_i, sklearn.tree._classes.DecisionTreeClassifier):
+    if isinstance(clf_i, sklearn.tree.DecisionTreeClassifier) and clf_i.n_outputs_ == 1:
         partials = clf_i.tree_.value[:,0,:] # now take average
         partial_preds = partials[:,1] / (partials[:,0] + partials[:,1])
+        
+    elif isinstance(clf_i, sklearn.tree.DecisionTreeClassifier) and clf_i.n_outputs_ > 1:
+        partials = clf_i.tree_.value
+        partial_preds = partials[:,:,1] / (partials[:,:,0] + partials[:,:,1])
  
-    elif isinstance(clf_i, sklearn.tree._classes.DecisionTreeRegressor):
-        partial_preds = clf_i.tree_.value.ravel()
+    elif isinstance(clf_i, sklearn.tree.DecisionTreeRegressor) and clf_i.n_outputs_ == 1:
+        partial_preds = clf_i.tree_.value.ravel() # DOUBLE CHECK!
+        
+    elif isinstance(clf_i, sklearn.tree.DecisionTreeRegressor) and clf_i.n_outputs_ > 1:
+        partial_preds = clf_i.tree_.value.squeeze(axis=-1) #(n,p,1) to (n,p)
             
     elif isinstance(clf_i, SurvivalTree):
         # clf_i.tree_.value: np array of [node, time, [H(node), S(node)]]
@@ -320,10 +117,11 @@ def return_partial_preds(clf_i):
         # NOW imitating .predict of the SurvivalTree even better:
         partial_preds = np.sum(clf_i.tree_.value[:,clf_i.is_event_time_, 0], axis=1)
             
-
     elif isinstance(clf_i, EnsembleWrapper.Estimator):
-         partial_preds =  clf_i.tree_.value.ravel() # .ravel seems to be the needed formatting  
-                            
+        if clf_i.n_outputs_ == 1:
+            partial_preds =  clf_i.tree_.value.ravel() # .ravel seems to be the needed formatting  
+        else:
+            partial_preds =  clf_i.tree_.value           
     else:
         raise ValueError('Tree learner not recognized, or not implemented')
     
@@ -388,10 +186,11 @@ def rule_print_inline(clf_i, sample, weight=None, max_features_print=12):
     
     partial_preds = return_partial_preds(clf_i)
     
-    if weight == None or weight == 1:
-        print('Baseline prediction: {:.4f}'.format(partial_preds[0]))
+    
+    if weight == None:
+        print('Baseline prediction: {}'.format(frmt_preds_to_print(partial_preds[0])))
     else:
-        print('Baseline prediction: {:.4f} \t (weight = {:.2f})'.format(partial_preds[0], weight))
+        print('Baseline prediction: {} \t (weight = {:.2f})'.format(frmt_preds_to_print(partial_preds[0]), weight))
 
     for node_id in is_traversed_node[:-1]: #internal nodes (exclude leaf)
         # continue to the next node if it is a leaf node
@@ -406,44 +205,33 @@ def rule_print_inline(clf_i, sample, weight=None, max_features_print=12):
             
         print(
             "node {node:3}: w: {weight:1.3f} "
-            "{feature:8} {inequality} {threshold:6.2f}" 
-            " ({feature:8} = {value:6.2f})" 
-            "  -->  {partial:5.4f}".format(
+            "{feature:8} {inequality} {threshold:4.2f}" 
+            " ({feature:8} = {value:4.2f})" 
+            "  -->  {partial}".format(
                 node=node_id,
                 weight=node_weights[node_id],
                 feature=sample.columns[feature[node_id]],
                 value=sample.values[0, feature[node_id]],
                 inequality=threshold_sign,
                 threshold=threshold[node_id],
-                partial=partial_preds[next_child]
+                partial=frmt_preds_to_print(partial_preds[next_child])
                 )
             )
 
     print(
-        "leaf {node:3}: predicts: {predict:.4f}".format(
+        "leaf {node:3}: predicts: {predict}".format(
             node=is_traversed_node[-1],
-            predict=partial_preds[is_traversed_node[-1]]
+            predict=frmt_preds_to_print(partial_preds[is_traversed_node[-1]])
         )
     )
 
 
 def rule_to_file(clf_i, sample, feature_names, rule_weight,
                  max_features_print, f):
-    
-    
-    if isinstance(clf_i, sklearn.tree._classes.DecisionTreeClassifier):
-        leaf_print = clf_i.predict_proba(sample.values)[:,1].ravel()
-    elif isinstance(clf_i, sklearn.tree._classes.DecisionTreeRegressor):
-        leaf_print = clf_i.predict(sample.values).ravel() # risk score
-    elif isinstance(clf_i, sksurv.tree.SurvivalTree) or isinstance(clf_i, EnsembleWrapper.Estimator):
-        # leaf_surv_curve = clf_i.predict_survival_function([sample.values], return_array=False)
-        leaf_print = clf_i.predict(sample.values).ravel() # risk score
-    else:
-        raise ValueError('Input not recognized:', clf_i)
 
-
+    # leaf_print = predict_helper(clf_i, sample.values)
     partial_preds = return_partial_preds(clf_i)
-    
+                              
     def recurse_print(node, depth, tree_, sample, feature_names, is_traversed_node, f):
         indent = "  " * depth
         
@@ -454,8 +242,8 @@ def rule_to_file(clf_i, sample, feature_names, rule_weight,
             if is_traversed_node[node] == 1 and sample[tree_.feature[node]] <= threshold:
                 is_traversed_node[node] = 0 #otherwise it will keep printing this rulesplit
                 child_node = tree_.children_left[node]
-                f.write("node.{:4}: {}  {} <= {}  --> {}\n".format(node, indent, name, threshold,
-                                            frmt_preds_to_print(partial_preds[child_node], '{:.4f}')))
+                f.write("node.{:4}: {}  {} <= {:4.2f}  --> {}\n".format(node, indent, name, threshold,
+                                        frmt_preds_to_print(partial_preds[child_node])))
                 
                 recurse_print(child_node, depth + 1, tree_, sample, 
                               feature_names, is_traversed_node, f)
@@ -463,8 +251,8 @@ def rule_to_file(clf_i, sample, feature_names, rule_weight,
             if is_traversed_node[node] == 1 and sample[tree_.feature[node]] > threshold:
                 is_traversed_node[node] = 0
                 child_node = tree_.children_right[node]
-                f.write("node.{:4}: {}  {} > {}  --> {}\n".format(node, indent, name, threshold,
-                                            frmt_preds_to_print(partial_preds[child_node], '{:.4f}')))
+                f.write("node.{:4}: {}  {} > {:4.2f}  --> {}\n".format(node, indent, name, threshold,
+                                        frmt_preds_to_print(partial_preds[child_node])))
 
                 recurse_print(child_node, depth + 1, tree_, sample, 
                               feature_names, is_traversed_node, f)
@@ -472,7 +260,7 @@ def rule_to_file(clf_i, sample, feature_names, rule_weight,
         else: #if feature split is undefined (index == -2), then we are in a leaf
             if is_traversed_node[node] == 1:
                 f.write("leaf.{:4}: {}returns {}\n".format(node, indent,
-                                                           frmt_preds_to_print(partial_preds[node], '{:.4f}')))
+                                                    frmt_preds_to_print(partial_preds[node])))
         
     tree_structure = clf_i.tree_
     unique_features = used_feature_set(clf_i, feature_names, sample)
@@ -485,8 +273,7 @@ def rule_to_file(clf_i, sample, feature_names, rule_weight,
         f.write('#'*24 + '  SAMPLE  ' + '#'*24 + '\n')
         f.write(unique_features_formatted.to_string(col_space=4)+ '\n')
         f.write('#'*18 + '   RULE WEIGHT: {:.2f}  '.format(rule_weight) + '#'*18 + '\n')
-        f.write('Baseline prediction: {}\n'.format(frmt_preds_to_print(partial_preds[0], '{:.4f}')))
-
+        f.write('Baseline prediction: {}\n'.format(frmt_preds_to_print(partial_preds[0])))
 
     is_traversed_node = clf_i.decision_path(sample.values).toarray()[0]
     sample = sample.to_numpy().reshape(-1) #from single column to single line
@@ -497,13 +284,8 @@ def rule_to_file(clf_i, sample, feature_names, rule_weight,
 
 def rule_to_code(clf_i, traversed_nodes, sample, feature_names, full_save_name):
     
-    if isinstance(clf_i, sklearn.tree._classes.DecisionTreeClassifier):
-        leaf_print = clf_i.predict_proba([sample.values])[:,1].ravel()
-    elif isinstance(clf_i, sklearn.tree._classes.DecisionTreeRegressor):
-        leaf_print = clf_i.predict([sample.values]).ravel() # risk score
-    elif isinstance(clf_i, sksurv.tree.SurvivalTree) or isinstance(clf_i, sksurv.tree.SurvivalTree):
-        # leaf_surv_curve = clf_i.predict_survival_function([sample.values], return_array=False)
-        leaf_print = clf_i.predict(sample.values).ravel() # risk score
+
+    leaf_print = predict_helper(clf_i, sample.values)
 
     tree_ = clf_i.tree_
     feature_name = [
@@ -544,27 +326,19 @@ def rule_to_code(clf_i, traversed_nodes, sample, feature_names, full_save_name):
                 else: #it is undefined, it is therefore a leaf (?)
                     if traversed_nodes[node] == 1:
                         #print("leafnode.{}: {}return {}".format(node, indent, leaf_print2)) #tree_.value[node].ravel()
-                        f.write("leafnode.{}: {}returns {}\n".format(node, indent, leaf_print))
-                        name_save_plot = full_save_name.split(".")[0] + "-plot.png"
-                        
+                        f.write("leafnode.{}: {}returns {}\n".format(node, indent, leaf_print))                        
                         f.write("predicted:{}\n".format(leaf_print))
             recurse(0, 1, sample, intervals)
             f.close()
 
 
     
-def rule_to_code_and_intervals(tree, scenario, traversed_nodes, sample, feature_names, full_save_name):
-    learner = tree
+def rule_to_code_and_intervals(clf_i, scenario, traversed_nodes, sample, feature_names, full_save_name):
     
-    if isinstance(learner, sklearn.tree._classes.DecisionTreeClassifier):
-        leaf_print = learner.predict_proba([sample])[:,1].ravel()
-    elif isinstance(learner, sklearn.tree._classes.DecisionTreeRegressor):
-        leaf_print = learner.predict([sample]).ravel() # risk score
-    elif isinstance(learner, sksurv.tree._classes.SurvivalTree):
-        leaf_surv_curve = learner.predict_survival_function([sample], return_array=False)
-        
 
-    tree_ = tree.tree_
+    leaf_print = predict_helper(clf_i, sample)
+        
+    tree_ = clf_i.tree_
     feature_name = [
         feature_names[i] if i != _tree.TREE_UNDEFINED else "undefined!"
         for i in tree_.feature]
@@ -603,9 +377,7 @@ def rule_to_code_and_intervals(tree, scenario, traversed_nodes, sample, feature_
                 else: #it is undefined, it is therefore a leaf (?)
                     if traversed_nodes[node] == 1:
                         #print("leafnode.{}: {}return {}".format(node, indent, leaf_print2)) #tree_.value[node].ravel()
-                        f.write("leafnode.{}: {}return {}\n".format(node, indent, leaf_print))
-                        name_save_plot = full_save_name.split(".")[0] + "-plot.png"
-                        
+                        f.write("leafnode.{}: {}return {}\n".format(node, indent, leaf_print))                        
                         #print("predicted:{}\n".format(leaf_print))
                         f.write("predicted:{}\n".format(leaf_print))
             recurse(0, 1, sample, intervals)
@@ -697,8 +469,6 @@ def output_X_y(df, set_up):
 
     return X, y    
     
-    
-    
 
 def preparing_data(set_up, datapath, folder, n_folds=5, stratify=True):
     
@@ -751,7 +521,7 @@ def preparing_data(set_up, datapath, folder, n_folds=5, stratify=True):
     elif set_up.lower() in ["regression", "regress", "regr"]:  #last two columns for event
         stratify = False # not possible
         
-        df1 = pd.read_csv(datapath + folder + "/old_train1.csv") # <- alirght?
+        df1 = pd.read_csv(datapath + folder + "/old_train1.csv") # <- alright?
         df2 = pd.read_csv(datapath + folder + "/old_test1.csv")
         data = pd.concat([df1, df2], ignore_index=True)
         del df1, df2
@@ -801,19 +571,19 @@ def score_method(y_test, y_pred, set_up): #add more methods
     
     if set_up.lower() in ["surv", "survival"]:
         #y_pred = np.array(y_pred).ravel() # list to 2D array to 1D array
-        return c_index([i[0] for i in y_test], [i[1] for i in y_test],
-                   y_pred)[0]
+        return {'C-index': c_index([i[0] for i in y_test], [i[1] for i in y_test],
+                   y_pred)[0]}
     elif set_up.lower() in ["multi", "multi-label", "multi-l", "mtc"]:
-        return auroc(y_test, y_pred, average="weighted")
+        return {'multi-AUROC' : auroc(y_test, y_pred, average="weighted")}
     
     elif set_up.lower() in ["regression", "regress", "regr"]:
-        return mae(y_test, y_pred)
+        return {'MAE' : mae(y_test, y_pred)}
         #return mse(y_test, y_pred)
     
     elif set_up.lower() in ["bin", "binary"]:
-        return auroc(y_test, y_pred, average="weighted")
+        return {'AUROC': auroc(y_test, y_pred, average="weighted")}
     elif set_up.lower() in ["multi-t", "mtr", " mt_regress", "multi-target"]:
-        return mae(y_test, y_pred, multioutput="uniform_average")
+        return {'MAE': mae(y_test, y_pred, multioutput="uniform_average")}
     else:
         raise KeyError("set-up: \"{}\" not recognised".format(set_up))
 
@@ -876,7 +646,7 @@ def custom_axes_limit(bunch_min_value, bunch_max_value, RF_pred, is_binary):
     ## LocalMethod inputs: plot_data_bunch, plot_kmeans, tuned_method, self.clf.n_outputs_
 def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
                            base_font_size=12, show_ax_ticks="auto",
-                           plot_dpi=120):
+                           plot_dpi=120, colormap=None):
     
     small_size = 40
     big_size = 220
@@ -997,7 +767,22 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     cb.ax.set_yticklabels(labels)  # vertically oriented colorbar
     cb.ax.tick_params(labelsize=base_font_size-1) #ticks font size
     ax2.yaxis.set_ticks_position('left')
-    
+
+
+    # User can customize the colorbar
+    if colormap is None:
+        cmap_preds = plt.cm.get_cmap('RdYlBu') # default choice. Other possible default could be "viridis"
+        
+    elif isinstance(colormap, str):
+        if colormap not in plt.colormaps():
+            raise ValueError('Provided string {} is not a recognized LinearSegmenetedColormap. Check list by typing plt.colormaps()'.format(colormap))
+        else:
+            cmap_preds = plt.cm.get_cmap(colormap)
+    elif isinstance(colormap, (LinearSegmentedColormap)):
+        cmap_preds = colormap
+    else:
+        raise ValueError('Provided colormap has to be either a LinearSegmenetedColormap, or a recognized string. Found {} instead'.format(type(colormap)))
+        
 
     #####   RIGHT PLOT (predictions or losses)  #####
     
@@ -1005,41 +790,42 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     if tuned_method.clf.n_outputs_ == 1 or isinstance(tuned_method.clf,
                                         RandomSurvivalForest): # single output, color on predictions
     
-    
         ### right figure scatterplot here (ax3 and ax4):
-                
-        cmap2 = plt.cm.get_cmap('RdYlBu') # or "viridis", or user choice
-       
-        is_binary = isinstance(tuned_method.clf, sklearn.ensemble.RandomForestClassifier)
+
+        is_binary = False
+        if isinstance(tuned_method.clf, sklearn.ensemble.RandomForestClassifier):
+            is_binary = (tuned_method.clf.n_outputs_ == 1)
+        elif isinstance(tuned_method.clf, EnsembleWrapper):
+            is_binary = (tuned_method.clf.n_outputs_ == 1) and (tuned_method.clf.ensemble_class == 'RandomForestClassifier')
+
         
         v_min, v_max = custom_axes_limit(np.array(plot_data_bunch.pred).min(),
                                          np.array(plot_data_bunch.pred).max(),
                                          plot_data_bunch.RF_pred, is_binary)
         
         norm_preds = mpl.colors.BoundaryNorm(np.linspace(v_min, v_max, 256),
-                                             cmap2.N)
+                                             cmap_preds.N)
         
         color_indeces = np.zeros(len(plot_data_bunch.pred)) #length = n_trees
         
         for i in range(len(plot_data_bunch.pred)):
+            # count number of values in norm_preds.boundaries that are less than the prediction
             color_indeces[i] = np.argmin([thresh <= plot_data_bunch.pred[i] 
                                            for thresh in norm_preds.boundaries])
         # format as integers, for list comprehension
         color_indeces = [int(x+0.1) for x in color_indeces] 
         
-        real_colors = np.array([cmap2(idx) for idx in color_indeces])
+        real_colors = np.array([cmap_preds(idx) for idx in color_indeces])
         
         ax3.scatter(x_normal, y_normal,
                    c=real_colors[[not x for x in is_final_candidate]],
-                   #cmap=cmap2,
-                   s=small_size,
+                   s=small_size, #cmap=cmap_preds,
                    marker="o",
                    edgecolors=(1,1,1,0.5))
         
         ax3.scatter(x_selected, y_selected,
                    c=real_colors[is_final_candidate],
-                   #cmap=cmap2,
-                   s=big_size,
+                   s=big_size, #cmap=cmap_preds,
                    marker="*",
                    edgecolors="black")
         
@@ -1052,44 +838,59 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         # add color bar to the side
         pred_tick = np.round(float(tuned_method.local_prediction()), 3)
         
-        cb2 = mpl.colorbar.Colorbar(ax4, cmap=cmap2, norm=norm_preds,
+        cb2 = mpl.colorbar.Colorbar(ax4, cmap=cmap_preds, norm=norm_preds,
                                     format=FuncFormatter(custom_formatter),
                                     label="predicted: " + str(pred_tick))
         ax3.set_title('Rule-path predictions', fontdict={'fontsize': base_font_size})
         
+        ## add to colorbar a line corresponding to Bellatrex prediction
         
-        #if isinstance(tuned_method.clf, RandomSurvivalForest)
+        pred_lines = [float(x) for x in plot_data_bunch.pred]
         
-        ## add to colorbar a line corresponding to LTreeX prediction
-        cb2.ax.plot([0, 1], [plot_data_bunch.pred]*2, color='grey',
+        cb2.ax.plot([0, 1], [pred_lines]*2, color='grey',
                     linewidth=1)
         cb2.ax.plot([0.02, 0.98], [pred_tick]*2, color='black', linewidth=2.5,
                     marker="P")
                 
         
-        if isinstance(tuned_method.clf, RandomSurvivalForest):
+        if isinstance(tuned_method.clf, sksurv.ensemble.RandomSurvivalForest):
             cb2.set_label("Cumul.Hazard: "+ str(pred_tick),
                           size=base_font_size-3)
 
-        if isinstance(tuned_method.clf, sklearn.ensemble.RandomForestClassifier):
+        elif isinstance(tuned_method.clf, sklearn.ensemble.RandomForestClassifier):
             cb2.set_label("pred. prob:"+ str(pred_tick),
                           size=base_font_size-3)
-        if isinstance(tuned_method.clf, sklearn.ensemble.RandomForestRegressor):
+        elif isinstance(tuned_method.clf, sklearn.ensemble.RandomForestRegressor):
             cb2.set_label("pred. value:"+ str(pred_tick),
                           size=base_font_size-3)
         
-    # LOSS  whne multi-output predictions: plot distance from RF preds
+        elif isinstance(tuned_method.clf, EnsembleWrapper):
+            if tuned_method.clf.ensemble_class == 'RandomSurvivalForest':
+                cb2.set_label("Cumul.Hazard: "+ str(pred_tick),
+                              size=base_font_size-3)
+    
+            elif tuned_method.clf.ensemble_class == 'RandomForestClassifier':
+                cb2.set_label("pred. prob:"+ str(pred_tick),
+                              size=base_font_size-3)
+            elif tuned_method.clf.ensemble_class == 'RandomForestRegressor':
+                cb2.set_label("pred. value:"+ str(pred_tick),
+                              size=base_font_size-3)
+            else:
+                raise ValueError('Case for EnsembleWrapper not recognized: {}', tuned_method.clf.ensemble_class)
+        else:
+            raise ValueError('Model not recognized: {}', tuned_method.clf)
+    
+    # LOSS  when multi-output predictions: plot distance from RF preds. The lower the better (blue)
     else: 
     
-        color_map = plt.cm.get_cmap('RdYlBu')  # or "viridis", or user choice
+        color_map = plt.cm.get_cmap('RdYlBu_r') # low values associated to good: blue
+        # or "viridis", or user choice
         #norm = BoundaryNorm(np.linspace(0.2, 0.8, 256), color_map.N)
         # normalise colors min pred.--> blue, max pred. --> red to improve readability
-        
-        # v_min, v_max = custom_axes_limit(np.array(plot_data_bunch.loss).min(),
-        #                                  np.array(plot_data_bunch.loss).max(),
-        #                                  RF_pred=np.nan, is_binary=False)
-
-        v_min, v_max = np.array(plot_data_bunch.loss).min(), np.array(plot_data_bunch.loss).max()
+        # adds padding betwwen v_min and v_max in case they coincide
+        v_min, v_max = custom_axes_limit(np.array(plot_data_bunch.loss).min(),
+                                          np.array(plot_data_bunch.loss).max(),
+                                          RF_pred=np.nan, is_binary=False)
         
         norm_preds = BoundaryNorm(np.linspace(v_min, v_max, 256), cmap.N)
         
@@ -1185,32 +986,6 @@ def format_targets(y_train, y_test, SETUP, verbose=0):
     # formatting y target complete
     
     return y_train, y_test
-
-
-def format_RF_preds(rf, X_test, SETUP):
-    
-    BINARY_KEYS = ["bin", "binary"]
-    SURVIVAL_KEYS = ["surv", "survival"]
-    REGRESSION_KEYS = ["regress", "regression", "regr"]
-    MTC_KEYS = ["multi-l", "multi-label", "mtc", "multi"]
-    MTR_KEYS = ["multi-t", "multi-target", "mtr"]
-    
-    # storing predictions for performance evaluation:
-    if SETUP.lower() in SURVIVAL_KEYS + REGRESSION_KEYS:
-        y_ens_pred = rf.predict(X_test)
-        
-    elif SETUP.lower() in BINARY_KEYS: 
-        y_ens_pred = rf.predict_proba(X_test)[:,1]
-
-    elif SETUP.lower() in MTC_KEYS:
-        # original output is list of length L (n*labels) of prediction (n_samples, n_classes)
-        y_ens_pred = rf.predict_proba(X_test)
-        y_ens_pred = np.transpose(np.array(y_ens_pred)[:,:,1])
-        
-    elif SETUP.lower() in MTR_KEYS:
-        y_ens_pred = rf.predict(X_test)
-        
-    return y_ens_pred
 
 
 

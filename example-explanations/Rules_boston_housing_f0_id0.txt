@@ -1,0 +1,15 @@
+########################  SAMPLE  ########################
+     lstat  indus   rad ptratio   dis    rm
+0     9.67  11.93  1.00   21.00  2.48  6.59
+##################   RULE WEIGHT: 1.00  ##################
+Baseline prediction: 0.3889
+node.   0:   rm <= 6.97  --> 0.3297
+node.   1:     lstat <= 14.40  --> 0.4174
+node.   2:       dis > 1.23  --> 0.4115
+node.   4:         rm > 6.54  --> 0.5147
+node.  76:           lstat > 5.41  --> 0.4803
+node.  86:             indus > 4.67  --> 0.4397
+node.  94:               rad <= 5.50  --> 0.4644
+node.  95:                 ptratio > 17.70  --> 0.4347
+leaf.  97:                 returns 0.4347
+Bellatrex prediction: 0.435

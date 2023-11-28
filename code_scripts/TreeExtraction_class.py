@@ -5,20 +5,16 @@ from sklearn.metrics.pairwise import cosine_distances
 from sklearn.manifold import MDS #, TSNE
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
-os.environ["OMP_NUM_THREADS"] = "1" # avoids memory leak caused by K-Means
+os.environ["OMP_NUM_THREADS"] = "1" # avoids memory leak caused by K-Means. DOES NOT WORK
 from sklearn.neighbors import KDTree
 import sksurv
-from code_scripts.utilities import EnsembleWrapper
+from code_scripts.utilities import  frmt_preds_to_print
 from code_scripts.TreeRepresentation_utils import tree_splits_to_vector#tree_vector
 from code_scripts.TreeRepresentation_utils import rule_splits_to_vector, add_emergency_noise
-
-#, Jaccard_trees or Jaccard_rules
+from code_scripts.utilities import predict_helper
 from sklearn.utils import Bunch
-#from sklearn.exceptions import ConvergenceWarning
-#from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 
-#from sklearn.tree import export_text
 
 class TreeExtraction:# is it convenient if it inherits?
     
@@ -91,6 +87,9 @@ class TreeExtraction:# is it convenient if it inherits?
             method. Needed for tuning and for reporting.   
         '''
         
+            
+        
+        
     def extract_trees(self):
 
         '''this is the main function, does the following:
@@ -123,7 +122,9 @@ class TreeExtraction:# is it convenient if it inherits?
         
         HL_trees_idx = np.argsort(tree_local_losses)[:self.n_trees] # sort trees losses
         
-        HL_preds = [self.tree_prediction(self.clf[i]) for i in HL_trees_idx]
+        # HL_preds = [self.tree_prediction(self.clf[i]) for i in HL_trees_idx]
+        HL_preds = [predict_helper(self.clf[i], self.sample.values) for i in HL_trees_idx]
+
         HL_losses = np.array([tree_local_losses[i] for i in HL_trees_idx])
         
         
@@ -174,17 +175,17 @@ class TreeExtraction:# is it convenient if it inherits?
         
         # call dim_reduction step ALSO when n_dims=None. In this case,
         # the method will handle the case appropriately
-        # dim_reduction calls either PCA or MDS, according to proJ-method variable
+        # dim_reduction calls either PCA or MDS, according to proj-method variable
         proj_trees = self.dim_reduction(tree_matrix) # from pandas to numpy. Indexes stored in Bunch
         
-        # y needs to contain all floats...
-        if not all(isinstance(y, float) for y in HL_preds): 
-            if HL_preds[0].size < 2:    # but is single target output
-                HL_preds = [float(y) for y in HL_preds] # fix to float
-                RF_pred = float(RF_pred)            # fix to float
+        # HL_preds needs to contain all floats...
+        # if not all(isinstance(y, float) for y in HL_preds): 
+        #     if HL_preds[0].size < 2:    # but is single target output
+        #         HL_preds = [float(y) for y in HL_preds] # fix to float
+        #         RF_pred = float(RF_pred)            # fix to float
                 
-        if not isinstance(RF_pred, float) and RF_pred.size == 1:
-            RF_pred = float(RF_pred)            # fix to float
+        # if not isinstance(RF_pred, float) and RF_pred.size == 1:
+        #     RF_pred = float(RF_pred)            # fix to float
     
         '''  clustering step (indeces retained in Bunch object) '''
         
@@ -219,20 +220,16 @@ class TreeExtraction:# is it convenient if it inherits?
 
     def calcul_tree_proximity_loss(self, sample):
         
-        # get number of output labels (only for binary vs multi-label)
-        # IMPROVE, this is a bit werid isn't it?
-        # identify output format: single or multi-output?
-        # if dictionary, check format at the root node [0] of the first tree [0]
-        # if isinstance(self.clf, EnsembleWrapper):
-            # out = self.clf['trees'][0]['values'][0]
-            # n_outputs = 1 if not hasattr(out, 'size') else out.size  # floats do not have .size
-        n_outputs = self.clf.n_outputs_
+        # get number of output labels
+        n_real_outputs = self.clf.n_outputs_
             
-        if self.set_up == 'survival':
-            n_outputs = 1
+        # TODO possibly improve this check. It works until we have multi-output SA
+        if self.set_up in self.SURVIVAL_KEYS:
+            n_real_outputs = 1
         
-        if n_outputs > 1: #multi-output set-up
-            tree_preds = np.zeros([self.clf.n_estimators, n_outputs])
+        # output vector consistent with utilities.predict_helper function output
+        if n_real_outputs > 1: #multi-output set-up
+            tree_preds = np.zeros([self.clf.n_estimators, n_real_outputs])
         else: #single output set-up (binary, survival, regression)
             tree_preds = np.zeros(self.clf.n_estimators)
                
@@ -250,66 +247,71 @@ class TreeExtraction:# is it convenient if it inherits?
         ''' GOAL HERE is to store tree predictions in a consistent format.
         It should look as the following: ??? check and fill in ???      ''' 
         
-        if self.set_up.lower() in self.BINARY_KEYS and hasattr(self.clf, 'predict_proba'):
-            RF_pred = self.clf.predict_proba(sample)[0,1] # <- float
-            for k in range(self.clf.n_estimators):
-                tree_preds[k] = self.clf[k].predict_proba(sample.values)[0,1] # <- floats
+        RF_pred = predict_helper(self.clf, sample)
+        for k in range(self.clf.n_estimators):
+            tree_preds[k] = predict_helper(self.clf[k], sample.values)
+        
+        # if self.set_up.lower() in self.BINARY_KEYS and hasattr(self.clf, 'predict_proba'):
+        #     RF_pred = self.clf.predict_proba(sample)[0,1] # <- float
+        #     for k in range(self.clf.n_estimators):
+        #         tree_preds[k] = self.clf[k].predict_proba(sample.values)[0,1] # <- floats
                 
-        elif self.set_up.lower() in self.BINARY_KEYS and not hasattr(self.clf, 'predict_proba'):
-            RF_pred = self.clf.predict(sample)[0] # <- float
-            #tree_preds = tree_preds.ravel()
-            for k in range(self.clf.n_estimators):
-                tree_preds[k] = self.clf[k].predict(sample.values)[0] # <- floats
+                
+        # elif self.set_up.lower() in self.BINARY_KEYS and not hasattr(self.clf, 'predict_proba'):
+        #     RF_pred = self.clf.predict(sample)[0] # <- float
+        #     #tree_preds = tree_preds.ravel()
+        #     for k in range(self.clf.n_estimators):
+        #         tree_preds[k] = self.clf[k].predict(sample.values)[0] # <- floats
         
                 
-        elif self.set_up.lower() in self.SURVIVAL_KEYS + self.REGRESSION_KEYS:
-            RF_pred = self.clf.predict(sample) # still a float? Or single element array here?
+        # elif self.set_up.lower() in self.SURVIVAL_KEYS + self.REGRESSION_KEYS:
+        #     RF_pred = self.clf.predict(sample) # still a float? Or single element array here?
 
-            for k in range(self.clf.n_estimators):
-                tree_preds[k] = self.clf[k].predict(sample.values)
+        #     for k in range(self.clf.n_estimators):
+        #         tree_preds[k] = self.clf[k].predict(sample.values)
         
-        elif self.set_up.lower() in self.MTC_KEYS and hasattr(self.clf, 'predict_proba'):
-            RF_pred = self.clf.predict_proba(sample) #list of 2d arrays
-            #RF_label_list = [lab[:,1][0] for lab in RF_pred]
-            RF_label_list = [lab[0][1] for lab in RF_pred] #get prob of posit label
-            RF_pred = np.array(RF_label_list).ravel()
+        # elif self.set_up.lower() in self.MTC_KEYS and hasattr(self.clf, 'predict_proba'):
+        #     RF_pred = self.clf.predict_proba(sample) #list of 2d arrays
+        #     #RF_label_list = [lab[:,1][0] for lab in RF_pred]
+        #     RF_label_list = [lab[0][1] for lab in RF_pred] #get prob of posit label
+        #     RF_pred = np.array(RF_label_list).ravel()
             
-            # multi-label needs extra adjustments
-            for k in range(self.clf.n_estimators): # add column selection
-                label_probs_list = self.clf[k].predict_proba(sample.values)
-                #label_list = [lab[:,1][0] for lab in label_probs_list]
-                label_list = [lab[0][1] for lab in label_probs_list]
-                tree_preds[k,:] = np.array(label_list).ravel()
-                # predicted (prob.) labels for the given sample
+        #     # multi-label needs extra adjustments
+        #     for k in range(self.clf.n_estimators): # add column selection
+        #         label_probs_list = self.clf[k].predict_proba(sample.values)
+        #         #label_list = [lab[:,1][0] for lab in label_probs_list]
+        #         label_list = [lab[0][1] for lab in label_probs_list]
+        #         tree_preds[k,:] = np.array(label_list).ravel()
+        #         # predicted (prob.) labels for the given sample
                 
                 
-        elif self.set_up.lower() in self.MTC_KEYS and not hasattr(self.clf, 'predict_proba'):
-            RF_pred = self.clf.predict(sample) #list of 2d arrays
-            #RF_label_list = [lab[:,1][0] for lab in RF_pred]
-            RF_label_list = [lab[0][1] for lab in RF_pred] #get prob of posit label
-            RF_pred = np.array(RF_label_list).ravel()
+        # elif self.set_up.lower() in self.MTC_KEYS and not hasattr(self.clf, 'predict_proba'):
+        #     RF_pred = self.clf.predict(sample) #list of 2d arrays
+        #     #RF_label_list = [lab[:,1][0] for lab in RF_pred]
+        #     RF_label_list = [lab[0][1] for lab in RF_pred] #get prob of posit label
+        #     RF_pred = np.array(RF_label_list).ravel()
             
-            # multi-label needs extra adjustments
-            for k in range(self.clf.n_estimators): # add column selection
-                label_probs_list = self.clf[k].predict(sample.values)
-                #label_list = [lab[:,1][0] for lab in label_probs_list]
-                label_list = [lab[0][1] for lab in label_probs_list]
-                tree_preds[k,:] = np.array(label_list).ravel()
-                # predicted (prob.) labels for the given sample
+        #     # multi-label needs extra adjustments
+        #     for k in range(self.clf.n_estimators): # add column selection
+        #         label_probs_list = self.clf[k].predict(sample.values)
+        #         #label_list = [lab[:,1][0] for lab in label_probs_list]
+        #         label_list = [lab[0][1] for lab in label_probs_list]
+        #         tree_preds[k,:] = np.array(label_list).ravel()
+        #         # predicted (prob.) labels for the given sample
         
-        elif self.set_up.lower() in self.MTR_KEYS:
-            RF_pred = self.clf.predict(sample) #list of 2d arrays
-            #RF_label_list = [lab[:,1][0] for lab in RF_pred]
-            #RF_label_list = [lab for lab in RF_pred] #get prob of posit label
-            RF_pred = RF_pred.ravel()
+        # elif self.set_up.lower() in self.MTR_KEYS:
+        #     RF_pred = self.clf.predict(sample) #list of 2d arrays
+        #     #RF_label_list = [lab[:,1][0] for lab in RF_pred]
+        #     #RF_label_list = [lab for lab in RF_pred] #get prob of posit label
+        #     RF_pred = RF_pred.ravel()
             
-            for k in range(self.clf.n_estimators): # TODO future: add column selection (here?)
-                #tree_preds = self.clf[k].predict(sample).ravel()
-                #label_list = [lab[0] for lab in label_probs_list]
-                tree_preds[k,:] = self.clf[k].predict(sample.values)
-                # predicted (prob.) labels for the given sample
-        else:
-            raise KeyError("Set-up '{}' not recognized. Check the set_up attribute")
+        #     for k in range(self.clf.n_estimators): # TODO future: add column selection (here?)
+        #         #tree_preds = self.clf[k].predict(sample).ravel()
+        #         #label_list = [lab[0] for lab in label_probs_list]
+        #         tree_preds[k,:] = self.clf[k].predict(sample.values)
+        #         # predicted (prob.) labels for the given sample
+        # else:
+        #     raise KeyError("Set-up '{}' not recognized. Check the set_up attribute")
             
 
         # tree loss (euclidean norm of the predition vector vs real target(s))
@@ -427,62 +429,33 @@ class TreeExtraction:# is it convenient if it inherits?
 
     def local_prediction(self): #self clf, X, sample, 
         
-        N_trees = np.sum(self.cluster_sizes)
         assert np.shape(self.cluster_sizes)[0] == np.shape(self.final_trees_idx)[0]
         
-        if hasattr(self.clf, "predict_proba"):
-            preds_list = np.sum([np.multiply(size, self.clf[t].predict_proba(self.sample.values)) 
-                      for size, t in zip(self.cluster_sizes, self.final_trees_idx)], 
-                                axis=0) # \sum of pred(t)*size
-            if self.set_up.lower() in self.MTC_KEYS:
-                my_prediction = np.transpose([pred[:, 1][0] for pred in preds_list]) # (n_labels,)
-            elif self.set_up.lower() in self.BINARY_KEYS:
-                my_prediction = np.transpose([pred[1] for pred in preds_list]) # (1,)
-            else:
-                raise ValueError("set-up for predict_proba must be binary or multi-label")
-
-        elif hasattr(self.clf, "predict"):
-            #survival, regression or MTR set-up (to be renewed?)
-            my_prediction = 0.0
-            for size, t in zip(self.cluster_sizes, self.final_trees_idx):
-                my_prediction += self.clf[t].predict(self.sample.values)*size
-            if self.set_up.lower() in self.MTR_KEYS:
-                my_prediction = my_prediction.ravel() # not good practice, but it works
+        # get number of output labels
+        n_real_outputs = self.clf.n_outputs_
             
-        else:
-            raise ValueError("oracle doesn't have .predict nor .predict_proba method")
-            
+        # TODO possibly improve this check. It works until we have multi-output SA
+        if self.set_up in self.SURVIVAL_KEYS:
+            n_real_outputs = 1
         
-        if isinstance(my_prediction, np.ndarray) and my_prediction.ndim > 2:
-            raise ValueError('The output vector has too many dimensions: {}, maximum is 2.'.format(my_prediction.ndim))
+        # output vector consistent with utilities.predict_helper function output
+        if n_real_outputs > 1: #multi-output set-up
+            btrex_pred = np.zeros([1, n_real_outputs])
+        else: #single output set-up (binary, survival, regression)
+            btrex_pred = np.zeros(1)
             
-        # post processig output format here:
-        if self.set_up.lower() in self.BINARY_KEYS + self.REGRESSION_KEYS + self.SURVIVAL_KEYS: # binary, regression, survival
-            my_prediction = float(my_prediction)
+        for t, cluster_size in zip(self.final_trees_idx, self.cluster_sizes):
+            cluster_weight = cluster_size/np.sum(self.cluster_sizes)
+            btrex_pred += predict_helper(self.clf[t], self.sample.values)*cluster_weight
         
-        # after summing all predictions, divide by number of estimators:
-        return (1/N_trees)*my_prediction
+        return btrex_pred
         
     
     ### HERE ADD ORACLE PREDICTION IN THE FUTURE (decouple from RF)
     def oracle_prediction(self): # add, inherit prediction method
-        if hasattr(self.clf, "predict_proba"): #and self.set_up.lower() in binary_key_list: , "multi-label", "multi-l"
-            raw_output = self.clf.predict_proba(self.sample) #list of probs per label
-            if self.set_up.lower() in self.BINARY_KEYS:
-                # return size (1,) array, consistent with y_pred and multi-label setup
-                return raw_output[0][1] # size () (float) ok?
-            
-            elif self.set_up.lower() in self.MTC_KEYS:
-                y_pred_original = np.array([lab_y[0][1] for lab_y in raw_output])
-                return y_pred_original
-            
-        elif hasattr(self.clf, "predict"):# and self.set_up.lower() in ["surv", "survival"] + [reg, regress, regression]:
-            return self.clf.predict(self.sample)
-        
-        else:
-            raise ValueError("prediction attribute does not exist, or wrong \
-                              combination is given: \n {} and {}".format(self.clf, 
-                                                                  self.set_up))
+    
+        return predict_helper(self.clf, self.sample)
+
     
     def score(self, fidelity_measure, oracle_sample):
         y_local = self.local_prediction()
@@ -499,6 +472,8 @@ class TreeExtraction:# is it convenient if it inherits?
         else:
             raise KeyError("Input {} is not recognised".format(self.fidelity_measure))
             
+        
+        
         
     ''' this code is of poor quality, seldom used '''
     # TODO clean up from this point onwards
@@ -647,8 +622,8 @@ class TreeExtraction:# is it convenient if it inherits?
                                 #print("predicted:{}\n".format(leaf_print))
                                 f.write("###################\n")
                                 f.write("Tree weight:   {:.2f}\n".format(weights_dict[tree_idx]))
-                                f.write("Tree predicts: {:.4f}\n".format(leaf_print))
-                                f.write("RF prediction: {:.4f}\n".format(RF_pred))
+                                f.write("Tree predicts: {:.4f}\n".format(frmt_preds_to_print(leaf_print)))
+                                f.write("RF prediction: {:.4f}\n".format(frmt_preds_to_print(RF_pred)))
                                 f.write("True label: {}".format(y_true))
                                 
             
@@ -698,13 +673,67 @@ class TreeExtraction:# is it convenient if it inherits?
                     
     #return tree_rules, leaf_struct
 
-            
-            
-            
-            
 
+
+''' THIS PART IS STILL UNDER DEVELOPMENT '''
+
+class Rulepath(TreeExtraction):
+    
+    def __init__(self, tree_obj, tree_extraction_obj, lambda_y=0, epsilon=0):
+        self.tree_obj = tree_obj
+        #inherit some parameters from instance of TreeExtraction object
+        super().__init__(tree_extraction_obj.feature_represent, #'uniform'or 'weighted'
+                         tree_extraction_obj.dissim_method, #'tree' or 'rule'
+                         tree_extraction_obj.set_up,
+                         tree_extraction_obj.sample)
+        #consider inheriting set_up as well (if the procedure changes with the cases)
+        self.lambda_y = lambda_y #multi-output: how to handle the parameter?
+        self.epsilon = epsilon
+        self.feature_names_in_ = self.clf.feature_names_in_
         
         
+    def tree_to_vector(self):
+        
+        
+        '''
+        
+        returns:
+            - original sample X_i
+            - feature_names_in_ (sometimes None)
+            - feature_weight_split in representation
+            - node path ( indeces of tree nodes) of given instance
+            - partial predictions along node paths (set-up dependent)
+            
+        '''
+        
+        return self.rule_vector
+    
+    
+    def prune_rules(self):
+        
+        return self.rule_vector
+        
+        
+    '''the RulePath object should have:
+        
+        - self.tree_obj (coming from an underlying underlying clf[i] tree object)
+        - self.representation (splits): uniform or weighted by n_samples
+        - self.dissim_method: either local path (default), or full tree
+        - self.set_up to be inherited from TreeExtraction or auto detection done beforehand
+        - self.epsilon: amount of pruning, to be used in a class method for outputting shorter rules
+        - self.lambda (???) wight to be given to the leaf covariate (probably to be inherited)
+            as it will be used in later steps (especially in the PCA, even when n_dims = None)
+            
+            
+        - .prune_rule(self): prune rule as much as possible (within epsilon from original)
+            [tree, representation, structure, (set-up if needed?), epsilon, lambda]
+            - returns the .data attribute 
+
+        - self.feature_names_in inherited form the tree object (or ensemble, or ETrees)
+        - self.predict: the leaf output of the tree/path
+
+        - self.data - > resulting p-dimensional vector to be used for PCA and clustering
             
         
-        
+    '''
+            

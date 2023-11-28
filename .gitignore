@@ -4,8 +4,7 @@ MS_BASE_static/
 MS_BASE_dynamic/
 code_scripts/Bellatrex_on_MSBase.py
 code_scripts/trial XGBoost.py
-augmentation_project/
-rule-mining-Michi/
+btrex-rules/
 tuned_hyperparams/binary/*
 tuned_hyperparams/MTR/*
 tuned_hyperparams/multi_label/*
