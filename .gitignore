@@ -1,7 +1,5 @@
 .spyproject
 __pycache__/
-MS_BASE_static/
-MS_BASE_dynamic/
 code_scripts/Bellatrex_on_MSBase.py
 code_scripts/trial XGBoost.py
 btrex-rules/
@@ -10,7 +8,7 @@ tuned_hyperparams/MTR/*
 tuned_hyperparams/multi_label/*
 tuned_hyperparams/regression/*
 tuned_hyperparams/survival/*
-EXAMPLE/
+example-explanations/
 predictions/binary/*
 predictions/MTR/*
 predictions/multi_label/*

@@ -8,8 +8,8 @@ node. 168:     rm > 7.43  --> 0.9061
 node. 190:       lstat <= 3.47  --> 0.8444
 leaf. 191:       returns 0.8444
 ########################  SAMPLE  ########################
-         zn    rm lstat   dis
-3     90.00  7.92  3.16  5.88
+     lstat    rm   dis     zn
+3     3.16  7.92  5.88  90.00
 ##################   RULE WEIGHT: 0.11  ##################
 Baseline prediction: 0.3926
 node.   0:   lstat <= 9.61  --> 0.5781
@@ -18,8 +18,8 @@ node.  71:       dis > 3.75  --> 0.8604
 node.  75:         zn <= 92.50  --> 0.8138
 leaf.  76:         returns 0.8138
 ########################  SAMPLE  ########################
-        rm lstat ptratio
-3     7.92  3.16   13.60
+        rm ptratio lstat
+3     7.92   13.60  3.16
 ##################   RULE WEIGHT: 0.35  ##################
 Baseline prediction: 0.3819
 node.   0:   rm > 6.97  --> 0.7484

@@ -1,6 +1,6 @@
 ########################  SAMPLE  ########################
-        rm indus    age
-1     7.15  4.95  27.70
+        rm    age indus
+1     7.15  27.70  4.95
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3984
 node.   0:   rm > 7.05  --> 0.8348
@@ -9,8 +9,8 @@ node. 187:       age <= 81.60  --> 0.6379
 node. 188:         indus > 2.54  --> 0.6093
 leaf. 190:         returns 0.6093
 ########################  SAMPLE  ########################
-         zn indus    age   dis    rm
-1     80.00  4.95  27.70  5.12  7.15
+        rm   dis    age indus     zn
+1     7.15  5.12  27.70  4.95  80.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3618
 node.   0:   rm > 6.85  --> 0.7045
@@ -31,8 +31,8 @@ node. 168:     rm <= 7.44  --> 0.6194
 node. 169:       ptratio > 18.85  --> 0.4994
 leaf. 189:       returns 0.4994
 ########################  SAMPLE  ########################
-       black    rm
-1     396.90  7.15
+        rm   black
+1     7.15  396.90
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3763
 node.   0:   rm > 6.98  --> 0.7958
@@ -41,8 +41,8 @@ node. 187:       black > 390.25  --> 0.6526
 node. 191:         rm > 7.13  --> 0.6900
 leaf. 193:         returns 0.6900
 ########################  SAMPLE  ########################
-       black lstat   rad   dis  crim    rm
-1     396.90  3.56  4.00  5.12  0.08  7.15
+        rm   rad lstat   dis   black  crim
+1     7.15  4.00  3.56  5.12  396.90  0.08
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3895
 node.   0:   rm > 6.92  --> 0.7470
@@ -55,8 +55,8 @@ node. 188:               crim > 0.03  --> 0.6788
 node. 190:                 crim > 0.05  --> 0.6928
 leaf. 192:                 returns 0.6928
 ########################  SAMPLE  ########################
-        rm   nox     tax  crim
-1     7.15  0.41  245.00  0.08
+        rm   nox  crim     tax
+1     7.15  0.41  0.08  245.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3998
 node.   0:   rm > 6.97  --> 0.7578
@@ -66,8 +66,8 @@ node. 196:         crim > 0.05  --> 0.6911
 node. 200:           tax > 207.50  --> 0.6840
 leaf. 202:           returns 0.6840
 ########################  SAMPLE  ########################
-       black    rm   rad     tax
-1     396.90  7.15  4.00  245.00
+        rm   black     tax   rad
+1     7.15  396.90  245.00  4.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3799
 node.   0:   rm > 6.97  --> 0.7611
@@ -78,8 +78,8 @@ node. 205:           rm <= 7.28  --> 0.6608
 node. 206:             rad <= 4.50  --> 0.6447
 leaf. 207:             returns 0.6447
 ########################  SAMPLE  ########################
-       black    rm   nox  crim
-1     396.90  7.15  0.41  0.08
+        rm   nox   black  crim
+1     7.15  0.41  396.90  0.08
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3730
 node.   0:   rm > 6.97  --> 0.7561
@@ -89,8 +89,8 @@ node. 178:         black > 377.94  --> 0.6450
 node. 180:           crim > 0.04  --> 0.6720
 leaf. 184:           returns 0.6720
 ########################  SAMPLE  ########################
-        rm lstat indus  crim
-1     7.15  3.56  4.95  0.08
+        rm indus lstat  crim
+1     7.15  4.95  3.56  0.08
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3833
 node.   0:   rm > 6.97  --> 0.7458
@@ -100,8 +100,8 @@ node. 198:         lstat <= 8.36  --> 0.6699
 node. 199:           crim > 0.05  --> 0.7057
 leaf. 205:           returns 0.7057
 ########################  SAMPLE  ########################
-       black lstat indus    age   dis    rm     tax
-1     396.90  3.56  4.95  27.70  5.12  7.15  245.00
+     lstat    rm indus    age   black     tax   dis
+1     3.56  7.15  4.95  27.70  396.90  245.00  5.12
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3615
 node.   0:   lstat <= 9.95  --> 0.5288
@@ -114,8 +114,8 @@ node.  52:               tax <= 253.00  --> 0.6730
 node.  53:                 dis > 2.96  --> 0.6644
 leaf.  55:                 returns 0.6644
 ########################  SAMPLE  ########################
-       black   nox lstat  crim    age    rm
-1     396.90  0.41  3.56  0.08  27.70  7.15
+        rm    age   black lstat  crim   nox
+1     7.15  27.70  396.90  3.56  0.08  0.41
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3874
 node.   0:   rm > 6.92  --> 0.7509
@@ -139,8 +139,8 @@ node. 177:       indus > 3.71  --> 0.5535
 node. 189:         rm > 6.98  --> 0.6200
 leaf. 197:         returns 0.6200
 ########################  SAMPLE  ########################
-       black    rm     tax ptratio
-1     396.90  7.15  245.00   19.20
+        rm ptratio   black     tax
+1     7.15   19.20  396.90  245.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.4024
 node.   0:   rm > 6.93  --> 0.7805
@@ -154,8 +154,8 @@ node. 185:                 black > 391.35  --> 0.6685
 node. 187:                   ptratio > 16.80  --> 0.6922
 leaf. 189:                   returns 0.6922
 ########################  SAMPLE  ########################
-     lstat ptratio    age  crim    rm
-1     3.56   19.20  27.70  0.08  7.15
+     lstat    rm  crim ptratio    age
+1     3.56  7.15  0.08   19.20  27.70
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3926
 node.   0:   lstat <= 9.61  --> 0.5781
@@ -166,8 +166,8 @@ node.  45:           ptratio > 18.90  --> 0.4884
 node.  67:             age <= 31.20  --> 0.5344
 leaf.  68:             returns 0.5344
 ########################  SAMPLE  ########################
-        rm   nox     tax  crim
-1     7.15  0.41  245.00  0.08
+        rm  crim     tax   nox
+1     7.15  0.08  245.00  0.41
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3885
 node.   0:   rm > 6.84  --> 0.6834
@@ -182,8 +182,8 @@ node. 193:                   crim > 0.03  --> 0.6806
 node. 195:                     nox <= 0.45  --> 0.6672
 leaf. 196:                     returns 0.6672
 ########################  SAMPLE  ########################
-       black lstat     zn indus   rad    rm
-1     396.90  3.56  80.00  4.95  4.00  7.15
+        rm   rad   black lstat indus     zn
+1     7.15  4.00  396.90  3.56  4.95  80.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3662
 node.   0:   rm > 6.94  --> 0.7520
@@ -197,8 +197,8 @@ node. 184:                 lstat <= 8.85  --> 0.6848
 node. 185:                   zn > 60.00  --> 0.6711
 leaf. 187:                   returns 0.6711
 ########################  SAMPLE  ########################
-        rm     tax ptratio
-1     7.15  245.00   19.20
+        rm ptratio     tax
+1     7.15   19.20  245.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3848
 node.   0:   rm > 6.92  --> 0.7086
@@ -208,8 +208,8 @@ node. 178:         rm > 6.98  --> 0.6188
 node. 180:           tax <= 253.00  --> 0.6703
 leaf. 181:           returns 0.6703
 ########################  SAMPLE  ########################
-       black   nox lstat indus    rm
-1     396.90  0.41  3.56  4.95  7.15
+        rm lstat indus   nox   black
+1     7.15  3.56  4.95  0.41  396.90
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3897
 node.   0:   rm > 6.94  --> 0.6908
@@ -222,8 +222,8 @@ node. 174:               nox <= 0.48  --> 0.6483
 node. 175:                 lstat <= 4.71  --> 0.6711
 leaf. 176:                 returns 0.6711
 ########################  SAMPLE  ########################
-       black   nox  crim    age    rm     tax
-1     396.90  0.41  0.08  27.70  7.15  245.00
+        rm   nox    age  crim   black     tax
+1     7.15  0.41  27.70  0.08  396.90  245.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3995
 node.   0:   rm > 6.92  --> 0.7383
@@ -237,8 +237,8 @@ node. 184:                 age <= 40.00  --> 0.6662
 node. 185:                   tax > 239.00  --> 0.6635
 leaf. 187:                   returns 0.6635
 ########################  SAMPLE  ########################
-       black lstat     zn   rad   dis    rm
-1     396.90  3.56  80.00  4.00  5.12  7.15
+        rm lstat   rad     zn   black   dis
+1     7.15  3.56  4.00  80.00  396.90  5.12
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3918
 node.   0:   rm > 6.94  --> 0.7506
@@ -254,8 +254,8 @@ node. 202:                     black > 391.36  --> 0.6698
 node. 204:                       dis > 3.34  --> 0.6731
 leaf. 206:                       returns 0.6731
 ########################  SAMPLE  ########################
-        rm   rad   nox indus
-1     7.15  4.00  0.41  4.95
+        rm   rad indus   nox
+1     7.15  4.00  4.95  0.41
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3849
 node.   0:   rm > 6.94  --> 0.8114
@@ -266,8 +266,8 @@ node. 190:           nox <= 0.49  --> 0.6511
 node. 191:             rad <= 4.00  --> 0.6249
 leaf. 192:             returns 0.6249
 ########################  SAMPLE  ########################
-     indus ptratio   dis  chas    rm     tax
-1     4.95   19.20  5.12  0.00  7.15  245.00
+        rm ptratio     tax   dis indus  chas
+1     7.15   19.20  245.00  5.12  4.95  0.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3880
 node.   0:   rm > 6.85  --> 0.7345
@@ -280,8 +280,8 @@ node. 184:               chas <= 0.50  --> 0.5881
 node. 185:                 indus <= 5.08  --> 0.5783
 leaf. 186:                 returns 0.5783
 ########################  SAMPLE  ########################
-        rm     tax ptratio   dis
-1     7.15  245.00   19.20  5.12
+        rm   dis     tax ptratio
+1     7.15  5.12  245.00   19.20
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3955
 node.   0:   rm > 6.94  --> 0.7413
@@ -291,8 +291,8 @@ node. 179:         tax > 240.00  --> 0.5950
 node. 181:           ptratio > 17.70  --> 0.5360
 leaf. 193:           returns 0.5360
 ########################  SAMPLE  ########################
-     lstat indus   rad ptratio   dis    rm
-1     3.56  4.95  4.00   19.20  5.12  7.15
+        rm lstat   dis   rad indus ptratio
+1     7.15  3.56  5.12  4.00  4.95   19.20
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3893
 node.   0:   rm > 6.84  --> 0.7383
@@ -315,8 +315,8 @@ node. 176:         crim > 0.05  --> 0.6937
 node. 180:           rm <= 7.33  --> 0.7041
 leaf. 181:           returns 0.7041
 ########################  SAMPLE  ########################
-       black lstat ptratio    age   dis  crim    rm     tax
-1     396.90  3.56   19.20  27.70  5.12  0.08  7.15  245.00
+        rm  crim   dis   black    age lstat ptratio     tax
+1     7.15  0.08  5.12  396.90  27.70  3.56   19.20  245.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3838
 node.   0:   rm > 6.87  --> 0.7068
@@ -332,8 +332,8 @@ node. 199:                     crim <= 0.09  --> 0.6686
 node. 200:                       tax > 239.00  --> 0.6644
 leaf. 202:                       returns 0.6644
 ########################  SAMPLE  ########################
-       nox lstat indus   rad ptratio   dis    rm     tax
-1     0.41  3.56  4.95  4.00   19.20  5.12  7.15  245.00
+        rm ptratio   rad   dis     tax indus lstat   nox
+1     7.15   19.20  4.00  5.12  245.00  4.95  3.56  0.41
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3912
 node.   0:   rm > 6.80  --> 0.6942
@@ -347,8 +347,8 @@ node. 200:                 lstat <= 6.63  --> 0.6047
 node. 201:                   nox <= 0.47  --> 0.6151
 leaf. 202:                   returns 0.6151
 ########################  SAMPLE  ########################
-     lstat     zn ptratio  crim    rm     tax
-1     3.56  80.00   19.20  0.08  7.15  245.00
+     lstat    rm  crim     tax     zn ptratio
+1     3.56  7.15  0.08  245.00  80.00   19.20
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3879
 node.   0:   lstat <= 9.61  --> 0.5901
@@ -371,8 +371,8 @@ node. 173:       ptratio > 17.70  --> 0.6792
 node. 183:         crim > 0.04  --> 0.7017
 leaf. 185:         returns 0.7017
 ########################  SAMPLE  ########################
-       black    rm     zn lstat
-1     396.90  7.15  80.00  3.56
+     lstat    rm   black     zn
+1     3.56  7.15  396.90  80.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3758
 node.   0:   lstat <= 9.83  --> 0.5363
@@ -393,8 +393,8 @@ node. 185:       tax <= 245.00  --> 0.6800
 node. 186:         lstat <= 5.90  --> 0.7035
 leaf. 187:         returns 0.7035
 ########################  SAMPLE  ########################
-       black    rm     tax
-1     396.90  7.15  245.00
+        rm     tax   black
+1     7.15  245.00  396.90
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3800
 node.   0:   rm > 6.80  --> 0.6841
@@ -406,8 +406,8 @@ node. 188:             black > 386.10  --> 0.6543
 node. 190:               rm <= 7.19  --> 0.6956
 leaf. 191:               returns 0.6956
 ########################  SAMPLE  ########################
-        rm   nox     tax    age
-1     7.15  0.41  245.00  27.70
+        rm     tax    age   nox
+1     7.15  245.00  27.70  0.41
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.4023
 node.   0:   rm > 6.98  --> 0.7769
@@ -438,8 +438,8 @@ node. 214:           rad <= 4.00  --> 0.6267
 node. 215:             ptratio > 13.95  --> 0.6183
 leaf. 217:             returns 0.6183
 ########################  SAMPLE  ########################
-       black    rm ptratio
-1     396.90  7.15   19.20
+        rm ptratio   black
+1     7.15   19.20  396.90
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3795
 node.   0:   rm > 6.80  --> 0.6756
@@ -457,8 +457,8 @@ node. 194:     rm <= 7.44  --> 0.6449
 node. 195:       indus > 3.71  --> 0.5929
 leaf. 203:       returns 0.5929
 ########################  SAMPLE  ########################
-       black     zn  crim    age    rm
-1     396.90  80.00  0.08  27.70  7.15
+        rm   black    age     zn  crim
+1     7.15  396.90  27.70  80.00  0.08
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.4059
 node.   0:   rm > 6.95  --> 0.7503
@@ -471,8 +471,8 @@ node. 187:               crim <= 0.09  --> 0.6667
 node. 188:                 crim > 0.02  --> 0.6622
 leaf. 190:                 returns 0.6622
 ########################  SAMPLE  ########################
-       black  crim    age   dis    rm
-1     396.90  0.08  27.70  5.12  7.15
+        rm   dis    age   black  crim
+1     7.15  5.12  27.70  396.90  0.08
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3888
 node.   0:   rm > 6.94  --> 0.7282
@@ -484,8 +484,8 @@ node. 186:             rm <= 7.19  --> 0.6763
 node. 187:               crim > 0.05  --> 0.7037
 leaf. 189:               returns 0.7037
 ########################  SAMPLE  ########################
-     lstat indus ptratio    rm     tax
-1     3.56  4.95   19.20  7.15  245.00
+     lstat    rm     tax indus ptratio
+1     3.56  7.15  245.00  4.95   19.20
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3956
 node.   0:   lstat <= 4.91  --> 0.7358
@@ -496,8 +496,8 @@ node.   7:           indus > 3.61  --> 0.5758
 node.  13:             ptratio > 18.35  --> 0.5406
 leaf.  15:             returns 0.5406
 ########################  SAMPLE  ########################
-       black   rad  crim    rm     tax
-1     396.90  4.00  0.08  7.15  245.00
+        rm   rad  crim   black     tax
+1     7.15  4.00  0.08  396.90  245.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3811
 node.   0:   rm > 6.83  --> 0.7452
@@ -509,8 +509,8 @@ node. 170:             tax > 204.50  --> 0.6506
 node. 172:               rad <= 4.50  --> 0.6250
 leaf. 173:               returns 0.6250
 ########################  SAMPLE  ########################
-       black    rm     tax    age
-1     396.90  7.15  245.00  27.70
+        rm    age   black     tax
+1     7.15  27.70  396.90  245.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3908
 node.   0:   rm > 6.94  --> 0.7499
@@ -522,8 +522,8 @@ node. 195:             tax <= 253.00  --> 0.6600
 node. 196:               age <= 43.45  --> 0.6764
 leaf. 197:               returns 0.6764
 ########################  SAMPLE  ########################
-        rm    age     tax   dis
-1     7.15  27.70  245.00  5.12
+        rm     tax   dis    age
+1     7.15  245.00  5.12  27.70
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3820
 node.   0:   rm > 6.98  --> 0.7666
@@ -533,8 +533,8 @@ node. 190:         dis > 2.96  --> 0.6663
 node. 192:           age <= 63.05  --> 0.6733
 leaf. 193:           returns 0.6733
 ########################  SAMPLE  ########################
-       black    rm lstat
-1     396.90  7.15  3.56
+        rm lstat   black
+1     7.15  3.56  396.90
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3989
 node.   0:   rm > 7.02  --> 0.7632
@@ -544,8 +544,8 @@ node. 182:         rm <= 7.24  --> 0.6829
 node. 183:           black > 394.87  --> 0.6702
 leaf. 185:           returns 0.6702
 ########################  SAMPLE  ########################
-         zn    rm     tax    age
-1     80.00  7.15  245.00  27.70
+        rm     tax    age     zn
+1     7.15  245.00  27.70  80.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3926
 node.   0:   rm > 6.98  --> 0.7589
@@ -555,8 +555,8 @@ node. 186:         age <= 58.95  --> 0.6895
 node. 187:           zn > 54.00  --> 0.6700
 leaf. 189:           returns 0.6700
 ########################  SAMPLE  ########################
-       black lstat indus  crim    rm     tax
-1     396.90  3.56  4.95  0.08  7.15  245.00
+        rm  crim indus   black lstat     tax
+1     7.15  0.08  4.95  396.90  3.56  245.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3666
 node.   0:   rm > 6.84  --> 0.6905
@@ -570,8 +570,8 @@ node. 184:                 tax > 204.50  --> 0.6590
 node. 186:                   crim > 0.07  --> 0.6361
 leaf. 188:                   returns 0.6361
 ########################  SAMPLE  ########################
-       black lstat    age    rm     tax
-1     396.90  3.56  27.70  7.15  245.00
+        rm   black    age lstat     tax
+1     7.15  396.90  27.70  3.56  245.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3924
 node.   0:   rm > 6.98  --> 0.7800
@@ -583,8 +583,8 @@ node. 200:             lstat <= 8.85  --> 0.7015
 node. 201:               tax > 207.50  --> 0.6952
 leaf. 203:               returns 0.6952
 ########################  SAMPLE  ########################
-       black   nox   dis    age    rm
-1     396.90  0.41  5.12  27.70  7.15
+        rm   nox    age   black   dis
+1     7.15  0.41  27.70  396.90  5.12
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3942
 node.   0:   rm > 6.83  --> 0.6873
@@ -598,8 +598,8 @@ node. 184:                 dis > 4.29  --> 0.6360
 node. 186:                   black > 395.17  --> 0.6590
 leaf. 190:                   returns 0.6590
 ########################  SAMPLE  ########################
-       dis    rm     tax    age
-1     5.12  7.15  245.00  27.70
+        rm     tax    age   dis
+1     7.15  245.00  27.70  5.12
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.4030
 node.   0:   rm > 6.94  --> 0.7565
@@ -609,8 +609,8 @@ node. 186:         age <= 58.95  --> 0.6982
 node. 187:           dis > 3.43  --> 0.6837
 leaf. 189:           returns 0.6837
 ########################  SAMPLE  ########################
-        rm ptratio  crim
-1     7.15   19.20  0.08
+        rm  crim ptratio
+1     7.15  0.08   19.20
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3713
 node.   0:   rm > 6.94  --> 0.7387
@@ -629,8 +629,8 @@ node. 171:       tax <= 245.00  --> 0.6956
 node. 172:         crim > 0.05  --> 0.7096
 leaf. 174:         returns 0.7096
 ########################  SAMPLE  ########################
-       black     zn  crim    age    rm     tax
-1     396.90  80.00  0.08  27.70  7.15  245.00
+        rm    age     tax   black  crim     zn
+1     7.15  27.70  245.00  396.90  0.08  80.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3889
 node.   0:   rm > 6.97  --> 0.7517
@@ -643,8 +643,8 @@ node. 182:               crim > 0.06  --> 0.6331
 node. 184:                 zn > 42.50  --> 0.6644
 leaf. 188:                 returns 0.6644
 ########################  SAMPLE  ########################
-       black lstat ptratio   dis    rm     tax
-1     396.90  3.56   19.20  5.12  7.15  245.00
+        rm ptratio   dis   black     tax lstat
+1     7.15   19.20  5.12  396.90  245.00  3.56
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3913
 node.   0:   rm > 6.94  --> 0.7584
@@ -658,8 +658,8 @@ node. 185:                 black > 391.36  --> 0.6689
 node. 187:                   lstat <= 3.77  --> 0.6311
 leaf. 188:                   returns 0.6311
 ########################  SAMPLE  ########################
-     lstat indus    age  crim    rm     tax
-1     3.56  4.95  27.70  0.08  7.15  245.00
+        rm     tax    age indus lstat  crim
+1     7.15  245.00  27.70  4.95  3.56  0.08
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.4046
 node.   0:   rm > 6.94  --> 0.7669
@@ -674,8 +674,8 @@ node. 187:                   crim > 0.05  --> 0.6943
 node. 189:                     lstat <= 5.36  --> 0.6990
 leaf. 190:                     returns 0.6990
 ########################  SAMPLE  ########################
-        rm   nox     tax    age
-1     7.15  0.41  245.00  27.70
+        rm   nox    age     tax
+1     7.15  0.41  27.70  245.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3957
 node.   0:   rm > 6.98  --> 0.7655
@@ -686,8 +686,8 @@ node. 181:           age <= 43.45  --> 0.6563
 node. 182:             tax <= 268.50  --> 0.6707
 leaf. 183:             returns 0.6707
 ########################  SAMPLE  ########################
-       black lstat ptratio  crim    age    rm
-1     396.90  3.56   19.20  0.08  27.70  7.15
+        rm    age ptratio   black  crim lstat
+1     7.15  27.70   19.20  396.90  0.08  3.56
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3867
 node.   0:   rm > 6.94  --> 0.7751
@@ -699,8 +699,8 @@ node. 182:             crim > 0.05  --> 0.6927
 node. 190:               lstat <= 8.85  --> 0.6985
 leaf. 191:               returns 0.6985
 ########################  SAMPLE  ########################
-     lstat indus ptratio    age    rm
-1     3.56  4.95   19.20  27.70  7.15
+        rm lstat    age ptratio indus
+1     7.15  3.56  27.70   19.20  4.95
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3774
 node.   0:   rm > 6.99  --> 0.7953
@@ -712,8 +712,8 @@ node. 181:             indus > 1.30  --> 0.6178
 node. 183:               indus > 2.93  --> 0.5989
 leaf. 185:               returns 0.5989
 ########################  SAMPLE  ########################
-       black    rm   nox
-1     396.90  7.15  0.41
+        rm   black   nox
+1     7.15  396.90  0.41
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3942
 node.   0:   rm > 7.01  --> 0.7682
@@ -733,8 +733,8 @@ node. 183:       tax <= 258.00  --> 0.6783
 node. 184:         age <= 58.95  --> 0.6956
 leaf. 185:         returns 0.6956
 ########################  SAMPLE  ########################
-       black    rm    age
-1     396.90  7.15  27.70
+        rm   black    age
+1     7.15  396.90  27.70
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3843
 node.   0:   rm > 6.98  --> 0.7357
@@ -745,8 +745,8 @@ node. 195:           rm <= 7.26  --> 0.6858
 node. 196:             age <= 46.55  --> 0.6667
 leaf. 197:             returns 0.6667
 ########################  SAMPLE  ########################
-     lstat indus ptratio   dis    rm
-1     3.56  4.95   19.20  5.12  7.15
+        rm lstat   dis indus ptratio
+1     7.15  3.56  5.12  4.95   19.20
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3815
 node.   0:   rm > 6.84  --> 0.6663
@@ -757,8 +757,8 @@ node. 170:           indus > 3.61  --> 0.5791
 node. 178:             ptratio > 18.35  --> 0.5344
 leaf. 180:             returns 0.5344
 ########################  SAMPLE  ########################
-        rm   nox     tax lstat
-1     7.15  0.41  245.00  3.56
+        rm     tax lstat   nox
+1     7.15  245.00  3.56  0.41
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3918
 node.   0:   rm > 6.98  --> 0.7747
@@ -777,8 +777,8 @@ node. 182:     rm <= 7.41  --> 0.6031
 node. 183:       tax <= 259.00  --> 0.6556
 leaf. 184:       returns 0.6556
 ########################  SAMPLE  ########################
-     lstat indus   dis    age    rm
-1     3.56  4.95  5.12  27.70  7.15
+     lstat    rm    age indus   dis
+1     3.56  7.15  27.70  4.95  5.12
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3640
 node.   0:   lstat <= 9.83  --> 0.5205
@@ -790,8 +790,8 @@ node.  64:             indus > 4.46  --> 0.5916
 node.  74:               dis > 4.95  --> 0.5222
 leaf.  76:               returns 0.5222
 ########################  SAMPLE  ########################
-       black    rm   nox lstat
-1     396.90  7.15  0.41  3.56
+        rm   black   nox lstat
+1     7.15  396.90  0.41  3.56
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3946
 node.   0:   rm > 6.93  --> 0.8023
@@ -801,8 +801,8 @@ node. 173:         nox <= 0.47  --> 0.6457
 node. 174:           lstat <= 4.73  --> 0.6607
 leaf. 175:           returns 0.6607
 ########################  SAMPLE  ########################
-       black    rm lstat    age
-1     396.90  7.15  3.56  27.70
+        rm lstat    age   black
+1     7.15  3.56  27.70  396.90
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3994
 node.   0:   rm > 6.94  --> 0.7329
@@ -826,8 +826,8 @@ node. 180:             rm > 6.98  --> 0.6076
 node. 186:               age <= 83.20  --> 0.6209
 leaf. 187:               returns 0.6209
 ########################  SAMPLE  ########################
-       black    rm indus   dis
-1     396.90  7.15  4.95  5.12
+        rm   black indus   dis
+1     7.15  396.90  4.95  5.12
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3585
 node.   0:   rm > 6.80  --> 0.6793
@@ -839,8 +839,8 @@ node. 185:             dis > 2.00  --> 0.6064
 node. 187:               black > 382.70  --> 0.6211
 leaf. 189:               returns 0.6211
 ########################  SAMPLE  ########################
-       black ptratio  crim    age    rm
-1     396.90   19.20  0.08  27.70  7.15
+        rm    age   black  crim ptratio
+1     7.15  27.70  396.90  0.08   19.20
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3832
 node.   0:   rm > 6.97  --> 0.7609
@@ -854,8 +854,8 @@ node. 200:                 crim > 0.03  --> 0.6637
 node. 202:                   ptratio > 18.35  --> 0.6922
 leaf. 204:                   returns 0.6922
 ########################  SAMPLE  ########################
-        rm indus lstat ptratio
-1     7.15  4.95  3.56   19.20
+     lstat    rm ptratio indus
+1     3.56  7.15   19.20  4.95
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3792
 node.   0:   lstat <= 9.71  --> 0.5486
@@ -865,8 +865,8 @@ node.  48:         ptratio > 18.90  --> 0.4897
 node.  70:           indus <= 10.25  --> 0.5200
 leaf.  71:           returns 0.5200
 ########################  SAMPLE  ########################
-       black   nox indus   dis    rm     tax
-1     396.90  0.41  4.95  5.12  7.15  245.00
+        rm indus   dis     tax   black   nox
+1     7.15  4.95  5.12  245.00  396.90  0.41
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3815
 node.   0:   rm > 6.97  --> 0.7823
@@ -889,8 +889,8 @@ node. 191:       tax <= 253.00  --> 0.6832
 node. 192:         lstat <= 4.82  --> 0.6589
 leaf. 193:         returns 0.6589
 ########################  SAMPLE  ########################
-       black    rm     tax ptratio
-1     396.90  7.15  245.00   19.20
+        rm   black     tax ptratio
+1     7.15  396.90  245.00   19.20
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3679
 node.   0:   rm > 6.96  --> 0.7441
@@ -901,8 +901,8 @@ node. 180:           tax > 204.50  --> 0.6731
 node. 182:             ptratio > 18.50  --> 0.6222
 leaf. 186:             returns 0.6222
 ########################  SAMPLE  ########################
-     indus    age   dis    rm     tax
-1     4.95  27.70  5.12  7.15  245.00
+        rm   dis     tax indus    age
+1     7.15  5.12  245.00  4.95  27.70
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3741
 node.   0:   rm > 6.92  --> 0.7140
@@ -923,8 +923,8 @@ node. 180:     rm <= 7.45  --> 0.6354
 node. 181:       ptratio > 18.90  --> 0.5161
 leaf. 199:       returns 0.5161
 ########################  SAMPLE  ########################
-       black   nox lstat    age   dis    rm     tax
-1     396.90  0.41  3.56  27.70  5.12  7.15  245.00
+        rm lstat   dis     tax    age   nox   black
+1     7.15  3.56  5.12  245.00  27.70  0.41  396.90
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3820
 node.   0:   rm > 6.80  --> 0.6661
@@ -940,8 +940,8 @@ node. 184:                     nox <= 0.47  --> 0.6277
 node. 185:                       black > 395.18  --> 0.6407
 leaf. 187:                       returns 0.6407
 ########################  SAMPLE  ########################
-       black    rm     tax
-1     396.90  7.15  245.00
+        rm   black     tax
+1     7.15  396.90  245.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3798
 node.   0:   rm > 6.98  --> 0.7209
@@ -952,8 +952,8 @@ node. 199:           rm <= 7.26  --> 0.6573
 node. 200:             rm <= 7.16  --> 0.6222
 leaf. 201:             returns 0.6222
 ########################  SAMPLE  ########################
-       nox indus  crim    age    rm
-1     0.41  4.95  0.08  27.70  7.15
+        rm    age indus  crim   nox
+1     7.15  27.70  4.95  0.08  0.41
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3974
 node.   0:   rm > 6.93  --> 0.7466
@@ -968,8 +968,8 @@ node. 199:                   crim > 0.03  --> 0.6432
 node. 201:                     rm <= 7.28  --> 0.6622
 leaf. 202:                     returns 0.6622
 ########################  SAMPLE  ########################
-       black   nox lstat   rad    age    rm
-1     396.90  0.41  3.56  4.00  27.70  7.15
+     lstat    rm   rad    age   black   nox
+1     3.56  7.15  4.00  27.70  396.90  0.41
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.4029
 node.   0:   lstat <= 9.66  --> 0.5561
@@ -985,8 +985,8 @@ node.  81:                     rm <= 7.22  --> 0.6362
 node.  82:                       nox > 0.41  --> 0.6315
 leaf.  84:                       returns 0.6315
 ########################  SAMPLE  ########################
-        rm ptratio    age
-1     7.15   19.20  27.70
+        rm    age ptratio
+1     7.15  27.70   19.20
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3957
 node.   0:   rm > 6.80  --> 0.7247
@@ -995,8 +995,8 @@ node. 191:       age <= 91.30  --> 0.6073
 node. 192:         ptratio > 18.75  --> 0.5173
 leaf. 208:         returns 0.5173
 ########################  SAMPLE  ########################
-       black    rm   nox  crim
-1     396.90  7.15  0.41  0.08
+        rm   black  crim   nox
+1     7.15  396.90  0.08  0.41
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3987
 node.   0:   rm > 6.98  --> 0.7735
@@ -1007,8 +1007,8 @@ node. 172:           crim > 0.03  --> 0.6908
 node. 174:             nox <= 0.45  --> 0.6711
 leaf. 175:             returns 0.6711
 ########################  SAMPLE  ########################
-     lstat indus ptratio    rm     tax
-1     3.56  4.95   19.20  7.15  245.00
+        rm ptratio indus     tax lstat
+1     7.15   19.20  4.95  245.00  3.56
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3765
 node.   0:   rm > 6.94  --> 0.7422
@@ -1019,8 +1019,8 @@ node. 177:           tax <= 253.00  --> 0.6726
 node. 178:             lstat <= 4.82  --> 0.6595
 leaf. 179:             returns 0.6595
 ########################  SAMPLE  ########################
-       black   nox lstat indus   dis    rm
-1     396.90  0.41  3.56  4.95  5.12  7.15
+        rm   nox lstat   dis   black indus
+1     7.15  0.41  3.56  5.12  396.90  4.95
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3876
 node.   0:   rm > 6.80  --> 0.6534
@@ -1032,8 +1032,8 @@ node. 169:             black > 390.25  --> 0.6474
 node. 171:               indus > 4.77  --> 0.6244
 leaf. 173:               returns 0.6244
 ########################  SAMPLE  ########################
-     ptratio    rm     tax indus
-1      19.20  7.15  245.00  4.95
+        rm indus     tax ptratio
+1     7.15  4.95  245.00   19.20
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3869
 node.   0:   rm > 6.94  --> 0.7624
@@ -1043,8 +1043,8 @@ node. 180:         tax > 240.00  --> 0.5920
 node. 188:           ptratio > 17.70  --> 0.5209
 leaf. 200:           returns 0.5209
 ########################  SAMPLE  ########################
-       black lstat     zn   rad  crim   dis  chas    rm     tax
-1     396.90  3.56  80.00  4.00  0.08  5.12  0.00  7.15  245.00
+        rm   dis   rad  crim     zn  chas   black lstat     tax
+1     7.15  5.12  4.00  0.08  80.00  0.00  396.90  3.56  245.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3896
 node.   0:   rm > 6.92  --> 0.7409
@@ -1060,8 +1060,8 @@ node. 190:                     lstat <= 7.49  --> 0.6694
 node. 191:                       tax > 239.00  --> 0.6644
 leaf. 193:                       returns 0.6644
 ########################  SAMPLE  ########################
-        rm ptratio  crim
-1     7.15   19.20  0.08
+        rm  crim ptratio
+1     7.15  0.08   19.20
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3951
 node.   0:   rm > 6.94  --> 0.7349
@@ -1070,8 +1070,8 @@ node. 161:       crim <= 46.81  --> 0.6265
 node. 162:         ptratio > 18.90  --> 0.5161
 leaf. 180:         returns 0.5161
 ########################  SAMPLE  ########################
-        rm ptratio   dis
-1     7.15   19.20  5.12
+        rm   dis ptratio
+1     7.15  5.12   19.20
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3778
 node.   0:   rm > 6.75  --> 0.6717
@@ -1081,8 +1081,8 @@ node. 175:         ptratio > 18.95  --> 0.4797
 node. 197:           rm > 6.96  --> 0.4200
 leaf. 199:           returns 0.4200
 ########################  SAMPLE  ########################
-       black lstat   rad   dis    rm
-1     396.90  3.56  4.00  5.12  7.15
+        rm   rad lstat   dis   black
+1     7.15  4.00  3.56  5.12  396.90
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3932
 node.   0:   rm > 6.94  --> 0.7524
@@ -1095,8 +1095,8 @@ node. 194:               lstat <= 5.69  --> 0.6644
 node. 195:                 rad <= 6.00  --> 0.6744
 leaf. 196:                 returns 0.6744
 ########################  SAMPLE  ########################
-       black    rm lstat    age
-1     396.90  7.15  3.56  27.70
+        rm    age   black lstat
+1     7.15  27.70  396.90  3.56
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3985
 node.   0:   rm > 6.85  --> 0.7357
@@ -1107,8 +1107,8 @@ node. 173:           black > 391.54  --> 0.6469
 node. 179:             lstat <= 4.32  --> 0.6120
 leaf. 180:             returns 0.6120
 ########################  SAMPLE  ########################
-       nox lstat     zn   dis    rm
-1     0.41  3.56  80.00  5.12  7.15
+        rm   dis lstat   nox     zn
+1     7.15  5.12  3.56  0.41  80.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3912
 node.   0:   rm > 6.80  --> 0.6598
@@ -1120,8 +1120,8 @@ node. 166:             nox <= 0.42  --> 0.5870
 node. 167:               zn <= 87.50  --> 0.5278
 leaf. 168:               returns 0.5278
 ########################  SAMPLE  ########################
-       black    rm     zn   dis
-1     396.90  7.15  80.00  5.12
+        rm   black   dis     zn
+1     7.15  396.90  5.12  80.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3942
 node.   0:   rm > 6.93  --> 0.7587
@@ -1132,8 +1132,8 @@ node. 209:           rm > 6.98  --> 0.6415
 node. 211:             zn > 39.50  --> 0.6611
 leaf. 215:             returns 0.6611
 ########################  SAMPLE  ########################
-       black   nox lstat   rad    rm
-1     396.90  0.41  3.56  4.00  7.15
+        rm lstat   black   nox   rad
+1     7.15  3.56  396.90  0.41  4.00
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3827
 node.   0:   rm > 6.55  --> 0.6064
@@ -1146,8 +1146,8 @@ node. 194:               nox <= 0.45  --> 0.6611
 node. 195:                 rad <= 4.00  --> 0.6456
 leaf. 196:                 returns 0.6456
 ########################  SAMPLE  ########################
-       black lstat   rad    age    rm
-1     396.90  3.56  4.00  27.70  7.15
+     lstat    rm   black   rad    age
+1     3.56  7.15  396.90  4.00  27.70
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3786
 node.   0:   lstat <= 9.83  --> 0.5299
@@ -1159,8 +1159,8 @@ node.  84:             rm > 7.01  --> 0.6763
 node.  86:               age <= 40.00  --> 0.6681
 leaf.  87:               returns 0.6681
 ########################  SAMPLE  ########################
-       nox lstat    age    rm     tax
-1     0.41  3.56  27.70  7.15  245.00
+        rm lstat    age     tax   nox
+1     7.15  3.56  27.70  245.00  0.41
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3859
 node.   0:   rm > 6.80  --> 0.6823
@@ -1173,8 +1173,8 @@ node. 184:               nox > 0.41  --> 0.6190
 node. 186:                 lstat <= 4.05  --> 0.5956
 leaf. 187:                 returns 0.5956
 ########################  SAMPLE  ########################
-       black    rm ptratio   dis
-1     396.90  7.15   19.20  5.12
+        rm ptratio   black   dis
+1     7.15   19.20  396.90  5.12
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3736
 node.   0:   rm > 6.97  --> 0.7099
@@ -1187,8 +1187,8 @@ node. 196:               rm <= 7.22  --> 0.6306
 node. 197:                 black > 395.17  --> 0.6644
 leaf. 201:                 returns 0.6644
 ########################  SAMPLE  ########################
-       black lstat ptratio  crim   dis    rm
-1     396.90  3.56   19.20  0.08  5.12  7.15
+     lstat    rm   dis  crim   black ptratio
+1     3.56  7.15  5.12  0.08  396.90   19.20
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.4002
 node.   0:   lstat <= 9.71  --> 0.5925
@@ -1201,8 +1201,8 @@ node.  63:               black > 391.14  --> 0.6407
 node.  67:                 ptratio > 18.65  --> 0.6933
 leaf.  75:                 returns 0.6933
 ########################  SAMPLE  ########################
-       black    rm     tax ptratio
-1     396.90  7.15  245.00   19.20
+        rm ptratio     tax   black
+1     7.15   19.20  245.00  396.90
 ##################   RULE WEIGHT: -1.00  ##################
 Baseline prediction: 0.3837
 node.   0:   rm > 6.97  --> 0.7428

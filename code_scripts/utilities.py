@@ -131,22 +131,25 @@ def return_partial_preds(clf_i):
 
 def used_feature_set(clf_i, feature_names, sample):
     
-    unique_features = set()
-
+    unique_features = []
     # tested for RandomForestClassifier and EnsembleWrapper (binary set-up)
 
-    node_indicator_csr = clf_i.decision_path(sample.values) #sparse matrix (1, n_nodes)
-    feature_idx_per_node = clf_i.tree_.feature # array (n_nodes, )
+    node_indicator_csr = clf_i.decision_path(sample.values)  # sparse matrix (1, n_nodes)
+    feature_idx_per_node = clf_i.tree_.feature  # array (n_nodes, )
 
     node_index = node_indicator_csr.indices[
-        node_indicator_csr.indptr[0] : node_indicator_csr.indptr[1]
-    ] # csr matrix fomratted in this way
-    
-    for node_id in node_index[:-1]: #internal nodes (exclude leaf)
+        node_indicator_csr.indptr[0]: node_indicator_csr.indptr[1]
+    ]  # csr matrix formatted in this way
+
+    for node_id in node_index[:-1]:  # internal nodes (exclude leaf)
         feature_node_id = feature_idx_per_node[node_id]
-        unique_features.add(feature_names[feature_node_id]) # add element to set if not in there yet
+        feature_name = feature_names[feature_node_id]
+        if feature_name not in unique_features:  # add element to list if not in there yet
+            unique_features.append(feature_name)
         
-    return list(unique_features)
+    return unique_features
+
+    
     
 
 def rule_print_inline(clf_i, sample, weight=None, max_features_print=12):
@@ -980,9 +983,11 @@ def format_targets(y_train, y_test, SETUP, verbose=0):
         y_train = y_train.ravel()
         y_test = y_test.ravel()
         
-    if  SETUP.lower() in SURVIVAL_KEYS:
-        y_train = y_train.to_records(index=False)
-        y_test = y_test.to_records(index=False)
+    if SETUP.lower() in SURVIVAL_KEYS:
+        if not isinstance(y_train, np.recarray): #sometimes, the data is already in teh right format. Do not call to_records in this case (raises error)
+            y_train = y_train.to_records(index=False)
+        if not isinstance(y_test, np.recarray):
+            y_test = y_test.to_records(index=False) 
     # formatting y target complete
     
     return y_train, y_test

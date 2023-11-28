@@ -1,6 +1,6 @@
 ########################  SAMPLE  ########################
-     lstat  indus   rad ptratio   dis    rm
-0     9.67  11.93  1.00   21.00  2.48  6.59
+        rm lstat   dis  indus   rad ptratio
+0     6.59  9.67  2.48  11.93  1.00   21.00
 ##################   RULE WEIGHT: 1.00  ##################
 Baseline prediction: 0.3889
 node.   0:   rm <= 6.97  --> 0.3297
