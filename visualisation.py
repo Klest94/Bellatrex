@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
-               other_preds=None, preds_distr=None, cmap="RdYlGn_r"):
+               other_preds=None, preds_distr=None, b_box_pred=None, 
+               round_digits=3, cmap="RdYlGn_r"):
     """
     A visualisation tool for BELLATREX, a local random forest explainability
     toolbox.
@@ -21,13 +22,18 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         on a set of training/testing patients.
     @param cmap: The colormap used for visualization. Use "RdYlGn_r" if lower
         predictions is better. Omit the "_r" if the reverse holds.
+    @param bbox_pred: Optional flaot (or list of) with prediction of the 
+        original black-box model, for the sake of comparison
     @return: List of axes handles, for further finetuning of the graph.
     """
     # Input validation and processing
     assert len(rules) == len(preds) == len(baselines) == len(weights)
     nrules = len(rules)
+    max_rulelen_model = max([len(rule) for rule in rules])
     if max_rulelen is None:
-        max_rulelen = max([len(rule) for rule in rules])
+        max_rulelen = max_rulelen_model
+    else:
+        max_rulelen = min(max_rulelen_model, max_rulelen)
     for i in range(nrules):
         assert len(rules[i]) == len(preds[i])
         if len(rules[i]) > max_rulelen:
@@ -45,20 +51,24 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         from scipy import stats
         density = stats.gaussian_kde(preds_distr)
         extent = preds_distr.max() - preds_distr.min()
-        x = np.linspace(0.8*preds_distr.min(), 1.2*preds_distr.max(), 100)
+        
+        x = np.linspace(preds_distr.min()-0.05*extent, 
+                        preds_distr.max()+0.05*extent, 100)
 
     # Make a colorpicker
     cmap = plt.get_cmap(cmap)
     maxdev = max([np.max(np.abs(baselines[i] - np.array(preds[i]))) for i in range(nrules)])
     norm = plt.matplotlib.colors.Normalize(vmin=-maxdev, vmax=+maxdev)
     get_color = lambda value, baseline: cmap(norm(value - baseline))
-
+    
+    plot_height_rulebased = max(max_rulelen, 4)
     # Initialize the plot
     if preds_distr is None:
-        fig, axs = plt.subplots(figsize=(5*nrules+2, max_rulelen), ncols=nrules, sharey=True)
+        fig, axs = plt.subplots(figsize=(5*nrules+2, plot_height_rulebased), ncols=nrules, sharey=True)
         axs = np.atleast_1d(axs)
     else:
-        fig, aaxs = plt.subplots(figsize=(5*nrules+2, max_rulelen+1), nrows=2, ncols=nrules, sharex=True, sharey="row", gridspec_kw={"hspace":0, "height_ratios":[max_rulelen,1]})
+        fig, aaxs = plt.subplots(figsize=(5*nrules+2, plot_height_rulebased+1), nrows=2, ncols=nrules, sharex=True, sharey="row", 
+                                 gridspec_kw={"hspace":0, "height_ratios":[plot_height_rulebased,1]})
         if len(aaxs.shape) == 1:
             aaxs = np.atleast_2d(aaxs).T
         axs     = aaxs[0,:]
@@ -78,6 +88,8 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
     caxs = axs if preds_distr is None else aaxs
     plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=caxs, pad=0.02,
                  aspect=aspect, label="Change w.r.t. baseline")
+    
+    # colorbar_export = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
 
     # Visualize the entire forest
     if other_preds:
@@ -129,7 +141,8 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
     if preds_distr is not None:
         for bsl, pred, ax in zip(baselines, preds, distaxs):
             ax.plot(x       , density(x       ), "k")
-            ax.plot(pred[-1], density(pred[-1]), ".", c=get_color(pred[-1], bsl), ms=15)
+            ax.plot(pred[-1], density(pred[-1]), ".", 
+                    c=get_color(pred[-1], bsl), ms=15)
             ax.vlines(x=bsl     , ymin=0, ymax=density(bsl     ), colors="k")
             ax.vlines(x=pred[-1], ymin=0, ymax=density(pred[-1]), colors=get_color(pred[-1], bsl))
             ax.set_ylim([0, ax.get_ylim()[1]])
@@ -137,6 +150,27 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
             ax.set_xlabel("Prediction")
             ax.grid(axis="x", zorder=-999, alpha=0.5)
         distaxs[0].set_ylabel("Density")
+        
+    # Add final prediction to the plot as an annotation
+    pred_terms = [f"{round(weights[i], round_digits-1):.{round_digits-1}f}*{round(preds[i][-1], round_digits):.{round_digits}f}" 
+                  for i in range(len(rules))]
+    final_pred = np.sum(weights[i] * preds[i][-1] for i in range(len(rules)))
+    final_pred_str = f"{round(final_pred, round_digits):.{round_digits}f} = " + " + ".join(pred_terms)
+
+    # Add final predictions to the bottom of the plot
+    # First: determine format of b_box_pred variable for display
+    if b_box_pred is not None:
+        if isinstance(b_box_pred, list):
+            b_box_pred_str = ', '.join([f'{round(pred, round_digits):.{round_digits}f}' for pred in b_box_pred])
+        else:
+            b_box_pred_str = f'{round(b_box_pred, round_digits):.{round_digits}f}'
+    
+    # # Add the text to the figure, display the first line
+    fig.text(0.3, 0.02, f'Bellatrex prediction:  {final_pred_str}', ha='left', va='center', fontsize=14)
+    # Display the second line (left-aligned to the start of the first line)
+    # if b_box_pred is not None:
+    #     fig.text(0.3, +0.075, f'Black-box prediction: {b_box_pred_str}', ha='left', va='center', fontsize=14)
+
     return axs
 
 def parse(rule):
@@ -153,7 +187,7 @@ def parse(rule):
     for i, comparator in enumerate(["<", "$\leq$", "$\geq$", ">"]):
         if comparator in rule:
             value = rule.split(comparator)[1]
-            if (float(value) == 0.5) and ("is" in rule): # TODO
+            if (float(value) == 0.5) and ("is" in rule): # TODO improve
                 rule = rule.replace("is", [r"$\neq$", "$=$"][i>1])
                 rule = rule[:rule.find(comparator)].strip()
     # rule = rule.encode().decode('unicode_escape')
@@ -175,8 +209,8 @@ def read_rules(file, file_extra=None):
             pred = []
         if "node" in line:
             fullrule = line.split(":")[1].strip().strip("\n").split("-->")
-            index = max([fullrule[0].find(char) for char in ["=","<",">"]])
-            fullrule[0] = fullrule[0][:index+5]
+            index_thresh = max([fullrule[0].find(char) for char in ["=","<",">"]])
+            fullrule[0] = fullrule[0][0:index_thresh+8]
             rule.append( fullrule[0] )
             pred.append( float(fullrule[1]) )
         if "leaf" in line:

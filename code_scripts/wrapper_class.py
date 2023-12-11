@@ -18,6 +18,7 @@ class EnsembleWrapper:
     (link as of shap version 0.41)
     It is designed to be compatible with RandomForestClassifier,
     RandomForestRegressor, and RandomSurvivalForest.
+    It therefore assumes that the predictions are AVERAGED in the ensemble step
     ''' 
     
     class Estimator:
@@ -34,8 +35,6 @@ class EnsembleWrapper:
                 self.value = value
                 self.feature_names_in_ = feature_names_in_
                 self.learner_class = learner_class
-
-                
             
             @property
             def n_outputs_(self):
@@ -45,8 +44,6 @@ class EnsembleWrapper:
             def node_count(self):
                 return len(self.feature)
             
-
-
             def apply(self, X):
                 n_samples = X.shape[0]
                 node_indices = []
@@ -109,7 +106,6 @@ class EnsembleWrapper:
                 predictions[i, :] = self.tree_.value[leaf_idx]
                 
             return predictions
-        
         
         def decision_path(self, X):
             return self.tree_.decision_path(X)

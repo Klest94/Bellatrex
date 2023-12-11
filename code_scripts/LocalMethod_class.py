@@ -106,8 +106,8 @@ class Bellatrex:
                              ' of trees in the (0,1] interval, or indicate the number'
                              ' of tree learners.')
             
-        # Check that the n_trees provided by the user does not exceed the number of totla trees in the R(S)F
-        # this works for both a fitted sklearn model and a dictionary        
+        # Check that the n_trees provided by the user does not exceed the number of total trees in the R(S)F
+        # this works for both a fitted sklearn model and a dictionary    
         
         # tot_estimators = self.clf['n_estimators'] if isinstance(self.clf, dict) else self.clf.n_estimators
         tot_estimators = self.clf.n_estimators
@@ -135,7 +135,7 @@ class Bellatrex:
             try:
                 check_is_fitted(self.clf) #only with sklearn models (but works with all of them)
                 return  True
-            except: #check_is_fitted throws exception, we need it to throw 'False'
+            except: #check_is_fitted throws exception, we need it to output 'False'
                 return False
 
 
@@ -254,7 +254,6 @@ class Bellatrex:
                     best_perf = perf
                     best_params = params
 
-        # this piece of code does not work yet                    
         elif self.n_jobs > 1:
             warnings.warn('Multiprocessing is not optimized, and the speed-up is marginal. \
 Set n_jobs = 1 to avoid this warning')
@@ -330,7 +329,7 @@ Set n_jobs = 1 to avoid this warning')
             surrogate_pred += predict_helper(self.clf[tree_idx], sample.values)*cluster_weight 
           
                 
-        surrogate_pred_str = frmt_preds_to_print(surrogate_pred,'{:.4f}')
+        surrogate_pred_str = frmt_preds_to_print(surrogate_pred, digits_single=4)
         
         if self.verbose >= 1:
             print("best params:", best_params)
@@ -342,7 +341,7 @@ Set n_jobs = 1 to avoid this warning')
             print("final cluster sizes: {}".format(final_cluster_sizes))
 
             # store rules in written file:
-            if out_file not in [None, False]: #otherwise, do not create and store any file
+            if out_file not in [None, False]: # otherwise, do not create and store any file
                 
                 # Overwrite the file to start with an empty file
                 with open(out_file, 'w+') as f:
@@ -362,11 +361,10 @@ Set n_jobs = 1 to avoid this warning')
                     pass #refreshes the file, closes file as well AFAIK
                     
                 with open(out_file.split('.')[0]+"-extra.txt", 'a+') as f:
-                
                     for idx in range(self.clf.n_estimators):
                         if idx not in final_extract_trees: #non selected-trees (extra info, plotting their paths in background for comparison)
                             rule_to_file(self.clf[idx],
-                                         sample, X.columns, -1,
+                                         sample, X.columns, -1, #setting ruleweight to -1 (invalid number), or to 0 is also fine
                                          self.MAX_FEATURE_PRINT, f)                     
                     f.close()
         
@@ -399,8 +397,8 @@ Set n_jobs = 1 to avoid this warning')
         #     y_pred_orig = self.clf.predict(sample)
         y_pred_orig = predict_helper(self.clf, sample)
             
-        print('Black box prediction: ' + frmt_preds_to_print(y_pred_orig))
-        print('#'*54)
+        print('Black box prediction: ' + frmt_preds_to_print(y_pred_orig, digits_single=4))
+        print('#'*54, flush=True)
         
 
         if self.verbose >= 4.0 and self.plot_GUI == True:

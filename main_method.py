@@ -17,7 +17,7 @@ from code_scripts.TreeDissimilarity_class import TreeDissimilarity
 from code_scripts.TreeRepresentation_utils import count_rule_length
 
 from code_scripts.LocalMethod_class import Bellatrex
-from code_scripts.wrapper_class import EnsembleWrapper, tree_list_to_model, DT_to_dict
+from code_scripts.wrapper_class import tree_list_to_model, DT_to_dict
 
 SETUP = "regress"
 PROJ_METHOD = "PCA"
