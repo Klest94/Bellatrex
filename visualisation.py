@@ -22,7 +22,7 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         on a set of training/testing patients.
     @param cmap: The colormap used for visualization. Use "RdYlGn_r" if lower
         predictions is better. Omit the "_r" if the reverse holds.
-    @param bbox_pred: Optional flaot (or list of) with prediction of the 
+    @param b_box_pred: Optional float (or list of) with prediction of the 
         original black-box model, for the sake of comparison
     @return: List of axes handles, for further finetuning of the graph.
     """
@@ -37,8 +37,9 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
     for i in range(nrules):
         assert len(rules[i]) == len(preds[i])
         if len(rules[i]) > max_rulelen:
-            omitted = len(rules[i]) - max_rulelen + 1 # +1 because we need to replace the last one
-            rules[i][max_rulelen-1] = f"+{omitted} other features"
+            # +1 because we need to replace the last one
+            omitted = len(rules[i]) - max_rulelen + 1
+            rules[i][max_rulelen-1] = f"+{omitted} other rule splits"
             preds[i][max_rulelen-1] = preds[i][-1]
             rules[i] = rules[i][:max_rulelen]
             preds[i] = preds[i][:max_rulelen]
@@ -51,71 +52,81 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         from scipy import stats
         density = stats.gaussian_kde(preds_distr)
         extent = preds_distr.max() - preds_distr.min()
-        
         x = np.linspace(preds_distr.min()-0.05*extent, 
                         preds_distr.max()+0.05*extent, 100)
 
     # Make a colorpicker
     cmap = plt.get_cmap(cmap)
-    maxdev = max([np.max(np.abs(baselines[i] - np.array(preds[i]))) for i in range(nrules)])
+    maxdev = max([np.max(np.abs(baselines[i] - np.array(preds[i]))) 
+                  for i in range(nrules)])
     norm = plt.matplotlib.colors.Normalize(vmin=-maxdev, vmax=+maxdev)
     get_color = lambda value, baseline: cmap(norm(value - baseline))
     
-    plot_height_rulebased = max(max_rulelen, 4)
     # Initialize the plot
+    plot_height_rulebased = max(max_rulelen, 4)
     if preds_distr is None:
-        fig, axs = plt.subplots(figsize=(5*nrules+2, plot_height_rulebased), ncols=nrules, sharey=True)
-        axs = np.atleast_1d(axs)
+        fig, aaxs = plt.subplots(figsize=(5*nrules+2, plot_height_rulebased), 
+                                ncols=nrules, sharey=True)
+        axs = np.atleast_1d(aaxs)
     else:
-        fig, aaxs = plt.subplots(figsize=(5*nrules+2, plot_height_rulebased+1), nrows=2, ncols=nrules, sharex=True, sharey="row", 
-                                 gridspec_kw={"hspace":0, "height_ratios":[plot_height_rulebased,1]})
+        fig, aaxs = plt.subplots(figsize=(5*nrules+2, plot_height_rulebased+1), 
+            nrows=2, ncols=nrules, sharex=True, sharey="row", 
+            gridspec_kw={"hspace":0, "height_ratios":[plot_height_rulebased,1]})
         if len(aaxs.shape) == 1:
             aaxs = np.atleast_2d(aaxs).T
         axs     = aaxs[0,:]
         distaxs = aaxs[1,:]
     for i,ax in enumerate(axs):
         margin = 0.01 * 2*maxdev # 1% margin left and right
+        ax.invert_yaxis()
         ax.set_xlim([np.min(baselines)-maxdev-margin, np.max(baselines)+maxdev+margin])
-        ax.set_ylim([-max_rulelen-0.5, 1])
+        ax.set_ylim([max_rulelen+0.75, -0.75])
         ax.set_xlabel("Prediction")
         axs[0].set_ylabel("Rule depth")
-        ax.set_yticks([])
+        ax.set_yticks(range(max_rulelen+(max_rulelen_model==max_rulelen)))
         ax.grid(axis="x", zorder=-999, alpha=0.5)
         ax.set_title(f"Rule {i+1} (weight {weights[i]:.2f})")
     plt.subplots_adjust(wspace=0.05)
     # alt: max_rulelen --> fig.get_size_inches()[0]
     aspect = 20 * (max_rulelen / 5) # because aspect=20 is ideal when max_rulelen=5
-    caxs = axs if preds_distr is None else aaxs
-    plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=caxs, pad=0.02,
+    plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=aaxs, pad=0.02,
                  aspect=aspect, label="Change w.r.t. baseline")
-    
     # colorbar_export = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
 
     # Visualize the entire forest
     if other_preds:
         for bsl, ax in zip(baselines, axs):
             for pred in other_preds:
-                # ax.plot([bsl, *pred], -np.arange(len(pred)+1), c="gray", alpha=0.05, zorder=-500)
-                # ax.plot([bsl, *pred], -np.arange(len(pred)+1), c=[0.8,0.8,0.8], alpha=0.5, zorder=-500)
-                ax.plot([bsl, *pred], -np.arange(len(pred)+1), c=[0.8,0.8,0.8], alpha=1.0, zorder=-500, lw=0.5)
+                # ax.plot([bsl, *pred], -np.arange(len(pred)+1), c="gray", 
+                # alpha=0.05, zorder=-500)
+                # ax.plot([bsl, *pred], -np.arange(len(pred)+1), c=[0.8,0.8,0.8], 
+                # alpha=0.5, zorder=-500)
+                ax.plot([bsl, *pred], np.arange(len(pred)+1), c=[0.8,0.8,0.8], 
+                        alpha=1.0, zorder=-500, lw=0.5)
 
     # # Visualize the chosen rules (small multiples background)
     # for bsl, ax in zip(baselines, axs):
     #     for pred in preds:
-    #         ax.plot([bsl, *pred], -np.arange(len(pred)+1), c="k", zorder=-500)
+    #         ax.plot([bsl, *pred], np.arange(len(pred)+1), c="k", zorder=-500)
 
     # Highlight the rule of interest on each plot
     for bsl, rule, pred, ax in zip(baselines, rules, preds, axs):
         traj = [bsl, *pred]
         fontsize = 10
+        pad = 0.3
         ax.text(s=f"Baseline\n{bsl}", fontsize=fontsize,
-                x=bsl, y=0.5, ha="center", va="center", 
-                bbox=dict(boxstyle="square,pad=0.3", fc="w", ec="k"))
+                x=bsl, y=-pad, ha="center", va="center", 
+                bbox=dict(boxstyle=f"square,pad={pad}", fc="w", ec="k", alpha=0.5))
+        ha = ["left","right"][pred[-1] < bsl]
+        ha = "center"
+        ax.text(s=f"Prediction\n{pred[-1]}", fontsize=fontsize, 
+                x=pred[-1], y=len(pred)+pad, ha=ha, va="center",
+                bbox=dict(boxstyle=f"square,pad={pad}", fc="w", ec="k", alpha=0.5))
         for j in range(len(rule)):
             color = get_color(pred[j], bsl)
             # Draw the arrow
             ax.annotate(
-                text="", xy=(traj[j+1], -j-1), xytext=(traj[j], -j),
+                text="", xy=(traj[j+1], j+1), xytext=(traj[j], j),
                 arrowprops=dict(
                     arrowstyle="-|>",
                     linewidth=2, 
@@ -126,13 +137,14 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
                 )
             )
             # Draw the text
-            # isLeft = (pred[j] - preds.min() < preds.max() - pred[j])
-            # ha = ["right","left"][isLeft]
-            # pad = [-1, 1][isLeft]*0.05*(preds.max() - preds.min())
+            xtext = (2*traj[j]+traj[j+1])/3
+            xmin, xmax = ax.get_xlim()
+            closest = np.argmin([xtext-xmin, xtext-(xmin+xmax)/2, xmax-xtext])
+            ha = ["left","center","right"][closest]
             ax.text(
                 s=parse(rule[j]),
-                x=(2*traj[j]+traj[j+1])/3, y=-j-1/3,
-                ha="center", va="center",
+                x=xtext, y=j+1/3,
+                ha=ha, va="center",
                 fontsize=10,
                 bbox=dict(boxstyle="square,pad=0", fc="w", ec="w", lw=1, alpha=0.75),
             )
@@ -144,34 +156,47 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
             ax.plot(pred[-1], density(pred[-1]), ".", 
                     c=get_color(pred[-1], bsl), ms=15)
             ax.vlines(x=bsl     , ymin=0, ymax=density(bsl     ), colors="k")
-            ax.vlines(x=pred[-1], ymin=0, ymax=density(pred[-1]), colors=get_color(pred[-1], bsl))
+            ax.vlines(x=pred[-1], ymin=0, ymax=density(pred[-1]), 
+                      colors=get_color(pred[-1], bsl))
             ax.set_ylim([0, ax.get_ylim()[1]])
             ax.set_yticks([])
             ax.set_xlabel("Prediction")
             ax.grid(axis="x", zorder=-999, alpha=0.5)
         distaxs[0].set_ylabel("Density")
+        # Connect density better to the rest of the plot
+        for bsl, pred, ax, distax in zip(baselines, preds, axs, distaxs):
+            # Draw dotted vline from baseline to density
+            ax.vlines(x=bsl, ymin=0, ymax=ax.get_ylim()[0],
+                      colors="k", linestyles=":")
+            distax.vlines(x=bsl, ymin=density(bsl), ymax=distax.get_ylim()[1],
+                      colors="k", linestyles=":")
+            # Draw dotted line from final prediction to density
+            ax.vlines(x=pred[-1], ymin=max_rulelen, ymax=ax.get_ylim()[0],
+                      colors=get_color(pred[-1], bsl), linestyles=":")
+            distax.vlines(x=pred[-1], ymin=density(pred[-1]), ymax=distax.get_ylim()[1],
+                    colors=get_color(pred[-1], bsl), linestyles=":")
+
         
-    # Add final prediction to the plot as an annotation
-    pred_terms = [f"{round(weights[i], round_digits-1):.{round_digits-1}f}*{round(preds[i][-1], round_digits):.{round_digits}f}" 
-                  for i in range(len(rules))]
-    final_pred = np.sum(weights[i] * preds[i][-1] for i in range(len(rules)))
-    final_pred_str = f"{round(final_pred, round_digits):.{round_digits}f} = " + " + ".join(pred_terms)
-
-    # Add final predictions to the bottom of the plot
-    # First: determine format of b_box_pred variable for display
+    # Add final prediction to the plot
+    # PREVIOUS VERSION: 
+    # string = "Bellatrex prediction:  {pred1}\nBlack-box prediction: {pred2}"
+    # fig.text(0.3, 0.02, string, ha='left', va='center', fontsize=14)
+    final_pred = np.sum([weights[i] * preds[i][-1] for i in range(len(rules))])
+    final_pred_str = f"Final BellaTrex prediction = {final_pred:.{round_digits}f}"
+    final_pred_str += " = " + " + ".join([
+        rf"{weights[i]:.{round_digits-1}f}$\times${preds[i][-1]:.{round_digits}f}" 
+        for i in range(len(rules))
+    ])
     if b_box_pred is not None:
-        if isinstance(b_box_pred, list):
-            b_box_pred_str = ', '.join([f'{round(pred, round_digits):.{round_digits}f}' for pred in b_box_pred])
-        else:
-            b_box_pred_str = f'{round(b_box_pred, round_digits):.{round_digits}f}'
-    
-    # # Add the text to the figure, display the first line
-    fig.text(0.3, 0.02, f'Bellatrex prediction:  {final_pred_str}', ha='left', va='center', fontsize=14)
-    # Display the second line (left-aligned to the start of the first line)
-    # if b_box_pred is not None:
-    #     fig.text(0.3, +0.075, f'Black-box prediction: {b_box_pred_str}', ha='left', va='center', fontsize=14)
-
-    return axs
+        final_pred_str += "\n(compared to black-box model which predicts "
+        final_pred_str += ", ".join([f"{pred:.{round_digits}f}" 
+                                     for pred in np.atleast_1d(b_box_pred)])
+        final_pred_str += ")"
+    figheight = plot_height_rulebased + (preds_distr is not None)
+    # y = np.sqrt(figheight) / 100 * 2.2
+    y = figheight/100 - 0.04
+    fig.supxlabel(final_pred_str, va="top", y=y)
+    return aaxs
 
 def parse(rule):
     """Parses a rule outputted by bellatrex into a form suitable for visualisation."""
@@ -235,15 +260,14 @@ def read_rules(file, file_extra=None):
 
 
 if __name__ == "__main__":
-    import pandas as pd
-
     rules, preds, baselines, weights, other_preds = read_rules(
-        file       = "example-explanations/Rules_boston_housing_f0_id0.txt",
-        file_extra = "example-explanations/Rules_boston_housing_f0_id0-extra.txt"
+        file       = "example-explanations/Rules_boston_housing_f0_id1.txt",
+        file_extra = "example-explanations/Rules_boston_housing_f0_id1-extra.txt"
     )
     preds_distr = np.load("example-data/bin_tutorial_y_train_preds.npy")
-    axs = plot_rules(rules, preds, baselines, weights, 
-                max_rulelen=None, other_preds=other_preds, preds_distr=preds_distr,
+    aaxs = plot_rules(rules, preds, baselines, weights, 
+                max_rulelen=5, other_preds=other_preds, preds_distr=preds_distr,
+                b_box_pred=0.6 # just a random number
     )
-    axs[0].set_xlim([0,1])
-    plt.savefig("visualisation.pdf")
+    # aaxs[0,0].set_xlim([0,1])
+    plt.savefig("visualisation.pdf", bbox_inches="tight")
