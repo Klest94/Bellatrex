@@ -54,6 +54,9 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         extent = preds_distr.max() - preds_distr.min()
         x = np.linspace(preds_distr.min()-0.05*extent, 
                         preds_distr.max()+0.05*extent, 100)
+        if other_preds is not None:
+            other_preds_distr = [pred[-1] for pred in other_preds]
+            other_density = stats.gaussian_kde(other_preds_distr)
 
     # Make a colorpicker
     cmap = plt.get_cmap(cmap)
@@ -151,11 +154,13 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
 
     # Draw the distribution on each plot
     if preds_distr is not None:
+        # Training set distribution (as provided by preds_distr)
         for bsl, pred, ax in zip(baselines, preds, distaxs):
             ax.plot(x       , density(x       ), "k")
+            # ax.vlines(x=pred[-1], ymin=0, ymax=density(pred[-1]), colors="k", linewidth=5)
             ax.plot(pred[-1], density(pred[-1]), ".", 
                     c=get_color(pred[-1], bsl), ms=15)
-            ax.vlines(x=bsl     , ymin=0, ymax=density(bsl     ), colors="k")
+            ax.vlines(x=bsl     , ymin=0, ymax=density(bsl     ), colors="k", linestyles=":")
             ax.vlines(x=pred[-1], ymin=0, ymax=density(pred[-1]), 
                       colors=get_color(pred[-1], bsl))
             ax.set_ylim([0, ax.get_ylim()[1]])
@@ -163,6 +168,12 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
             ax.set_xlabel("Prediction")
             ax.grid(axis="x", zorder=-999, alpha=0.5)
         distaxs[0].set_ylabel("Density")
+        # Local distribution (based on other_preds)
+        if other_preds is not None:
+            for ax in distaxs:
+                ax.plot(x, other_density(x), c=[0.8,0.8,0.8])
+            
+
         # Connect density better to the rest of the plot
         for bsl, pred, ax, distax in zip(baselines, preds, axs, distaxs):
             # Draw dotted vline from baseline to density
@@ -182,7 +193,7 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
     # string = "Bellatrex prediction:  {pred1}\nBlack-box prediction: {pred2}"
     # fig.text(0.3, 0.02, string, ha='left', va='center', fontsize=14)
     final_pred = np.sum([weights[i] * preds[i][-1] for i in range(len(rules))])
-    final_pred_str = f"Final BellaTrex prediction = {final_pred:.{round_digits}f}"
+    final_pred_str = f"Final Bellatrex prediction = {final_pred:.{round_digits}f}"
     final_pred_str += " = " + " + ".join([
         rf"{weights[i]:.{round_digits-1}f}$\times${preds[i][-1]:.{round_digits}f}" 
         for i in range(len(rules))
