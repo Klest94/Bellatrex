@@ -84,11 +84,11 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         ax.invert_yaxis()
         ax.set_xlim([np.min(baselines)-maxdev-margin, np.max(baselines)+maxdev+margin])
         ax.set_ylim([max_rulelen+0.75, -0.75])
-        ax.set_xlabel("Prediction")
+        ax.set_xlabel(f"Prediction\nThis rule: {(preds[i][-1])} with weight {weights[i]}")
         axs[0].set_ylabel("Rule depth")
         ax.set_yticks(range(max_rulelen+(max_rulelen_model==max_rulelen)))
         ax.grid(axis="x", zorder=-999, alpha=0.5)
-        ax.set_title(f"Rule {i+1} (weight {weights[i]:.2f})")
+        ax.set_title(f"Selected rule {i+1}\n(prediction = {(preds[i][-1]):.{round_digits}f}, weight = {weights[i]})")# (weighted {weights[i]:.2f})")
     plt.subplots_adjust(wspace=0.05)
     # alt: max_rulelen --> fig.get_size_inches()[0]
     aspect = 20 * (max_rulelen / 5) # because aspect=20 is ideal when max_rulelen=5
@@ -104,7 +104,7 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
                 # alpha=0.05, zorder=-500)
                 # ax.plot([bsl, *pred], -np.arange(len(pred)+1), c=[0.8,0.8,0.8], 
                 # alpha=0.5, zorder=-500)
-                ax.plot([bsl, *pred], np.arange(len(pred)+1), c=[0.8,0.8,0.8], 
+                ax.plot([bsl, *pred], np.arange(len(pred)+1), c=[0.9,0.9,0.9], 
                         alpha=1.0, zorder=-500, lw=0.5)
 
     # # Visualize the chosen rules (small multiples background)
@@ -117,13 +117,14 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         traj = [bsl, *pred]
         fontsize = 10
         pad = 0.3
-        ax.text(s=f"Baseline\n{bsl}", fontsize=fontsize,
+        ax.text(s=f"Baseline\n{bsl:.{round_digits}f}", fontsize=fontsize,
                 x=bsl, y=-pad, ha="center", va="center", 
                 bbox=dict(boxstyle=f"square,pad={pad}", fc="w", ec="k", alpha=0.5))
-        ha = ["left","right"][pred[-1] < bsl]
-        ha = "center"
-        ax.text(s=f"Prediction\n{pred[-1]}", fontsize=fontsize, 
-                x=pred[-1], y=len(pred)+pad, ha=ha, va="center",
+        isRight = (pred[-1] < bsl)
+        ha = ["left","right"][isRight]
+        # ha = "center"
+        ax.text(s=f"Prediction\n{pred[-1]:.{round_digits}f}", fontsize=fontsize, 
+                x=pred[-1] - 2*(isRight-0.5)*pred[-1]/25, y=len(pred)+pad, ha=ha, va="center",
                 bbox=dict(boxstyle=f"square,pad={pad}", fc="w", ec="k", alpha=0.5))
         for j in range(len(rule)):
             color = get_color(pred[j], bsl)
@@ -155,32 +156,32 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
     # Draw the distribution on each plot
     if preds_distr is not None:
         # Training set distribution (as provided by preds_distr)
-        for bsl, pred, ax in zip(baselines, preds, distaxs):
+        for i, (bsl, pred, ax) in enumerate(zip(baselines, preds, distaxs)):
             ax.plot(x       , density(x       ), "k")
             # ax.vlines(x=pred[-1], ymin=0, ymax=density(pred[-1]), colors="k", linewidth=5)
-            ax.plot(pred[-1], density(pred[-1]), ".", 
-                    c=get_color(pred[-1], bsl), ms=15)
-            ax.vlines(x=bsl     , ymin=0, ymax=density(bsl     ), colors="k", linestyles=":")
-            ax.vlines(x=pred[-1], ymin=0, ymax=density(pred[-1]), 
-                      colors=get_color(pred[-1], bsl))
-            ax.set_ylim([0, ax.get_ylim()[1]])
+            col1 = "gray" #get_color(bsl     , bsl)
+            col2 = get_color(pred[-1], bsl)
+            ax.plot(bsl     , density(bsl     ), ".", c=col1, ms=15)
+            ax.plot(pred[-1], density(pred[-1]), ".", c=col2, ms=15)
+            ax.vlines(x=bsl     , ymin=0, ymax=density(bsl     ), colors=col1, linestyles=":")
+            ax.vlines(x=pred[-1], ymin=0, ymax=density(pred[-1]), colors=col2, linestyles=":")
+            ax.set_ylim([0, 1.1*ax.get_ylim()[1]])
             ax.set_yticks([])
-            ax.set_xlabel("Prediction")
+            ax.set_xlabel(f"Prediction")
             ax.grid(axis="x", zorder=-999, alpha=0.5)
         distaxs[0].set_ylabel("Density")
-        # Local distribution (based on other_preds)
-        if other_preds is not None:
-            for ax in distaxs:
-                ax.plot(x, other_density(x), c=[0.8,0.8,0.8])
+        # # Local distribution (based on other_preds)
+        # if other_preds is not None:
+        #     for ax in distaxs:
+        #         ax.plot(x, other_density(x), c=[0.8,0.8,0.8])
             
-
         # Connect density better to the rest of the plot
         for bsl, pred, ax, distax in zip(baselines, preds, axs, distaxs):
             # Draw dotted vline from baseline to density
             ax.vlines(x=bsl, ymin=0, ymax=ax.get_ylim()[0],
-                      colors="k", linestyles=":")
+                      colors="gray", linestyles=":")
             distax.vlines(x=bsl, ymin=density(bsl), ymax=distax.get_ylim()[1],
-                      colors="k", linestyles=":")
+                      colors="gray", linestyles=":")
             # Draw dotted line from final prediction to density
             ax.vlines(x=pred[-1], ymin=max_rulelen, ymax=ax.get_ylim()[0],
                       colors=get_color(pred[-1], bsl), linestyles=":")
@@ -193,20 +194,21 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
     # string = "Bellatrex prediction:  {pred1}\nBlack-box prediction: {pred2}"
     # fig.text(0.3, 0.02, string, ha='left', va='center', fontsize=14)
     final_pred = np.sum([weights[i] * preds[i][-1] for i in range(len(rules))])
-    final_pred_str = f"Final Bellatrex prediction = {final_pred:.{round_digits}f}"
-    final_pred_str += " = " + " + ".join([
-        rf"{weights[i]:.{round_digits-1}f}$\times${preds[i][-1]:.{round_digits}f}" 
+    final_pred_str = f"Bellatrex local explanation with weighted prediction = {final_pred:.{round_digits}f}"
+    final_pred_str += " (= " + " + ".join([
+        rf"{preds[i][-1]:.{round_digits}f}$\times${weights[i]:.{round_digits-1}f}" 
         for i in range(len(rules))
-    ])
+    ]) + ")"
     if b_box_pred is not None:
-        final_pred_str += "\n(compared to black-box model which predicts "
+        final_pred_str += "\n(compared to the black-box model which predicts "
         final_pred_str += ", ".join([f"{pred:.{round_digits}f}" 
                                      for pred in np.atleast_1d(b_box_pred)])
         final_pred_str += ")"
     figheight = plot_height_rulebased + (preds_distr is not None)
     # y = np.sqrt(figheight) / 100 * 2.2
     y = figheight/100 - 0.04
-    fig.supxlabel(final_pred_str, va="top", y=y)
+    # fig.supxlabel(final_pred_str, va="top", y=y)
+    fig.suptitle(final_pred_str, va="top", y=1+3*y)
     return aaxs
 
 def parse(rule):
@@ -226,6 +228,9 @@ def parse(rule):
             if (float(value) == 0.5) and ("is" in rule): # TODO improve
                 rule = rule.replace("is", [r"$\neq$", "$=$"][i>1])
                 rule = rule[:rule.find(comparator)].strip()
+            else:
+                # TODO incorporate `round_digits`
+                rule = rule.split(comparator)[0] + comparator + value[:min(5,len(value))] # Round the value
     # rule = rule.encode().decode('unicode_escape')
     return rule
 
