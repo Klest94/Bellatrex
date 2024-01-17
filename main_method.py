@@ -19,7 +19,7 @@ from code_scripts.TreeRepresentation_utils import count_rule_length
 from code_scripts.LocalMethod_class import Bellatrex
 from code_scripts.wrapper_class import tree_list_to_model, DT_to_dict
 
-SETUP = "regress"
+SETUP = "surv"
 PROJ_METHOD = "PCA"
 
 SAVE_PREDS = False # if True: save: predictions, tuned_hyperparams and dataframe
@@ -27,13 +27,14 @@ SAVE_PREDS = False # if True: save: predictions, tuned_hyperparams and dataframe
 OVERWRITE_DF = False # save performance df as csv, potentially overwriting smth
 # reduce MAX_TEST_SIZE for quick code testing
 MAX_TEST_SIZE = 5 #if set >= 100, it takes the (original) value X_test.shape[0]
-VERBOSE = 2
+VERBOSE = 4
+PLOT_GUI = True
 N_FOLDS = 1
 
 p_grid = {
-    "n_trees": [0.6, 0.8, 1.0], # [100] for "noTrees_" ablation
-    "n_dims": [2, 5, None], #None = no dim reduction   #Ablation: noDims_
-    "n_clusters": [1, 2, 3]
+    "n_trees": [0.8, 1.0], # [100] for "noTrees_" ablation
+    "n_dims": [2, None], #None = no dim reduction   #Ablation: noDims_
+    "n_clusters": [1, 2]
     }
 
 
@@ -64,7 +65,6 @@ print(testing_dnames)
 
 # PARALLELISATION NOT WORKING SUPER WELL YET. GAINS ARE MARGINAL
 JOBS = 1 # n_jobs for R(S)F learner (and now also ETrees candidate choice!)
-PLOT_GUI = False
 '''  levels of verbosity in this script:
     - >= 1.0: print best params, their achieved fidelity,
               and the scoring method used to compute such performance

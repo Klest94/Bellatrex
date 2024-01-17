@@ -1,4 +1,5 @@
 .spyproject
+.vscode/
 __pycache__/
 code_scripts/Bellatrex_on_MSBase.py
 code_scripts/trial XGBoost.py

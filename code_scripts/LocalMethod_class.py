@@ -234,7 +234,7 @@ class Bellatrex:
         '''
         
         # setting default "best", params in case of error
-        best_params = {"n_clusters": 2, "n_dims": 2, "n_trees": 20}
+        best_params = {"n_clusters": 2, "n_dims": 2, "n_trees": 80}
         
 
         if self.n_jobs == 1:
@@ -242,7 +242,7 @@ class Bellatrex:
                 try:
                     candidate = ETrees.set_params(**params).extract_trees()
                     perf = candidate.score(self.fidelity_measure, self.ys_oracle)
-                except: # e.g. a ConvergeWarning from kmeans
+                except: # e.g. a ConvergeWarning from K-means
                     print('Warning, something went wrong, skipping candidate:', params)
                     perf = -np.inf
                     
@@ -253,10 +253,12 @@ class Bellatrex:
                 if perf > best_perf:
                     best_perf = perf
                     best_params = params
+                    
+            if best_perf == -np.inf: # fallback in case everything went wrong...
+                warnings.warn("The GridSearch did not find any meaningful configuration, setting default parameters")
 
         elif self.n_jobs > 1:
-            warnings.warn('Multiprocessing is not optimized, and the speed-up is marginal. \
-Set n_jobs = 1 to avoid this warning')
+            warnings.warn('Multiprocessing is not optimized and the speed-up is marginal. Set n_jobs = 1 to avoid this warning')
             
             def missing_params_dict(given_params, class_instance):
                 param_names = class_instance.__init__.__code__.co_varnames[1:]
@@ -280,11 +282,9 @@ Set n_jobs = 1 to avoid this warning')
                               constant_params, **params):
                 candidate = None
                 try:
-                    # print(f"Running with params: {params}")
                     etrees_instance = create_instance_func(constant_params, **params)  # Create a new instance using the provided function
                     candidate = etrees_instance.extract_trees()
                     perf = candidate.score(fidelity_measure, ys_oracle)
-                    # print(f"Performance: {perf}")
                     
                 except Exception as e:
                     warnings.warn(f'Warning, something went wrong ({str(e)}), skipping candidate: {params}')
@@ -292,20 +292,22 @@ Set n_jobs = 1 to avoid this warning')
                 return perf, params
         
             # Pass the required variables to run_candidate function
-            # passing ETrees class, not instance
+            # passing ETrees class, not instance (?)
             results = Parallel(n_jobs=self.n_jobs, prefer="threads")(
                 delayed(run_candidate)(create_ETrees_instance, self.fidelity_measure,
                                        self.ys_oracle, constant_params, **params) for params in grid_list)
             
             
-            perfs, params_list = zip(*results)
-            
-            best_idx = np.argsort(perfs)[::-1][0]  # take top performing index
-            best_perf = perfs[best_idx]
-            best_params = params_list[best_idx]
-            
-        if best_perf == -np.inf: # if still the case, everything went wrong...
-            warnings.warn("The GridSearch did not find any meaningful configuration, setting default parameters")
+            perfs, params_list = zip(*results) #re-collect all  parallel candidate performances 
+        
+        
+            if best_perf >  -np.inf: # should always be the case           
+                best_idx = np.argsort(perfs)[::-1][0]  # take top performing index
+                best_perf = perfs[best_idx]
+                best_params = params_list[best_idx]
+                
+            if best_perf == -np.inf: # fallback in case everything went wrong...
+                warnings.warn("The GridSearch did not find any meaningful configuration, setting default parameters")
             
 
         # closed "GridSearch" loop, storing score of the best configuration
@@ -317,7 +319,7 @@ Set n_jobs = 1 to avoid this warning')
         final_extract_trees = tuned_method.final_trees_idx
         final_cluster_sizes =  tuned_method.cluster_sizes
         
-        ''' compute Bellatrex prediction  here as well. Useful for printing in the future '''
+        ''' compute Bellatrex prediction here as well. Useful for printing in the future '''
         
         if not isinstance(self.clf, RandomSurvivalForest): #shape must be (n,p) with n=1
             surrogate_pred = np.array([0.0]*self.clf.n_outputs_).reshape(sample.shape[0],-1)
@@ -337,7 +339,7 @@ Set n_jobs = 1 to avoid this warning')
             print("(Tuned according to {})".format(self.fidelity_measure))
             
         if self.verbose >= 2: #and sample_info.final_trees_idx > 1
-            print("final trees indeces: {}".format(final_extract_trees))
+            print("final trees indices: {}".format(final_extract_trees))
             print("final cluster sizes: {}".format(final_cluster_sizes))
 
             # store rules in written file:
@@ -364,25 +366,26 @@ Set n_jobs = 1 to avoid this warning')
                     for idx in range(self.clf.n_estimators):
                         if idx not in final_extract_trees: #non selected-trees (extra info, plotting their paths in background for comparison)
                             rule_to_file(self.clf[idx],
-                                         sample, X.columns, -1, #setting ruleweight to -1 (invalid number), or to 0 is also fine
+                                         sample, X.columns, -1, #setting rule weight to -1 (invalid number), or to 0 is also fine
                                          self.MAX_FEATURE_PRINT, f)                     
                     f.close()
+        
+        fig, axes = [None, None]
         
         if self.verbose >= 3:
 
             plot_kmeans, plot_data_bunch = tuned_method.preselect_represent_cluster_trees()
             
-            plot_preselected_trees(plot_data_bunch, plot_kmeans,
+            fig, axes = plot_preselected_trees(plot_data_bunch, plot_kmeans,
                                    tuned_method, final_extract_trees,
                                    base_font_size=self.FONT_SIZE,
                                    plot_dpi=self.dpi_figure,
                                    colormap=self.colormap)
             if self.show:
                 plt.show()
-
                 
 
-        if self.verbose >= 4.0 and self.plot_GUI  == False:
+        if self.verbose >= 4.0 and self.plot_GUI == False:
             
             for tree_idx, cluster_size in zip(final_extract_trees, final_cluster_sizes):
                 #if X.shape[1] < 10: # or improve rule_print_inline function!
@@ -391,10 +394,6 @@ Set n_jobs = 1 to avoid this warning')
                                       max_features_print=self.MAX_FEATURE_PRINT)
         print('Bellatrex prediction:', surrogate_pred_str)
         
-        # if hasattr(self.clf, 'predict_proba'):
-        #     y_pred_orig = self.clf.predict_proba(sample)[:,1]
-        # else:
-        #     y_pred_orig = self.clf.predict(sample)
         y_pred_orig = predict_helper(self.clf, sample)
             
         print('Black box prediction: ' + frmt_preds_to_print(y_pred_orig, digits_single=4))
@@ -404,9 +403,13 @@ Set n_jobs = 1 to avoid this warning')
         if self.verbose >= 4.0 and self.plot_GUI == True:
             
             from code_scripts.GUI_plots_code import plot_with_interface
+
+            print('Colormap attribute is: ', self.colormap)
+            
             plot_with_interface(plot_data_bunch, plot_kmeans,
                                 input_method=tuned_method,
-                                max_depth=self.plot_max_depth)
+                                max_depth=self.plot_max_depth,
+                                color_map=self.colormap)
             
             try:
                 os.remove("colourbar0.png")
@@ -426,7 +429,7 @@ Set n_jobs = 1 to avoid this warning')
         
         tuned_method.sample_score = sample_score
 
-        return tuned_method.local_prediction(), tuned_method # or return just .local_prediction ?
+        return tuned_method.local_prediction(), tuned_method, fig, axes # or return just .local_prediction ?
         #sample_score
             
         ###	improve output with

@@ -1,21 +1,22 @@
 ########################  SAMPLE  ########################
-        rm  crim   black
-1     7.15  0.08  396.90
-##################   RULE WEIGHT: 0.12  ##################
-Baseline prediction: 0.3910
-node.   0:   rm > 6.83  --> 0.7166
-node. 154:     rm <= 7.44  --> 0.6070
-node. 155:       rm > 6.94  --> 0.6429
-node. 161:         crim <= 1.02  --> 0.6316
-node. 162:           black > 384.18  --> 0.6446
-node. 164:             rm <= 7.26  --> 0.6643
-node. 165:               rm > 7.14  --> 0.6873
-node. 167:                 black > 395.02  --> 0.6724
-leaf. 169:                 returns 0.6724
+        rm ptratio   dis   black     tax lstat
+1     7.15   19.20  5.12  396.90  245.00  3.56
+##################   RULE WEIGHT: 0.91  ##################
+Baseline prediction: 0.3913
+node.   0:   rm > 6.94  --> 0.7584
+node. 176:     rm <= 7.39  --> 0.6360
+node. 177:       ptratio <= 19.65  --> 0.6716
+node. 178:         dis > 1.90  --> 0.6560
+node. 180:           black > 386.99  --> 0.6746
+node. 182:             rm <= 7.26  --> 0.6874
+node. 183:               tax > 204.50  --> 0.6788
+node. 185:                 black > 391.36  --> 0.6689
+node. 187:                   lstat <= 3.77  --> 0.6311
+leaf. 188:                   returns 0.6311
 ########################  SAMPLE  ########################
      lstat    rm     tax   rad
 1     3.56  7.15  245.00  4.00
-##################   RULE WEIGHT: 0.10  ##################
+##################   RULE WEIGHT: 0.09  ##################
 Baseline prediction: 0.3705
 node.   0:   lstat <= 9.64  --> 0.5521
 node.   1:     rm <= 7.44  --> 0.5017
@@ -27,19 +28,4 @@ node.  69:               rad <= 7.50  --> 0.6372
 node.  70:                 rad <= 4.50  --> 0.6280
 node.  71:                   lstat <= 6.40  --> 0.6253
 leaf.  72:                   returns 0.6253
-########################  SAMPLE  ########################
-        rm   black     tax   rad lstat   nox
-1     7.15  396.90  245.00  4.00  3.56  0.41
-##################   RULE WEIGHT: 0.78  ##################
-Baseline prediction: 0.3918
-node.   0:   rm > 6.97  --> 0.7469
-node. 170:     rm <= 7.45  --> 0.6389
-node. 171:       black > 391.32  --> 0.6526
-node. 175:         tax > 204.50  --> 0.6458
-node. 177:           rad <= 6.00  --> 0.6411
-node. 178:             tax <= 363.50  --> 0.6327
-node. 179:               lstat > 2.46  --> 0.6303
-node. 181:                 black > 393.02  --> 0.6256
-node. 183:                   nox > 0.40  --> 0.6279
-leaf. 185:                   returns 0.6279
-Bellatrex prediction: 0.633
+Bellatrex prediction: 0.631

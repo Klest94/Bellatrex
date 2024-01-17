@@ -92,6 +92,8 @@ def frmt_preds_to_print(y_pred, digits_single=4, digits_vect=3) -> str:
         raise ValueError('Format for y_pred not recognized')
     
     return y_pred_str
+
+
 def return_partial_preds(clf_i):
     
     if isinstance(clf_i, sklearn.tree.DecisionTreeClassifier) and clf_i.n_outputs_ == 1:
@@ -111,20 +113,17 @@ def return_partial_preds(clf_i):
     elif isinstance(clf_i, SurvivalTree):
         # clf_i.tree_.value: np array of [node, time, [H(node), S(node)]]
         #                                              ^idx 0   ^idx 1
-        # OLD version currently: 'integral' of the CHF (without taking into account time spacing)
-        # partial_preds = np.sum(clf_i.tree_.value[:,:, 0], axis=1)
-        # NOW imitating .predict of the SurvivalTree even better:
+        # We imitate the .predict function of the SurvivalTree:
         partial_preds = np.sum(clf_i.tree_.value[:,clf_i.is_event_time_, 0], axis=1)
             
     elif isinstance(clf_i, EnsembleWrapper.Estimator):
         if clf_i.n_outputs_ == 1:
-            partial_preds =  clf_i.tree_.value.ravel() # .ravel seems to be the needed formatting  
+            partial_preds =  clf_i.tree_.value.ravel() # .ravel seems to do the needed formatting  
         else:
             partial_preds =  clf_i.tree_.value           
     else:
         raise ValueError('Tree learner not recognized, or not implemented')
     
-    # print('Partial preds of shape:', partial_preds.shape)
     return partial_preds
 
 
@@ -148,7 +147,23 @@ def used_feature_set(clf_i, feature_names, sample):
         
     return unique_features
 
-    
+
+def colormap_from_str(colormap):     # User can customize the colorbar
+
+    if colormap is None:
+        cmap_output = plt.cm.get_cmap('RdYlBu_r') # default choice. Other possible default could be "viridis"
+        
+    elif isinstance(colormap, LinearSegmentedColormap):
+        cmap_output = colormap
+
+    elif isinstance(colormap, str):
+        if colormap not in plt.colormaps():
+            raise ValueError('Provided string {} is not a recognized LinearSegmenetedColormap. Check list by typing plt.colormaps()'.format(colormap))
+        else:
+            cmap_output = plt.cm.get_cmap(colormap)
+    else:
+        raise ValueError('Provided colormap has to be either a LinearSegmenetedColormap, or a recognized string. Found {} instead'.format(type(colormap)))
+    return cmap_output
     
 
 def rule_print_inline(clf_i, sample, weight=None, max_features_print=12):
@@ -168,7 +183,7 @@ def rule_print_inline(clf_i, sample, weight=None, max_features_print=12):
 
     is_traversed_node = node_indicator_csr.indices[
         node_indicator_csr.indptr[0] : node_indicator_csr.indptr[1]
-    ] # csr matrix fomratted in this way
+    ] # csr matrix formatted in this way
     
     
     unique_features = used_feature_set(clf_i, sample.columns, sample)
@@ -261,7 +276,7 @@ def rule_to_file(clf_i, sample, feature_names, rule_weight,
                 recurse_print(child_node, depth + 1, tree_, sample, 
                               feature_names, is_traversed_node, f)
                 
-        else: #if feature split is undefined (index == -2), then we are in a leaf
+        else: # if feature split is == _tree.TREE_UNDEFINED (that is, -2), then we are in a leaf
             if is_traversed_node[node] == 1:
                 f.write("leaf.{:4}: {}returns {}\n".format(node, indent,
                                                     frmt_preds_to_print(partial_preds[node])))
@@ -271,19 +286,17 @@ def rule_to_file(clf_i, sample, feature_names, rule_weight,
 
     # Take care of selection of sample columns so that 
     # it stays in the pd.DataFrame format. This works:
-    unique_features_formatted = sample.loc[:, unique_features].applymap(lambda x: '{:.2f}'.format(x))
+    unique_features_formatted = sample[unique_features].apply(lambda col: col.map(lambda x: '{:.2f}'.format(x)))
+    
         
     if len(unique_features) <= max_features_print:
         f.write('#'*24 + '  SAMPLE  ' + '#'*24 + '\n')
         f.write(unique_features_formatted.to_string(col_space=4)+ '\n')
-        f.write('#'*18 + '   RULE WEIGHT: {:.2f}  '.format(rule_weight) + '#'*18 + '\n')
-        f.write('Baseline prediction: {}\n'.format(frmt_preds_to_print(partial_preds[0])))
-
     else:
         f.write('#'*58 + '\n')
-        f.write('#'*18 + '   RULE WEIGHT: {:.2f}  '.format(rule_weight) + '#'*18 + '\n')
-        f.write('Baseline prediction: {}\n'.format(frmt_preds_to_print(partial_preds[0])))
 
+    f.write('#'*18 + '   RULE WEIGHT: {:.2f}  '.format(rule_weight) + '#'*18 + '\n')
+    f.write('Baseline prediction: {}\n'.format(frmt_preds_to_print(partial_preds[0])))
 
     is_traversed_node = clf_i.decision_path(sample.values).toarray()[0]
     sample = sample.to_numpy().reshape(-1) #from single column to single line
@@ -661,7 +674,7 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     small_size = 40
     big_size = 220
     
-    # Custom formatter function for colorabar on ax4
+    # Custom formatter function for colorabar on axes[3]
     # not working correctly..
     def custom_formatter(x, pos): # pos paramter to comply with expected signature
         if np.abs(x) < 1e-7: # 0.00 for near zero values
@@ -688,9 +701,11 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     class_memb = kmeans.labels_
     
     custom_gridspec = {'width_ratios': [3, 0.2, 3, 0.2]}
-
+    fig, axes = plt.subplots(1, 4, figsize=(10, 4.5), dpi=plot_dpi,
+                             gridspec_kw=custom_gridspec)
+    ax1, ax2, ax3, ax4 = axes
     
-    fig, (ax1, ax2, ax3, ax4) = pylab.subplots(1, 4, figsize=(10, 4.5), dpi=plot_dpi,
+    fig, (axes[0], axes[1], axes[2], axes[3]) = pylab.subplots(1, 4, figsize=(10, 4.5), dpi=plot_dpi,
                                     gridspec_kw=custom_gridspec)
     # (scatter1, cb1, scatter2, cb2)
     
@@ -705,7 +720,7 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     #####   LEFT PLOT (cluster memberships)   #####
     
     for i, txt in enumerate(centers): #plot cluster centers
-        ax1.annotate(i+1, (centers[i,0], centers[i,1]),
+        axes[0].annotate(i+1, (centers[i,0], centers[i,1]),
                       bbox={"boxstyle" : "circle", "color": "grey", "alpha": 0.6})
         
 
@@ -717,27 +732,27 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     y_selected = plottable_data[:,1][is_final_candidate]
     color_selected = class_memb[is_final_candidate]
     
-    ax1.scatter(x_normal, y_normal,
+    axes[0].scatter(x_normal, y_normal,
                c=color_normal,
                cmap=None,
                s=small_size,
                marker="o",
                edgecolors=(1, 1, 1, 0.5))
     
-    ax1.scatter(x_selected, y_selected,
+    axes[0].scatter(x_selected, y_selected,
                c=color_selected,
                cmap=None,
                s=big_size,
                marker="*",
                edgecolors="black")
 
-    ax1.set_xlabel("PC1", fontdict={'fontsize': base_font_size})
-    ax1.set_ylabel("PC2", fontdict={'fontsize': base_font_size})
+    axes[0].set_xlabel("PC1", fontdict={'fontsize': base_font_size})
+    axes[0].set_ylabel("PC2", fontdict={'fontsize': base_font_size})
 
-    ax1.axis('equal') # is it even a good idea? We will see
-    ax1.set_title('Cluster membership', fontdict={'fontsize': base_font_size})
+    axes[0].axis('equal') # is it even a good idea? We will see
+    axes[0].set_title('Cluster membership', fontdict={'fontsize': base_font_size})
     
-    # create the map for segmented colorbar (ax2: left colorbar)
+    # create the map for segmented colorbar (axes[1]: left colorbar)
     cmap = plt.cm.viridis  # default colormap
     cmaplist = [cmap(i) for i in range(cmap.N)]
     cmap = mpl.colors.LinearSegmentedColormap.from_list('Custom cmap', cmaplist, cmap.N)        
@@ -770,29 +785,17 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         tickz = tickz[:-1] # drop last tick at top of colorbar
     
     # colorab on axis 2 out of 4.
-    cb = mpl.colorbar.Colorbar(ax2, cmap=cmap, norm=norm,
+    cb = mpl.colorbar.Colorbar(axes[1], cmap=cmap, norm=norm,
         spacing='proportional', ticks=tickz, boundaries=norm_bins,
         format='%1i')
         #label="cluster membership")
     cb.ax.set_yticklabels(labels)  # vertically oriented colorbar
     cb.ax.tick_params(labelsize=base_font_size-1) #ticks font size
-    ax2.yaxis.set_ticks_position('left')
+    axes[1].yaxis.set_ticks_position('left')
 
 
     # User can customize the colorbar
-    if colormap is None:
-        cmap_preds = plt.cm.get_cmap('RdYlBu') # default choice. Other possible default could be "viridis"
-        
-    elif isinstance(colormap, str):
-        if colormap not in plt.colormaps():
-            raise ValueError('Provided string {} is not a recognized LinearSegmenetedColormap. Check list by typing plt.colormaps()'.format(colormap))
-        else:
-            cmap_preds = plt.cm.get_cmap(colormap)
-    elif isinstance(colormap, (LinearSegmentedColormap)):
-        cmap_preds = colormap
-    else:
-        raise ValueError('Provided colormap has to be either a LinearSegmenetedColormap, or a recognized string. Found {} instead'.format(type(colormap)))
-        
+    cmap_preds = colormap_from_str(colormap)        
 
     #####   RIGHT PLOT (predictions or losses)  #####
     
@@ -800,7 +803,7 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     if tuned_method.clf.n_outputs_ == 1 or isinstance(tuned_method.clf,
                                         RandomSurvivalForest): # single output, color on predictions
     
-        ### right figure scatterplot here (ax3 and ax4):
+        ### right figure scatterplot here (axes[2] and axes[3]):
 
         is_binary = False
         if isinstance(tuned_method.clf, sklearn.ensemble.RandomForestClassifier):
@@ -827,31 +830,31 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         
         real_colors = np.array([cmap_preds(idx) for idx in color_indeces])
         
-        ax3.scatter(x_normal, y_normal,
+        axes[2].scatter(x_normal, y_normal,
                    c=real_colors[[not x for x in is_final_candidate]],
                    s=small_size, #cmap=cmap_preds,
                    marker="o",
                    edgecolors=(1,1,1,0.5))
         
-        ax3.scatter(x_selected, y_selected,
+        axes[2].scatter(x_selected, y_selected,
                    c=real_colors[is_final_candidate],
                    s=big_size, #cmap=cmap_preds,
                    marker="*",
                    edgecolors="black")
         
-        ax3.set_xlabel("PC1", fontdict={'fontsize': base_font_size})
-        ax3.yaxis.set_label_position("right")
-        ax3.set_ylabel("PC2", fontdict={'fontsize': base_font_size})
-        #ax3.yaxis.tick_right()
-        ax3.axis('equal') # is it even a good idea? We will see
+        axes[2].set_xlabel("PC1", fontdict={'fontsize': base_font_size})
+        axes[2].yaxis.set_label_position("right")
+        axes[2].set_ylabel("PC2", fontdict={'fontsize': base_font_size})
+        #axes[2].yaxis.tick_right()
+        axes[2].axis('equal') # is it even a good idea? We will see
         
         # add color bar to the side
         pred_tick = np.round(float(tuned_method.local_prediction()), 3)
         
-        cb2 = mpl.colorbar.Colorbar(ax4, cmap=cmap_preds, norm=norm_preds,
+        cb2 = mpl.colorbar.Colorbar(axes[3], cmap=cmap_preds, norm=norm_preds,
                                     format=FuncFormatter(custom_formatter),
                                     label="predicted: " + str(pred_tick))
-        ax3.set_title('Rule-path predictions', fontdict={'fontsize': base_font_size})
+        axes[2].set_title('Rule-path predictions', fontdict={'fontsize': base_font_size})
         
         ## add to colorbar a line corresponding to Bellatrex prediction
         
@@ -908,48 +911,45 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         normal_rule_loss = np.array(plot_data_bunch.loss)[[not x for x in is_final_candidate]]
 
         
-        ax3.scatter(x_normal, y_normal,
+        axes[2].scatter(x_normal, y_normal,
                    c=normal_rule_loss,
                    cmap=color_map,
                    s=small_size,
                    marker="o",
                    edgecolors=(1,1,1,0.5))
         
-        ax3.scatter(x_selected, y_selected,
+        axes[2].scatter(x_selected, y_selected,
                    c=final_candidate_loss,
                    cmap=color_map,
                    s=big_size,
                    marker="*",
                    edgecolors="black")
         
-        cb2 = mpl.colorbar.Colorbar(ax4, cmap=color_map, norm=norm_preds,
+        cb2 = mpl.colorbar.Colorbar(axes[3], cmap=color_map, norm=norm_preds,
                                     label=str(tuned_method.fidelity_measure)+' loss')
         cb2.ax.plot([0, 1], [plot_data_bunch.loss]*2, color='grey', linewidth=1)
 
     # end indentation single-target vs multi-target case
     
-    ticks_to_plot = ax4.get_yticks()
+    ticks_to_plot = axes[3].get_yticks()
     
     if np.abs(np.min(ticks_to_plot)) < 1e-3 and np.abs(np.max(ticks_to_plot)) > 1e-2:
         min_index = np.argmin(ticks_to_plot)
         ticks_to_plot[min_index] = 0
-        ax4.set_yticks(ticks_to_plot)
+        axes[3].set_yticks(ticks_to_plot)
 
-    ax4.yaxis.set_major_formatter(FuncFormatter(custom_formatter))
-    ax4.minorticks_off()
+    axes[3].yaxis.set_major_formatter(FuncFormatter(custom_formatter))
+    axes[3].minorticks_off()
     
     cb2.ax.tick_params(labelsize=base_font_size-3) #ticks font size
     
-    
     if show_ax_ticks == False:
-        ax1.set_xticklabels([])
-        ax1.set_yticklabels([])
-        ax3.set_xticklabels([])
-        ax3.set_yticklabels([])    
+        axes[0].set_xticklabels([])
+        axes[0].set_yticklabels([])
+        axes[2].set_xticklabels([])
+        axes[2].set_yticklabels([])    
 
-    # plt.show()
-
-    return #plottable_data, labels
+    return fig, axes
 
 
 def format_targets(y_train, y_test, SETUP, verbose=0):
@@ -987,11 +987,11 @@ def format_targets(y_train, y_test, SETUP, verbose=0):
             print("new n* labels:", n_labels)
         
     if SETUP.lower() in BINARY_KEYS+ REGRESSION_KEYS:
-        y_train = y_train.ravel()
-        y_test = y_test.ravel()
+        y_train = np.squeeze(y_train)
+        y_test = np.squeeze(y_test)
         
     if SETUP.lower() in SURVIVAL_KEYS:
-        if not isinstance(y_train, np.recarray): #sometimes, the data is already in teh right format. Do not call to_records in this case (raises error)
+        if not isinstance(y_train, np.recarray): #sometimes, the data is already in the right format. Do not call to_records in this case (raises error)
             y_train = y_train.to_records(index=False)
         if not isinstance(y_test, np.recarray):
             y_test = y_test.to_records(index=False) 

@@ -11,6 +11,7 @@ from matplotlib.ticker import FuncFormatter
 #DPG setup
 import dearpygui.dearpygui as dpg
 from dearpygui_ext.themes import create_theme_imgui_light
+from code_scripts.utilities import colormap_from_str
 
 
 class interactable_point: #Object containg all information of a point
@@ -331,6 +332,7 @@ def make_interactive_plot(plots, plotheight=400,borderpercent=0.1,
 def plot_with_interface(plot_data_bunch, kmeans,
                            input_method,
                            max_depth=None,
+                           color_map=None,
                            clusterplots=[True,False]):
 
     def shaper(in_shape):
@@ -377,23 +379,26 @@ def plot_with_interface(plot_data_bunch, kmeans,
     #centers = PCA_fitted.transform(kmeans.cluster_centers_)
     cluster_memb = kmeans.labels_
     
-    #cluster_memb = 
     final_ts_idx = input_method.final_trees_idx
-    
     
     is_final_candidate = [plot_data_bunch.index[i] in final_ts_idx for i in range(len(plot_data_bunch.index))]
     custom_sizes = list(map(sizer, is_final_candidate))
     custom_shapes = list(map(shaper, is_final_candidate))
     #custom_edges = list(map(edger, is_final_candidate))
     
-    
     plots=[]
-    for plotindex,clustered in enumerate(clusterplots):
+    
+    color_map_left = plt.cm.viridis  # default colormap for clustering plot
+    color_map_left = mpl.colors.LinearSegmentedColormap.from_list('Custom cmap', 
+                                    [color_map_left(i) for i in range(color_map_left.N)], color_map_left.N)
+    
+    color_map_right = colormap_from_str(color_map) # User custom colormap from object or from string
+  
+    
+    for plotindex, clustered in enumerate(clusterplots):
         if clustered:
             fig,ax= plt.subplots(1, 1, figsize=(1, 4.5), dpi=100)
-            color_map = plt.cm.viridis  # default colormap
-            color_map = mpl.colors.LinearSegmentedColormap.from_list('Custom cmap',  [color_map(i) for i in range(color_map.N)], color_map.N)        
-           
+
             # define the bins and normalize
             freqs = np.bincount(cluster_memb)
             if np.min(freqs) == 0:
@@ -409,10 +414,10 @@ def plot_with_interface(plot_data_bunch, kmeans,
             for i in np.unique(cluster_memb):
                 labels.append("cl.{:d}".format(i+1))
             # normalizing color, prepare ticks, labels
-            norm = mpl.colors.BoundaryNorm(norm_bins, color_map.N)
+            norm = mpl.colors.BoundaryNorm(norm_bins, color_map_left.N)
             tickz = norm_bins[:-1] + (norm_bins[1:] - norm_bins[:-1]) / 2
                 
-            cb = mpl.colorbar.Colorbar(ax, cmap=color_map, norm=norm,
+            cb = mpl.colorbar.Colorbar(ax, cmap=color_map_left, norm=norm,
                  spacing='proportional', ticks=tickz, boundaries=norm_bins, format='%1i')
                  #label="cluster membership")
             cb.ax.set_yticklabels(labels)  # vertically oriented colorbar
@@ -423,8 +428,6 @@ def plot_with_interface(plot_data_bunch, kmeans,
         else: # not the clustering plot, but the prediction/loss distribution:
             fig, ax= plt.subplots(1, 1, figsize=(1.2, 4.5), dpi=100) 
             
-            color_map = plt.cm.get_cmap('RdYlBu') 
-                
             # binary, regression, survival case
             if isinstance(plot_data_bunch.RF_pred, float):
                 
@@ -436,12 +439,12 @@ def plot_with_interface(plot_data_bunch, kmeans,
                                   is_binary)
                 
                 norm_preds = mpl.colors.BoundaryNorm(np.linspace(v_min,v_max, 256),
-                                                      color_map.N)
+                                                      color_map_right.N)
                 
                 ## add to colorbar a line corresponding to Bellatrex prediction                
                 pred_tick = np.round(plot_data_bunch.RF_pred,3)
               
-                cb2 = mpl.colorbar.Colorbar(ax, cmap=color_map, norm=norm_preds,
+                cb2 = mpl.colorbar.Colorbar(ax, cmap=color_map_right, norm=norm_preds,
                                             label="RF pred: " + str(pred_tick))
                 cb2.ax.plot([0, 1], [plot_data_bunch.pred]*2, color='grey',
                             linewidth=1)
@@ -449,9 +452,12 @@ def plot_with_interface(plot_data_bunch, kmeans,
                 
                 cb2.ax.plot([0.02, 0.98], [pred_tick]*2, color='black', linewidth=2.5, marker="P")
             
-            # multi-output case, L2 lossesinstead of predictions
+            # multi-output case, L2 losses instead of predictions
             else:
-                
+                # Blue for small losses, red for big losses
+                color_map_right = colormap_from_str('RdYlBu_r')
+
+
                 v_min, v_max = custom_axes_limit(np.array(plot_data_bunch.pred).min(),
                                   np.array(plot_data_bunch.pred).max(),
                                   plot_data_bunch.RF_pred,
@@ -459,10 +465,10 @@ def plot_with_interface(plot_data_bunch, kmeans,
                 
                 
                 norm_preds = mpl.colors.BoundaryNorm(np.linspace(v_min,v_max, 256),
-                                                      color_map.N)
+                                                      color_map_right.N)
                 
                 
-                cb2 = mpl.colorbar.Colorbar(ax, cmap=color_map, norm=norm_preds,
+                cb2 = mpl.colorbar.Colorbar(ax, cmap=color_map_right, norm=norm_preds,
                                             label=str(input_method.fidelity_measure)+' loss')
                 cb2.ax.plot([0, 1], [plot_data_bunch.loss]*2, color='grey',
                             linewidth=1)
@@ -479,8 +485,8 @@ def plot_with_interface(plot_data_bunch, kmeans,
             ax.minorticks_off()
             
             
-            if isinstance(plot_data_bunch.RF_pred, float): #single output case
-                norms=[norm_preds(plot_data_bunch.pred[i]) for i in range(len(cluster_memb))]
+            if isinstance(plot_data_bunch.RF_pred, float) or plot_data_bunch.RF_pred.size == 1 : # single output case: float, or (1,)-shaped ndarray
+                norms=[norm_preds(float(plot_data_bunch.pred[i])) for i in range(len(cluster_memb))]
             else: # multi output case
                 norms=[norm_preds(plot_data_bunch.loss[i]) for i in range(len(cluster_memb))]
 
@@ -488,17 +494,19 @@ def plot_with_interface(plot_data_bunch, kmeans,
         fig.tight_layout()
         fig.savefig('colourbar'+str(plotindex))
         
+        color_map = color_map_right # TODO what is going on here?
         
         colours=[rgbaconv(color_map(norms[i])) for i in range(len(plot_data_bunch.index))]
         
         points=[]
         for j in range(len(plot_data_bunch.index)):
-            points.append(interactable_point(plot_data_bunch.index[j],
-                                             plottable_data[j],
-                                             colours[j],
-                                             custom_sizes[j],
-                                             #custom_edges[j],
-                                             custom_shapes[j]))
+            points.append(interactable_point(plot_data_bunch.index[j], #name
+                                             plottable_data[j], #pos
+                                             colours[j], #color
+                                             custom_sizes[j], #size
+                                             #custom_edges[j], #edge
+                                             custom_shapes[j]) #shape
+                                             )
             
             # adds extra information to the point for the tooltip
             if clustered:   

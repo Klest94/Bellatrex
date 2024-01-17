@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
+import warnings
 from sklearn.metrics.pairwise import cosine_distances
 from sklearn.manifold import MDS #, TSNE
 from sklearn.decomposition import PCA
@@ -87,9 +88,6 @@ class TreeExtraction:# is it convenient if it inherits?
             method. Needed for tuning and for reporting.   
         '''
         
-            
-        
-        
     def extract_trees(self):
 
         '''this is the main function, does the following:
@@ -120,13 +118,10 @@ class TreeExtraction:# is it convenient if it inherits?
         ### pre-selection step:
         tree_local_losses, RF_pred = self.calcul_tree_proximity_loss(self.sample) #w.r.t. to sample we want to explain
         
-        HL_trees_idx = np.argsort(tree_local_losses)[:self.n_trees] # sort trees losses
-        
-        # HL_preds = [self.tree_prediction(self.clf[i]) for i in HL_trees_idx]
+        HL_trees_idx = np.argsort(tree_local_losses)[:self.n_trees] # sort trees losses        
         HL_preds = [predict_helper(self.clf[i], self.sample.values) for i in HL_trees_idx]
 
         HL_losses = np.array([tree_local_losses[i] for i in HL_trees_idx])
-        
         
         ''' 
         transform trees to vectors and store everything in matrix,
@@ -197,14 +192,15 @@ class TreeExtraction:# is it convenient if it inherits?
                          set_up=self.set_up)
         # numpy 2d-array (lambda,2), (lamda, lambda), orig. indeces, losses
         
-        #with warnings.catch_warnings():
-        #    warnings.filterwarnings("error", category=UserWarning, module='sklearn')
-            
         if self.n_clusters > 1: # K-Means is performed on the projected trees
-            kmeans = KMeans(n_clusters=self.n_clusters,
-                            init='k-means++', n_init=10,
-                            max_iter=5000,
-                    random_state=TreeExtraction.RAND_SEED).fit(proj_trees)
+            kmeans = None #initialise (dummy line)
+            with warnings.catch_warnings(): # ignore known issue on scikit-learn (as of scikit-learn 1.2.2)
+                warnings.filterwarnings("ignore", message=".*memory leak on Windows with MKL*")
+                kmeans = KMeans(n_clusters=self.n_clusters,
+                                init='k-means++', n_init=10,
+                                max_iter=5000,
+                        random_state=TreeExtraction.RAND_SEED).fit(proj_trees)
+
             
         else: #avoid running K-Means (raises warning)
             #output info in the same format so that the cases are indistinguishable
