@@ -48,7 +48,7 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
             if len(other_preds[i]) > max_rulelen:
                 other_preds[i][max_rulelen-1] = other_preds[i][-1]
                 other_preds[i] = other_preds[i][:max_rulelen]
-<<<<<<< Updated upstream
+
     if preds_distr is not None:
         from scipy import stats
         density = stats.gaussian_kde(preds_distr)
@@ -59,9 +59,6 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
             other_preds_distr = [pred[-1] for pred in other_preds]
             other_density = stats.gaussian_kde(other_preds_distr)
 
-=======
-    
->>>>>>> Stashed changes
     # Make a colorpicker
     cmap = plt.get_cmap(cmap)
     maxdev = max([np.max(np.abs(baselines[i] - np.array(preds[i]))) 
@@ -164,7 +161,6 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
 
     # Draw the distribution (density) on each rule-plot
     if preds_distr is not None:
-<<<<<<< Updated upstream
         # Training set distribution (as provided by preds_distr)
         for i, (bsl, pred, ax) in enumerate(zip(baselines, preds, distaxs)):
             ax.plot(x       , density(x       ), "k")
@@ -178,27 +174,23 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
             ax.set_ylim([0, 1.1*ax.get_ylim()[1]])
             ax.set_yticks([])
             ax.set_xlabel(f"Prediction")
-=======
         
-        from scipy import stats
-        density = stats.gaussian_kde(preds_distr)
-        extent = preds_distr.max() - preds_distr.min()
-        x = np.linspace(preds_distr.min()-0.00*extent, 
-                        preds_distr.max()+0.00*extent, 100)
-
-        
-        for bsl, pred, ax in zip(baselines, preds, distaxs):
-            ax.plot(x       , density(x       ), "k") # plot density curve
-            ax.plot(pred[-1], density(pred[-1]), ".", # dot corresponding to prediction 
-                    c=get_color(pred[-1], bsl), ms=15)
-            ax.vlines(x=bsl     , ymin=0, ymax=density(bsl     ), colors="k", linestyle=':')
-            ax.vlines(x=pred[-1], ymin=0, ymax=density(pred[-1]), 
-                      colors=get_color(pred[-1], bsl), lw=2)
-            ax.set_ylim([0, ax.get_ylim()[1]])
-            ax.set_yticks([])
-            ax.set_xlim([x[0], x[-1]])
-            ax.set_xlabel("Prediction")
->>>>>>> Stashed changes
+        # from scipy import stats
+        # density = stats.gaussian_kde(preds_distr)
+        # extent = preds_distr.max() - preds_distr.min()
+        # x = np.linspace(preds_distr.min()-0.00*extent, 
+        #                 preds_distr.max()+0.00*extent, 100)
+        # for bsl, pred, ax in zip(baselines, preds, distaxs):
+        #     ax.plot(x       , density(x       ), "k") # plot density curve
+        #     ax.plot(pred[-1], density(pred[-1]), ".", # dot corresponding to prediction 
+        #             c=get_color(pred[-1], bsl), ms=15)
+        #     ax.vlines(x=bsl     , ymin=0, ymax=density(bsl     ), colors="k", linestyle=':')
+        #     ax.vlines(x=pred[-1], ymin=0, ymax=density(pred[-1]), 
+        #               colors=get_color(pred[-1], bsl), lw=2)
+        #     ax.set_ylim([0, ax.get_ylim()[1]])
+        #     ax.set_yticks([])
+        #     ax.set_xlim([x[0], x[-1]])
+        #     ax.set_xlabel("Prediction")
             ax.grid(axis="x", zorder=-999, alpha=0.5)
         distaxs[0].set_ylabel("Density")
         # # Local distribution (based on other_preds)
@@ -219,29 +211,16 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
             distax.vlines(x=pred[-1], ymin=density(pred[-1]), ymax=distax.get_ylim()[1],
                     colors=get_color(pred[-1], bsl), linestyles=":")
 
-    
     # Add final prediction to the plot
-    # PREVIOUS VERSION: 
-    # string = "Bellatrex prediction:  {pred1}\nBlack-box prediction: {pred2}"
-    # fig.text(0.3, 0.02, string, ha='left', va='center', fontsize=14)
     final_pred = np.sum([weights[i] * preds[i][-1] for i in range(len(rules))])
-<<<<<<< Updated upstream
     final_pred_str = f"Bellatrex local explanation with weighted prediction = {final_pred:.{round_digits}f}"
     final_pred_str += " (= " + " + ".join([
         rf"{preds[i][-1]:.{round_digits}f}$\times${weights[i]:.{round_digits-1}f}" 
-=======
-    final_pred_str = f"Bellatrex prediction: {final_pred:.{round_digits}f}"
-    final_pred_str += " = " + " + ".join([
-        rf"{weights[i]:.{round_digits-1}f}$\times${preds[i][-1]:.{round_digits}f}" 
->>>>>>> Stashed changes
         for i in range(len(rules))
     ]) + ")"
+    
     if b_box_pred is not None:
-<<<<<<< Updated upstream
-        final_pred_str += "\n(compared to the black-box model which predicts "
-=======
         final_pred_str += "\n(Black-box model predicts "
->>>>>>> Stashed changes
         final_pred_str += ", ".join([f"{pred:.{round_digits}f}" 
                                      for pred in np.atleast_1d(b_box_pred)])
         final_pred_str += ")"
