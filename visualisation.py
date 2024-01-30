@@ -130,8 +130,9 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         ha = ["left","right"][isRight]
         # ha = "center"
         ax.text(s=f"Prediction\n{pred[-1]:.{round_digits}f}", fontsize=fontsize, 
-                x=pred[-1] - 2*(isRight-0.5)*pred[-1]/25, y=len(pred)+pad, ha=ha, va="center",
-                bbox=dict(boxstyle=f"square,pad={pad}", fc="w", ec="k", alpha=0.5))
+                x=pred[-1] - 4*(isRight-0.5)*pred[-1]/25,
+                y=len(pred)+pad, ha=ha, va="center",
+                bbox=dict(boxstyle=f"square,pad={pad}", fc="w", ec="k", alpha=0.5, zorder=5))
         for j in range(len(rule)):
             color = get_color(pred[j], bsl)
             # Draw the arrow
@@ -163,7 +164,7 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
     if preds_distr is not None:
         # Training set distribution (as provided by preds_distr)
         for i, (bsl, pred, ax) in enumerate(zip(baselines, preds, distaxs)):
-            ax.plot(x       , density(x       ), "k")
+            ax.plot(x, density(x), "k")
             # ax.vlines(x=pred[-1], ymin=0, ymax=density(pred[-1]), colors="k", linewidth=5)
             col1 = "gray" #get_color(bsl     , bsl)
             col2 = get_color(pred[-1], bsl)
@@ -173,7 +174,7 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
             ax.vlines(x=pred[-1], ymin=0, ymax=density(pred[-1]), colors=col2, linestyles=":")
             ax.set_ylim([0, 1.1*ax.get_ylim()[1]])
             ax.set_yticks([])
-            ax.set_xlabel(f"Prediction")
+            ax.set_xlabel("Prediction")
         
         # from scipy import stats
         # density = stats.gaussian_kde(preds_distr)
@@ -226,10 +227,10 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         final_pred_str += ")"
     figheight = plot_height_rulebased + (preds_distr is not None)
     # y = np.sqrt(figheight) / 100 * 2.2
-    y = figheight/100 - 0.04
+    deltay = figheight/100 - 0.02
     # fig.supxlabel(final_pred_str, va="top", y=y)
-    fig.suptitle(final_pred_str, va="top", y=1+3*y)
-    return aaxs
+    fig.suptitle(final_pred_str, va="top", y=max(1+0.5*deltay, 1.02))
+    return fig, aaxs
 
 def parse(rule):
     """Parses a rule outputted by bellatrex into a form suitable for visualisation."""

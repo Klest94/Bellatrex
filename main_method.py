@@ -26,7 +26,7 @@ SAVE_PREDS = False # if True: save: predictions, tuned_hyperparams and dataframe
 # otherwise if False, the final file is stored with the "Draft_" prefix
 OVERWRITE_DF = False # save performance df as csv, potentially overwriting smth
 # reduce MAX_TEST_SIZE for quick code testing
-MAX_TEST_SIZE = 5 #if set >= 100, it takes the (original) value X_test.shape[0]
+MAX_TEST_SIZE = 3 #if set >= 100, it takes the (original) value X_test.shape[0]
 VERBOSE = 4
 PLOT_GUI = True
 N_FOLDS = 1
@@ -34,7 +34,7 @@ N_FOLDS = 1
 p_grid = {
     "n_trees": [0.8, 1.0], # [100] for "noTrees_" ablation
     "n_dims": [2, None], #None = no dim reduction   #Ablation: noDims_
-    "n_clusters": [1, 2]
+    "n_clusters": [2, 3]
     }
 
 
@@ -88,7 +88,7 @@ survival_key_list = ["surv", "survival"]
 multi_label_key_list = ["multi", "multi-l", "multi-label", "mtc"]
 regression_key_list = ["regression", "regress", "regr"]
 mt_regression_key_list = ["multi-target", "multi-t", "mtr"]
-multi_sa_key_list = ["multi-sa", "multi-variate-sa", "mvsa"]
+multi_sa_key_list = ["multi-sa", "multi-variate-sa", "mvsa"] #not implemented yet
 
 
 print("##########################################")
@@ -201,7 +201,6 @@ for dataset in testing_dnames:
         N = min(X_test.shape[0], MAX_TEST_SIZE)
         
         local_dissimil = np.zeros(N)
-        # miniRF_dissimil = np.zeros(N)
         tot_n_splits = 0 # total for the whole fold j        
         stored_info = []
         
@@ -224,10 +223,11 @@ for dataset in testing_dnames:
             
             FILE_OUT = "Rules_"+str(dataset)+"_f"+str(j)+'_id'+str(i)+'.txt'
 
-            y_local_pred, sample_info = Btrex_fitted.explain(X_test, i, 
-                            os.path.join(root_folder, 'example-explanations',
-                                         FILE_OUT)) #tuning is also done
+            sample_info, fig, ax = Btrex_fitted.explain(X_test, i, 
+                                    os.path.join(root_folder, 'example-explanations',
+                                    FILE_OUT)) #tuning is also done
             
+            y_local_pred = sample_info.local_prediction()
             y_pred = concatenate_helper(y_pred, y_local_pred, axis=0)
 
             # count total number of rulesplits to compute "complexity" as
@@ -240,7 +240,8 @@ for dataset in testing_dnames:
             ''' input for TreeDissimilarity:
                 - original fitted ensemble estimator (not the Bellatrex)
                 - indeces of the final extracted trees
-                - dissimilarity measure to be used.      '''
+                - dissimilarity measure to be used.
+            '''
                 
             tree_dissim, _ = TreeDissimilarity(rf, SETUP,
                                                sample_info.final_trees_idx,

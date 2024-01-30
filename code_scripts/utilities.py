@@ -63,13 +63,13 @@ def predict_helper(clf, X):
     elif isinstance(clf, (EnsembleWrapper, EnsembleWrapper.Estimator)):
         ypred = clf.predict(X)
         if ypred.shape[1] == 1: # if output is of shape: (n_samples, 1)
-            return ypred.ravel() #consistency with sklearn output shape: (n_samples,)
+            return ypred.squeeze() #consistency with sklearn output shape: (n_samples,)
         #  otherwise if output is of shape: (n_samples, n_outputs) keep as it is
 
     else:
         raise ValueError('Tree learner \'{}\' not recognized, or not implemented yet'.format(clf.__class__.__name__))
              
-    
+
 
 def frmt_preds_to_print(y_pred, digits_single=4, digits_vect=3) -> str:
     
@@ -185,12 +185,13 @@ def rule_print_inline(clf_i, sample, weight=None, max_features_print=12):
         node_indicator_csr.indptr[0] : node_indicator_csr.indptr[1]
     ] # csr matrix formatted in this way
     
-    
     unique_features = used_feature_set(clf_i, sample.columns, sample)
 
     # Print only the relevant features with :.2f
     # take care of selection of sample columns so that it stays as pd.DataFrame:
-    unique_features_formatted = sample.loc[:, unique_features].applymap(lambda x: '{:.2f}'.format(x))
+    #unique_features_formatted = sample.loc[:, unique_features].applymap(lambda x: '{:.2f}'.format(x)) # deprecated
+    unique_features_formatted = sample[unique_features].apply(lambda col: col.map(lambda x: '{:.2f}'.format(x)))
+
 
     if len(unique_features) <= max_features_print:
         print('#'*20, '   SAMPLE   ', '#'*20)
@@ -647,46 +648,54 @@ def plot_no_clustering(plot_data_bunch): # extra info, e.g. for the Figure
     return
 
 
-def custom_axes_limit(bunch_min_value, bunch_max_value, RF_pred, is_binary):
+def custom_axes_limit(bunch_min_value, bunch_max_value, force_in, is_binary):
     
-    # works as expected also when RF_pred is np.nan
-    v_min = min(bunch_min_value, RF_pred)
-    v_max = max(bunch_max_value, RF_pred)
+    if force_in is None:
+        force_in  = np.nan # so that it can be ignored in later computations (min, max)
+        
+    v_min = min(bunch_min_value, force_in)
+    v_max = max(bunch_max_value, force_in)
     
     if is_binary:
-        # combat counterintuitive colouring when predictions are confident
-        v_min = min(v_min, 0.8) # v_min never above 0.8
-        v_max = max(v_max, 0.2) # v_max never below 0.2
+        # combat counterintuitive colouring when predictions are very confident
+        # if all predicitons are very low, they are all mapped in the lower part of the ColorMap
+        v_min = min(v_min, 0.7) # v_min never above 0.7
+        # if all predicitons are very high, they are all mapped in the upper part of the ColorMap
+        v_max = max(v_max, 0.3) # v_max never below 0.3
 
-    # add a bit of extra spacing on the extremes
+    # add a bit of extra spacing on the extremes, to avoid the case v_min = v_max
+    # still possible if e.g. v_min ~ v_max ~ 0.5
     v_min = v_min-(v_max-v_min)*0.05
-    v_max = v_max+(v_max-v_min)*0.05+0.002 # avoid the case v_min = v_max
-    
+    v_max = v_max+(v_max-v_min)*0.05+0.005
     
     return v_min, v_max
     
-
+# Custom formatter function for colorabar on axes[3]
+# not working correctly..
+def custom_formatter(x, pos): # pos paramter to comply with expected signature
+    if np.abs(x) < 1e-7: # 0.00 for near zero values
+        return f"{x:.2f}"
+    if 1e-2 <= np.abs(x) < 1:
+        return f"{x:.2f}"  # 2 decimal digits for numbers between -1 and 1
+    elif 1 <= np.abs(x) < 10:
+        return f"{x:.1f}"  # 1 decimal digit 
+    elif 10 <= np.abs(x) < 100:
+        return f"{x:.0f}"  # 0 decimal digits (round to nearest integer)
+    else: # 1e-7 < np.abs(x) < 1e-2 or  np.abs(x) > 100
+        return f"{x:.1e}"  # Scientific notation with 2 significant digits
+    
+    
     ## LocalMethod inputs: plot_data_bunch, plot_kmeans, tuned_method, self.clf.n_outputs_
 def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
                            base_font_size=12, show_ax_ticks="auto",
                            plot_dpi=120, colormap=None):
     
+    # TODO: add transparency with parameter alpha (default = 1: fully opaque. Accept in [0,1])
+    # accept up to 2 degrees of opaqueness: one for normal dots and one for the selected candidates
+    
     small_size = 40
     big_size = 220
-    
-    # Custom formatter function for colorabar on axes[3]
-    # not working correctly..
-    def custom_formatter(x, pos): # pos paramter to comply with expected signature
-        if np.abs(x) < 1e-7: # 0.00 for near zero values
-            return f"{x:.2f}"
-        if 1e-2 <= np.abs(x) < 1:
-            return f"{x:.2f}"  # 2 decimal digits for numbers between -1 and 1
-        elif 1 <= np.abs(x) < 10:
-            return f"{x:.1f}"  # 1 decimal digit 
-        elif 10 <= np.abs(x) < 100:
-            return f"{x:.0f}"  # 0 decimal digits (round to nearest integer)
-        else: # 1e-7 < np.abs(x) < 1e-2 or  np.abs(x) > 100
-            return f"{x:.1e}"  # Scientific notation with 2 significant digits
+
     
     if show_ax_ticks == "auto":
         show_ax_ticks = False if base_font_size > 15 else True
@@ -701,13 +710,9 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     class_memb = kmeans.labels_
     
     custom_gridspec = {'width_ratios': [3, 0.2, 3, 0.2]}
-    fig, axes = plt.subplots(1, 4, figsize=(10, 4.5), dpi=plot_dpi,
-                             gridspec_kw=custom_gridspec)
-    ax1, ax2, ax3, ax4 = axes
     
-    fig, (axes[0], axes[1], axes[2], axes[3]) = pylab.subplots(1, 4, figsize=(10, 4.5), dpi=plot_dpi,
-                                    gridspec_kw=custom_gridspec)
-    # (scatter1, cb1, scatter2, cb2)
+    fig, axes = pylab.subplots(1, 4, figsize=(10, 4.5), dpi=plot_dpi,
+                               gridspec_kw=custom_gridspec)
     
     fig.tight_layout()
     fig.subplots_adjust(top=0.8)
@@ -728,9 +733,9 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     y_normal = plottable_data[:,1][[not x for x in is_final_candidate]]
     color_normal = class_memb[[not x for x in is_final_candidate]]
     
-    x_selected = plottable_data[:,0][is_final_candidate]
-    y_selected = plottable_data[:,1][is_final_candidate]
-    color_selected = class_memb[is_final_candidate]
+    x_candidate = plottable_data[:,0][is_final_candidate]
+    y_candidate = plottable_data[:,1][is_final_candidate]
+    color_candidate = class_memb[is_final_candidate]
     
     axes[0].scatter(x_normal, y_normal,
                c=color_normal,
@@ -739,8 +744,8 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
                marker="o",
                edgecolors=(1, 1, 1, 0.5))
     
-    axes[0].scatter(x_selected, y_selected,
-               c=color_selected,
+    axes[0].scatter(x_candidate, y_candidate,
+               c=color_candidate,
                cmap=None,
                s=big_size,
                marker="*",
@@ -753,9 +758,9 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     axes[0].set_title('Cluster membership', fontdict={'fontsize': base_font_size})
     
     # create the map for segmented colorbar (axes[1]: left colorbar)
-    cmap = plt.cm.viridis  # default colormap
+    cmap = plt.cm.viridis  # keep default colormap for clustering plot
     cmaplist = [cmap(i) for i in range(cmap.N)]
-    cmap = mpl.colors.LinearSegmentedColormap.from_list('Custom cmap', cmaplist, cmap.N)        
+    cmap_left = mpl.colors.LinearSegmentedColormap.from_list('Custom cmap', cmaplist, cmap.N)        
     
     # define the bins and normalize
     freqs = np.bincount(class_memb)
@@ -764,7 +769,7 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     norm_bins = list(np.cumsum(freqs))
     norm_bins.insert(0, 0)
     
-    if len(norm_bins) == 2:  #color gradient is off, add artificial bin
+    if len(norm_bins) == 2:  # color gradient is off, add artificial bin
         # this will create an empty artificial cluster later on, that will be dropped
         norm_bins.insert(-1, norm_bins[1]) 
     
@@ -778,14 +783,14 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         labels.append("cl.{:d}".format(i+1))
 
     # normalizing color, prepare ticks, labels
-    norm = mpl.colors.BoundaryNorm(norm_bins, cmap.N)
+    norm = mpl.colors.BoundaryNorm(norm_bins, cmap_left.N)
     tickz = norm_bins[:-1] + (norm_bins[1:] - norm_bins[:-1]) / 2
     
     if tickz.max() == norm_bins.max(): #artificial empty cluster somewhere: drop
         tickz = tickz[:-1] # drop last tick at top of colorbar
     
     # colorab on axis 2 out of 4.
-    cb = mpl.colorbar.Colorbar(axes[1], cmap=cmap, norm=norm,
+    cb = mpl.colorbar.Colorbar(axes[1], cmap=cmap_left, norm=norm,
         spacing='proportional', ticks=tickz, boundaries=norm_bins,
         format='%1i')
         #label="cluster membership")
@@ -793,9 +798,8 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     cb.ax.tick_params(labelsize=base_font_size-1) #ticks font size
     axes[1].yaxis.set_ticks_position('left')
 
-
     # User can customize the colorbar
-    cmap_preds = colormap_from_str(colormap)        
+    cmap_right = colormap_from_str(colormap)
 
     #####   RIGHT PLOT (predictions or losses)  #####
     
@@ -814,10 +818,11 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         
         v_min, v_max = custom_axes_limit(np.array(plot_data_bunch.pred).min(),
                                          np.array(plot_data_bunch.pred).max(),
-                                         plot_data_bunch.RF_pred, is_binary)
+                                         force_in=plot_data_bunch.RF_pred,
+                                         is_binary=is_binary)
         
         norm_preds = mpl.colors.BoundaryNorm(np.linspace(v_min, v_max, 256),
-                                             cmap_preds.N)
+                                             cmap_right.N)
         
         color_indeces = np.zeros(len(plot_data_bunch.pred)) #length = n_trees
         
@@ -828,17 +833,17 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         # format as integers, for list comprehension
         color_indeces = [int(x+0.1) for x in color_indeces] 
         
-        real_colors = np.array([cmap_preds(idx) for idx in color_indeces])
+        real_colors = np.array([cmap_right(idx) for idx in color_indeces])
         
         axes[2].scatter(x_normal, y_normal,
                    c=real_colors[[not x for x in is_final_candidate]],
-                   s=small_size, #cmap=cmap_preds,
+                   s=small_size, #cmap=cmap_right,
                    marker="o",
                    edgecolors=(1,1,1,0.5))
         
-        axes[2].scatter(x_selected, y_selected,
+        axes[2].scatter(x_candidate, y_candidate,
                    c=real_colors[is_final_candidate],
-                   s=big_size, #cmap=cmap_preds,
+                   s=big_size, #cmap=cmap_right,
                    marker="*",
                    edgecolors="black")
         
@@ -851,7 +856,7 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         # add color bar to the side
         pred_tick = np.round(float(tuned_method.local_prediction()), 3)
         
-        cb2 = mpl.colorbar.Colorbar(axes[3], cmap=cmap_preds, norm=norm_preds,
+        cb2 = mpl.colorbar.Colorbar(axes[3], cmap=cmap_right, norm=norm_preds,
                                     format=FuncFormatter(custom_formatter),
                                     label="predicted: " + str(pred_tick))
         axes[2].set_title('Rule-path predictions', fontdict={'fontsize': base_font_size})
@@ -896,14 +901,11 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
     # LOSS  when multi-output predictions: plot distance from RF preds. The lower the better (blue)
     else: 
     
-        color_map = plt.cm.get_cmap('RdYlBu_r') # low values associated to good: blue
-        # or "viridis", or user choice
-        #norm = BoundaryNorm(np.linspace(0.2, 0.8, 256), color_map.N)
-        # normalise colors min pred.--> blue, max pred. --> red to improve readability
         # adds padding betwwen v_min and v_max in case they coincide
         v_min, v_max = custom_axes_limit(np.array(plot_data_bunch.loss).min(),
                                           np.array(plot_data_bunch.loss).max(),
-                                          RF_pred=np.nan, is_binary=False)
+                                          force_in=np.nan,
+                                          is_binary=False)
         
         norm_preds = BoundaryNorm(np.linspace(v_min, v_max, 256), cmap.N)
         
@@ -913,21 +915,24 @@ def plot_preselected_trees(plot_data_bunch, kmeans, tuned_method, final_ts_idx,
         
         axes[2].scatter(x_normal, y_normal,
                    c=normal_rule_loss,
-                   cmap=color_map,
+                   cmap=cmap_right,
+                   norm=norm_preds,
                    s=small_size,
                    marker="o",
                    edgecolors=(1,1,1,0.5))
         
-        axes[2].scatter(x_selected, y_selected,
+        axes[2].scatter(x_candidate, y_candidate,
                    c=final_candidate_loss,
-                   cmap=color_map,
+                   cmap=cmap_right,
+                   norm=norm_preds,
                    s=big_size,
                    marker="*",
                    edgecolors="black")
         
-        cb2 = mpl.colorbar.Colorbar(axes[3], cmap=color_map, norm=norm_preds,
+        cb2 = mpl.colorbar.Colorbar(axes[3], cmap=cmap_right, norm=norm_preds,
                                     label=str(tuned_method.fidelity_measure)+' loss')
         cb2.ax.plot([0, 1], [plot_data_bunch.loss]*2, color='grey', linewidth=1)
+
 
     # end indentation single-target vs multi-target case
     

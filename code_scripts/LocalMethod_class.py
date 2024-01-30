@@ -191,9 +191,8 @@ class Bellatrex:
         return self
     
     
-    def explain(self, X, idx, out_file=None): 
+    def explain(self, X, idx, out_file=None):
         
-                
         sample = X[idx:idx+1]
         
         if self.ys_oracle != None:
@@ -300,7 +299,6 @@ class Bellatrex:
             
             perfs, params_list = zip(*results) #re-collect all  parallel candidate performances 
         
-        
             if best_perf >  -np.inf: # should always be the case           
                 best_idx = np.argsort(perfs)[::-1][0]  # take top performing index
                 best_perf = perfs[best_idx]
@@ -313,8 +311,8 @@ class Bellatrex:
         # closed "GridSearch" loop, storing score of the best configuration
         #if best_perf > -np.inf: things should be alright
         tuned_method = ETrees.set_params(**best_params).extract_trees() # treeExtraction object
-        #instant_method = tuned_method.extract_trees() # TreeExtraction object        
-        sample_score = tuned_method.score(self.fidelity_measure, self.ys_oracle)
+        tuned_method.sample_score = tuned_method.score(self.fidelity_measure, self.ys_oracle)
+
                         
         final_extract_trees = tuned_method.final_trees_idx
         final_cluster_sizes =  tuned_method.cluster_sizes
@@ -369,18 +367,18 @@ class Bellatrex:
                                          sample, X.columns, -1, #setting rule weight to -1 (invalid number), or to 0 is also fine
                                          self.MAX_FEATURE_PRINT, f)                     
                     f.close()
-        
-        fig, axes = [None, None]
-        
+                
         if self.verbose >= 3:
 
             plot_kmeans, plot_data_bunch = tuned_method.preselect_represent_cluster_trees()
             
+            fig, axes = [None, None] # re-initialise just in case smth else is running by mistake
             fig, axes = plot_preselected_trees(plot_data_bunch, plot_kmeans,
-                                   tuned_method, final_extract_trees,
-                                   base_font_size=self.FONT_SIZE,
-                                   plot_dpi=self.dpi_figure,
-                                   colormap=self.colormap)
+                                        tuned_method, final_extract_trees,
+                                        base_font_size=self.FONT_SIZE,
+                                        plot_dpi=self.dpi_figure,
+                                        colormap=self.colormap)
+            # TODO: add alpha parameter for dot transarency
             if self.show:
                 plt.show()
                 
@@ -398,18 +396,15 @@ class Bellatrex:
             
         print('Black box prediction: ' + frmt_preds_to_print(y_pred_orig, digits_single=4))
         print('#'*54, flush=True)
-        
 
         if self.verbose >= 4.0 and self.plot_GUI == True:
             
             from code_scripts.GUI_plots_code import plot_with_interface
-
-            print('Colormap attribute is: ', self.colormap)
             
             plot_with_interface(plot_data_bunch, plot_kmeans,
                                 input_method=tuned_method,
                                 max_depth=self.plot_max_depth,
-                                color_map=self.colormap)
+                                colormap=self.colormap)
             
             try:
                 os.remove("colourbar0.png")
@@ -425,11 +420,8 @@ class Bellatrex:
                 -(clf, cluster info, optimal hyperparams, set_up, 
                   projection method, dissim. measure...)
         '''
-        
-        
-        tuned_method.sample_score = sample_score
 
-        return tuned_method.local_prediction(), tuned_method, fig, axes # or return just .local_prediction ?
+        return tuned_method, fig, axes # OLD: returns also tuned_method.local_prediction()
         #sample_score
             
         ###	improve output with

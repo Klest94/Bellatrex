@@ -214,7 +214,7 @@ def make_interactive_plot(plots, plotheight=400,borderpercent=0.1,
     
     #Function that draws the average position of the different clusters     
     def cluster_average(sender,app_data):
-        size=10
+        size=9
         x = app_data[1]
         y = app_data[2]
         
@@ -330,9 +330,9 @@ def make_interactive_plot(plots, plotheight=400,borderpercent=0.1,
 
     
 def plot_with_interface(plot_data_bunch, kmeans,
-                           input_method,
+                           input_method, # a fitted bellatrex instance
                            max_depth=None,
-                           color_map=None,
+                           colormap=None,
                            clusterplots=[True,False]):
 
     def shaper(in_shape):
@@ -343,9 +343,9 @@ def plot_with_interface(plot_data_bunch, kmeans,
         
     def sizer(in_size):
         if in_size is True:
-            return 12
+            return 9.0
         else:
-            return 6
+            return 4.5
     def edger(in_edge):
         return "black"
         # else:
@@ -392,10 +392,12 @@ def plot_with_interface(plot_data_bunch, kmeans,
     color_map_left = mpl.colors.LinearSegmentedColormap.from_list('Custom cmap', 
                                     [color_map_left(i) for i in range(color_map_left.N)], color_map_left.N)
     
-    color_map_right = colormap_from_str(color_map) # User custom colormap from object or from string
+    color_map_right = colormap_from_str(colormap) # User custom colormap from object or from string
   
+    # colormap = color_map_left if clustered == True else color_map_right
     
     for plotindex, clustered in enumerate(clusterplots):
+        
         if clustered:
             fig,ax= plt.subplots(1, 1, figsize=(1, 4.5), dpi=100)
 
@@ -417,10 +419,10 @@ def plot_with_interface(plot_data_bunch, kmeans,
             norm = mpl.colors.BoundaryNorm(norm_bins, color_map_left.N)
             tickz = norm_bins[:-1] + (norm_bins[1:] - norm_bins[:-1]) / 2
                 
-            cb = mpl.colorbar.Colorbar(ax, cmap=color_map_left, norm=norm,
+            cb1 = mpl.colorbar.Colorbar(ax, cmap=color_map_left, norm=norm,
                  spacing='proportional', ticks=tickz, boundaries=norm_bins, format='%1i')
                  #label="cluster membership")
-            cb.ax.set_yticklabels(labels)  # vertically oriented colorbar
+            cb1.ax.set_yticklabels(labels)  # vertically oriented colorbar
 
             ax.yaxis.set_ticks_position('left')
             norms=[norm(norm_bins[cluster_memb[i]]) for i in range(len(cluster_memb))]
@@ -428,10 +430,12 @@ def plot_with_interface(plot_data_bunch, kmeans,
         else: # not the clustering plot, but the prediction/loss distribution:
             fig, ax= plt.subplots(1, 1, figsize=(1.2, 4.5), dpi=100) 
             
-            # binary, regression, survival case
-            if isinstance(plot_data_bunch.RF_pred, float):
+            # binary, regression, survival case (single-output cases)
+            if isinstance(plot_data_bunch.RF_pred, float) or plot_data_bunch.RF_pred.size == 1:
                 
                 is_binary = (plot_data_bunch.set_up == "bin")
+                
+                plot_data_bunch.RF_pred = np.array(plot_data_bunch.RF_pred).squeeze()
                 
                 v_min, v_max = custom_axes_limit(np.array(plot_data_bunch.pred).min(),
                                   np.array(plot_data_bunch.pred).max(),
@@ -446,22 +450,27 @@ def plot_with_interface(plot_data_bunch, kmeans,
               
                 cb2 = mpl.colorbar.Colorbar(ax, cmap=color_map_right, norm=norm_preds,
                                             label="RF pred: " + str(pred_tick))
+                
+                plot_data_bunch.pred = np.array(plot_data_bunch.pred).squeeze() # force shape: (n_trees,)
+                
+                # add tick in correspondence to the single trees prediction
                 cb2.ax.plot([0, 1], [plot_data_bunch.pred]*2, color='grey',
                             linewidth=1)
 
-                
+                # add indicator (visually: >--<) in correspondence to the ensemble prediction
                 cb2.ax.plot([0.02, 0.98], [pred_tick]*2, color='black', linewidth=2.5, marker="P")
             
             # multi-output case, L2 losses instead of predictions
             else:
                 # Blue for small losses, red for big losses
-                color_map_right = colormap_from_str('RdYlBu_r')
+                # color_map_right = colormap_from_str('RdYlBu_r')
+                color_map_right = colormap_from_str(colormap) # User custom colormap from object or from string
 
 
-                v_min, v_max = custom_axes_limit(np.array(plot_data_bunch.pred).min(),
-                                  np.array(plot_data_bunch.pred).max(),
-                                  plot_data_bunch.RF_pred,
-                                  False)
+                v_min, v_max = custom_axes_limit(np.array(plot_data_bunch.loss).min(),
+                                  np.array(plot_data_bunch.loss).max(),
+                                  force_in=None,
+                                  is_binary=False)
                 
                 
                 norm_preds = mpl.colors.BoundaryNorm(np.linspace(v_min,v_max, 256),
@@ -484,8 +493,8 @@ def plot_with_interface(plot_data_bunch, kmeans,
             ax.yaxis.set_major_formatter(FuncFormatter(custom_formatter))
             ax.minorticks_off()
             
-            
-            if isinstance(plot_data_bunch.RF_pred, float) or plot_data_bunch.RF_pred.size == 1 : # single output case: float, or (1,)-shaped ndarray
+            # single output case: float, or (1,)-shaped ndarray
+            if isinstance(plot_data_bunch.RF_pred, float) or plot_data_bunch.RF_pred.size == 1 : 
                 norms=[norm_preds(float(plot_data_bunch.pred[i])) for i in range(len(cluster_memb))]
             else: # multi output case
                 norms=[norm_preds(plot_data_bunch.loss[i]) for i in range(len(cluster_memb))]
@@ -494,10 +503,18 @@ def plot_with_interface(plot_data_bunch, kmeans,
         fig.tight_layout()
         fig.savefig('colourbar'+str(plotindex))
         
-        color_map = color_map_right # TODO what is going on here?
+        # use appropriate colormap (right plot vs left plot)
+        cmap_gui = color_map_left if clustered else color_map_right
         
-        colours=[rgbaconv(color_map(norms[i])) for i in range(len(plot_data_bunch.index))]
+        colours = [rgbaconv(cmap_gui(norms[i])) for i in range(len(plot_data_bunch.index))]
         
+        # DEBUG: visualise plotted colors
+        # plt.scatter(range(100), range(100), c=np.array(colours)/255, s=10)
+        # plt.show()
+        
+        # Here the GUI objects are instantiated: the consist in a collection of
+        # interactable_point classes
+    
         points=[]
         for j in range(len(plot_data_bunch.index)):
             points.append(interactable_point(plot_data_bunch.index[j], #name
@@ -519,7 +536,11 @@ def plot_with_interface(plot_data_bunch, kmeans,
                 else:
                     ValueError("expecting float, got {} instead".format(type(plot_data_bunch.loss)))
         plots.append(interactable_plot(plotindex, points,clustered=clustered))
-    make_interactive_plot(plots,plotheight=400,borderpercent=0.1,
+    
+    # end of the enumerate(clusterplots) `for' loop (length 2 -> two plots)
+    make_interactive_plot(plots,
+                          plotheight=400,
+                          borderpercent=0.1,
                           other_inputs=input_method,
                           max_depth=max_depth)
     

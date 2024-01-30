@@ -89,16 +89,16 @@ class TreeExtraction:# is it convenient if it inherits?
         '''
         
     def extract_trees(self):
-
-        '''this is the main function, does the following:
-           raw_tree data:
+        '''
+        this is the main function, does the following:
+            raw_tree data:
             - compute tree loss, (and sort for pre-filtering)
             - computes vectos_to_matrix,
             - performs dim_reduction step
-           extract_final_trees
+            extract_final_trees
             - clusters the output tree-representations and select centers ( with weights)
-        '''
-        ''' HL bunch properties:
+        
+        HL bunch properties:
             Bunch(proj_data=proj_trees, ---> the tree representation, projected
                   matrix=tree_matrix,   ---> the original tree representation (kept for debug?)
                   index=HL_trees_idx,   ---> indeces of the orginal tree learners ( order is lost ater pre-selection step)
@@ -173,14 +173,6 @@ class TreeExtraction:# is it convenient if it inherits?
         # dim_reduction calls either PCA or MDS, according to proj-method variable
         proj_trees = self.dim_reduction(tree_matrix) # from pandas to numpy. Indexes stored in Bunch
         
-        # HL_preds needs to contain all floats...
-        # if not all(isinstance(y, float) for y in HL_preds): 
-        #     if HL_preds[0].size < 2:    # but is single target output
-        #         HL_preds = [float(y) for y in HL_preds] # fix to float
-        #         RF_pred = float(RF_pred)            # fix to float
-                
-        # if not isinstance(RF_pred, float) and RF_pred.size == 1:
-        #     RF_pred = float(RF_pred)            # fix to float
     
         '''  clustering step (indeces retained in Bunch object) '''
         
@@ -241,73 +233,11 @@ class TreeExtraction:# is it convenient if it inherits?
         
         
         ''' GOAL HERE is to store tree predictions in a consistent format.
-        It should look as the following: ??? check and fill in ???      ''' 
+        later formatting is performed with other functions      ''' 
         
         RF_pred = predict_helper(self.clf, sample)
         for k in range(self.clf.n_estimators):
             tree_preds[k] = predict_helper(self.clf[k], sample.values)
-        
-        # if self.set_up.lower() in self.BINARY_KEYS and hasattr(self.clf, 'predict_proba'):
-        #     RF_pred = self.clf.predict_proba(sample)[0,1] # <- float
-        #     for k in range(self.clf.n_estimators):
-        #         tree_preds[k] = self.clf[k].predict_proba(sample.values)[0,1] # <- floats
-                
-                
-        # elif self.set_up.lower() in self.BINARY_KEYS and not hasattr(self.clf, 'predict_proba'):
-        #     RF_pred = self.clf.predict(sample)[0] # <- float
-        #     #tree_preds = tree_preds.ravel()
-        #     for k in range(self.clf.n_estimators):
-        #         tree_preds[k] = self.clf[k].predict(sample.values)[0] # <- floats
-        
-                
-        # elif self.set_up.lower() in self.SURVIVAL_KEYS + self.REGRESSION_KEYS:
-        #     RF_pred = self.clf.predict(sample) # still a float? Or single element array here?
-
-        #     for k in range(self.clf.n_estimators):
-        #         tree_preds[k] = self.clf[k].predict(sample.values)
-        
-        # elif self.set_up.lower() in self.MTC_KEYS and hasattr(self.clf, 'predict_proba'):
-        #     RF_pred = self.clf.predict_proba(sample) #list of 2d arrays
-        #     #RF_label_list = [lab[:,1][0] for lab in RF_pred]
-        #     RF_label_list = [lab[0][1] for lab in RF_pred] #get prob of posit label
-        #     RF_pred = np.array(RF_label_list).ravel()
-            
-        #     # multi-label needs extra adjustments
-        #     for k in range(self.clf.n_estimators): # add column selection
-        #         label_probs_list = self.clf[k].predict_proba(sample.values)
-        #         #label_list = [lab[:,1][0] for lab in label_probs_list]
-        #         label_list = [lab[0][1] for lab in label_probs_list]
-        #         tree_preds[k,:] = np.array(label_list).ravel()
-        #         # predicted (prob.) labels for the given sample
-                
-                
-        # elif self.set_up.lower() in self.MTC_KEYS and not hasattr(self.clf, 'predict_proba'):
-        #     RF_pred = self.clf.predict(sample) #list of 2d arrays
-        #     #RF_label_list = [lab[:,1][0] for lab in RF_pred]
-        #     RF_label_list = [lab[0][1] for lab in RF_pred] #get prob of posit label
-        #     RF_pred = np.array(RF_label_list).ravel()
-            
-        #     # multi-label needs extra adjustments
-        #     for k in range(self.clf.n_estimators): # add column selection
-        #         label_probs_list = self.clf[k].predict(sample.values)
-        #         #label_list = [lab[:,1][0] for lab in label_probs_list]
-        #         label_list = [lab[0][1] for lab in label_probs_list]
-        #         tree_preds[k,:] = np.array(label_list).ravel()
-        #         # predicted (prob.) labels for the given sample
-        
-        # elif self.set_up.lower() in self.MTR_KEYS:
-        #     RF_pred = self.clf.predict(sample) #list of 2d arrays
-        #     #RF_label_list = [lab[:,1][0] for lab in RF_pred]
-        #     #RF_label_list = [lab for lab in RF_pred] #get prob of posit label
-        #     RF_pred = RF_pred.ravel()
-            
-        #     for k in range(self.clf.n_estimators): # TODO future: add column selection (here?)
-        #         #tree_preds = self.clf[k].predict(sample).ravel()
-        #         #label_list = [lab[0] for lab in label_probs_list]
-        #         tree_preds[k,:] = self.clf[k].predict(sample.values)
-        #         # predicted (prob.) labels for the given sample
-        # else:
-        #     raise KeyError("Set-up '{}' not recognized. Check the set_up attribute")
             
 
         # tree loss (euclidean norm of the predition vector vs real target(s))
@@ -430,9 +360,9 @@ class TreeExtraction:# is it convenient if it inherits?
         # get number of output labels
         n_real_outputs = self.clf.n_outputs_
             
-        # TODO possibly improve this check. It works until we have multi-output SA
+        # TODO include case for multi-output SA when available
         if self.set_up in self.SURVIVAL_KEYS:
-            n_real_outputs = 1
+            n_real_outputs = 1 # calling self.clf.n_outputs_  on RSF given shape: (#n unique times, ) which in our case is miselading  
         
         # output vector consistent with utilities.predict_helper function output
         if n_real_outputs > 1: #multi-output set-up
@@ -690,9 +620,7 @@ class Rulepath(TreeExtraction):
         
     def tree_to_vector(self):
         
-        
         '''
-        
         returns:
             - original sample X_i
             - feature_names_in_ (sometimes None)
