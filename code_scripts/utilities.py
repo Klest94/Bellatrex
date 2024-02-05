@@ -63,7 +63,7 @@ def predict_helper(clf, X):
     elif isinstance(clf, (EnsembleWrapper, EnsembleWrapper.Estimator)):
         ypred = clf.predict(X)
         if ypred.shape[1] == 1: # if output is of shape: (n_samples, 1)
-            return ypred.squeeze() #consistency with sklearn output shape: (n_samples,)
+            return ypred.squeeze(axis=1) #consistency with sklearn output shape: (n_samples,)
         #  otherwise if output is of shape: (n_samples, n_outputs) keep as it is
 
     else:
