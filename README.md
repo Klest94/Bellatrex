@@ -54,10 +54,10 @@ For an enhanced user experience that includes interactive plots, install the fol
 pip install dearpygui==1.6.2 
 pip install dearpygui-ext==0.9.5
 ```
-To activate the GUI, set the the parameter `plot_gui` equal to `True` on a Bellatrex instance.
+To then make use of the Graphical User Interface, set the variable `SET_PLOT_GUI` equal to`True` to change the value of the `plot_GUI` attribute on a Bellatrex instance.
 
-**Note:** When running Bellatrex with the GUI for multiple test samples, the program will generate an interactive window. The process may take a couple of seconds, and the the user has to click at least once within the generated window in order to activate the interactive mode. Once this is done, the user can choose to explore the generated rules by clicking on the corresponding representation. To show the Bellatrex explanation for the next sample, close the interactive window and wait until Bellatrex generates the explanation for the new sample.
+**Note:** When running Bellatrex with the GUI for multiple test samples, the program will generate an interactive window. The process may take a couple of seconds, and the the user has to click at least once within the generated window in order to activate the interactive mode. Once this is done, the user can explore the generated rules by clicking on the corresponding representation. To show the Bellatrex explanation for the next sample, close the interactive window and wait until Bellatrex generates the explanation for the new sample.
 
 # Ready for the tutorial!
 
-After downloading the content of this folder and installing the packages, you can dive into the `tutorial.ipyb` code.
+If you have downloaded the content of this folder and installed the packages successfully, you can dive into the [`tutorial.ipynb`](https://github.com/Klest94/Bellatrex/blob/main/tutorial.ipynb) code and try Bellatrex yourself!

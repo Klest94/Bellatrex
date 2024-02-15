@@ -28,7 +28,7 @@ OVERWRITE_DF = False # save performance df as csv, potentially overwriting smth
 # reduce MAX_TEST_SIZE for quick code testing
 MAX_TEST_SIZE = 3 #if set >= 100, it takes the (original) value X_test.shape[0]
 VERBOSE = 4
-PLOT_GUI = True
+SET_PLOT_GUI = False
 N_FOLDS = 1
 
 p_grid = {
@@ -71,8 +71,8 @@ JOBS = 1 # n_jobs for R(S)F learner (and now also ETrees candidate choice!)
     - >= 2.0: print final tree idx cluster sizes
               and store txt files with the extracted rule-paths
     - >= 3.0: plot representation of the extracted trees (two plots)
-    - >= 4.0: plot trees with GUI (if PLOT_GUI == True)
-    - >= 4.0: plot trees without GUI (if PLOT_GUI == False)
+    - >= 4.0: plot trees with GUI (if SET_PLOT_GUI == True)
+    - >= 4.0: plot trees without GUI (if SET_PLOT_GUI == False)
     - >= 5.0: print params and performance during GridSearch
 '''
 
@@ -184,7 +184,6 @@ for dataset in testing_dnames:
         # input either original trained model rf, or dictionary clf1.       
         # EnsembleWrapper is called internally, and will try to adapt the dict into something compatible with Bellatrex
 
-
         Btrex_fitted = Bellatrex(rf, SETUP,
                                   p_grid=p_grid,
                                   proj_method=PROJ_METHOD,
@@ -194,7 +193,7 @@ for dataset in testing_dnames:
                                   verbose=VERBOSE,
                                   show=True,
                                   colormap='RdYlGn_r',
-                                  plot_GUI=PLOT_GUI).fit(X_train, y_train)
+                                  plot_GUI=SET_PLOT_GUI).fit(X_train, y_train)
         
         # store, for every sample in the test set, the predictions from the
         # local method and the original R(S)F
