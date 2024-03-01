@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
                other_preds=None, preds_distr=None, b_box_pred=None, 
                round_digits=3, cmap="RdYlGn_r"):
@@ -67,7 +68,7 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
     get_color = lambda value, baseline: cmap(norm(value - baseline))
     
     # Initialize the plot
-    plot_height_rulebased = max(max_rulelen, 4)
+    plot_height_rulebased = 0.9*max(max_rulelen, 4)
     if preds_distr is None:
         fig, aaxs = plt.subplots(figsize=(5*nrules+2, plot_height_rulebased), 
                                 ncols=nrules, sharey=True)
@@ -90,15 +91,17 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         # make the x axis include all partial prediction of the forest internal nodes int eh interval, plus some margin
         ax.set_xlim([min_rel_x_axis, max_rel_x_axis])
         ax.set_ylim([max_rulelen+0.75, -0.75])
-        ax.set_xlabel(f"Prediction\nThis rule: {(preds[i][-1])} with weight {weights[i]}")
+        # ax.set_xlabel(f"Prediction\nThis rule: {(preds[i][-1])} with weight {weights[i]}")
         axs[0].set_ylabel("Rule depth")
         ax.set_yticks(range(max_rulelen+(max_rulelen_model==max_rulelen)))
         ax.grid(axis="x", zorder=-999, alpha=0.5)
-        ax.set_title(f"Selected rule {i+1}\n(prediction = {(preds[i][-1]):.{round_digits}f}, weight = {weights[i]})")# (weighted {weights[i]:.2f})")
-    plt.subplots_adjust(wspace=0.05)
+        font_rule_title = max(12, 17-len(axs))
+        ax.set_title(f"Selected rule {i+1}\nprediction = {(preds[i][-1]):.{round_digits}f}, weight = {weights[i]:.{round_digits-1}f}",
+                     fontsize=font_rule_title)# (weighted {weights[i]:.2f})")
+    plt.subplots_adjust(wspace=0.12)
     # alt: max_rulelen --> fig.get_size_inches()[0]
     aspect = 20 * (max_rulelen / 5) # because aspect=20 is ideal when max_rulelen=5
-    plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=aaxs, pad=0.02,
+    plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=aaxs, pad=0.04,
                  aspect=aspect, label="Change w.r.t. baseline")
     # colorbar_export = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
 
@@ -121,7 +124,7 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
     # Highlight the rule of interest on each plot
     for bsl, rule, pred, ax in zip(baselines, rules, preds, axs):
         traj = [bsl, *pred]
-        fontsize = 10
+        fontsize = 13
         pad = 0.3
         ax.text(s=f"Baseline\n{bsl:.{round_digits}f}", fontsize=fontsize,
                 x=bsl, y=-pad, ha="center", va="center", 
@@ -130,7 +133,7 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         ha = ["left","right"][isRight]
         # ha = "center"
         ax.text(s=f"Prediction\n{pred[-1]:.{round_digits}f}", fontsize=fontsize, 
-                x=pred[-1] - 4*(isRight-0.5)*pred[-1]/25,
+                x=pred[-1] - (isRight-0.5)*pred[-1]/50,
                 y=len(pred)+pad, ha=ha, va="center",
                 bbox=dict(boxstyle=f"square,pad={pad}", fc="w", ec="k", alpha=0.5, zorder=5))
         for j in range(len(rule)):
@@ -148,15 +151,15 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
                 )
             )
             # Draw the text
-            xtext = (2*traj[j]+traj[j+1])/3
+            xtext = (4*traj[j]+6*traj[j+1])/10
             xmin, xmax = ax.get_xlim()
             closest = np.argmin([xtext-xmin, xtext-(xmin+xmax)/2, xmax-xtext])
             ha = ["left","center","right"][closest]
             ax.text(
                 s=parse(rule[j]),
-                x=xtext, y=j+1/3,
+                x=xtext, y=j+1/2.1,
                 ha=ha, va="center",
-                fontsize=10,
+                fontsize=13,
                 bbox=dict(boxstyle="square,pad=0", fc="w", ec="w", lw=1, alpha=0.75),
             )
 
@@ -214,7 +217,7 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
 
     # Add final prediction to the plot
     final_pred = np.sum([weights[i] * preds[i][-1] for i in range(len(rules))])
-    final_pred_str = f"Bellatrex local explanation with weighted prediction = {final_pred:.{round_digits}f}"
+    final_pred_str = f"Bellatrex local explanation with weighted prediction: {final_pred:.{round_digits}f}"
     final_pred_str += " (= " + " + ".join([
         rf"{preds[i][-1]:.{round_digits}f}$\times${weights[i]:.{round_digits-1}f}" 
         for i in range(len(rules))
@@ -227,33 +230,34 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         final_pred_str += ")"
     figheight = plot_height_rulebased + (preds_distr is not None)
     # y = np.sqrt(figheight) / 100 * 2.2
-    deltay = figheight/100 - 0.02
+    # deltay = -np.sqrt(2+figheight)/150 + 0.11
+    deltay = 0.15-0.022*(figheight-3)
     # fig.supxlabel(final_pred_str, va="top", y=y)
-    fig.suptitle(final_pred_str, va="top", y=max(1+0.5*deltay, 1.02))
+    fig.suptitle(final_pred_str, va="top", y=max(1+deltay, 0.99))
     return fig, aaxs
 
-def parse(rule):
-    """Parses a rule outputted by bellatrex into a form suitable for visualisation."""
+def parse(rulesplit):
+    """Parses a rulesplit outputted by bellatrex into a form suitable for visualisation."""
     # Remove information related to the current value
-    if "(" in rule:
-        rule = rule[:rule.rfind("(")].strip()
+    if "(" in rulesplit:
+        rulesplit = rulesplit[:rulesplit.rfind("(")].strip()
     # Replace special characters by LaTeX symbols
-    rule = rule.replace("≤" , "$\leq$")
-    rule = rule.replace("<=", "$\leq$")
-    rule = rule.replace("≥" , "$\geq$")
-    rule = rule.replace(">=", "$\geq$")
+    rulesplit = rulesplit.replace("≤" , "$\leq$")
+    rulesplit = rulesplit.replace("<=", "$\leq$")
+    rulesplit = rulesplit.replace("≥" , "$\geq$")
+    rulesplit = rulesplit.replace(">=", "$\geq$")
     # If split on binary variable, change format
-    for i, comparator in enumerate(["<", "$\leq$", "$\geq$", ">"]):
-        if comparator in rule:
-            value = rule.split(comparator)[1]
-            if (float(value) == 0.5) and ("is" in rule): # TODO improve
-                rule = rule.replace("is", [r"$\neq$", "$=$"][i>1])
-                rule = rule[:rule.find(comparator)].strip()
-            else:
-                # TODO incorporate `round_digits`
-                rule = rule.split(comparator)[0] + comparator + value[:min(5,len(value))] # Round the value
-    # rule = rule.encode().decode('unicode_escape')
-    return rule
+    # for i, comparator in enumerate(["<", "$\leq$", "$\geq$", ">"]):
+    #     if comparator in rulesplit:
+    #         value = rulesplit.split(comparator)[1]
+    #         if (float(value) == 0.5) and ("is" in rulesplit): # TODO improve
+    #             rulesplit = rulesplit.replace("is", [r"$\neq$", "$=$"][i>1])
+    #             rulesplit = rulesplit[:rulesplit.find(comparator)].strip()
+    #         else:
+    #             # TODO incorporate `round_digits`
+    #             rulesplit = rulesplit.split(comparator)[0] + comparator + value[:min(5,len(value))] # Round the value
+    # rulesplit = rulesplit.encode().decode('unicode_escape')
+    return rulesplit
 
 def read_rules(file, file_extra=None):
     rules = []
