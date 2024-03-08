@@ -1,4 +1,4 @@
-<a name="bellatrex-logo-anchor"></a>
+<a name="logo-anchor"></a>
 <p align="center">
 <img src="figures/bellatrex-logo.png" alt="Bellatrex Logo" width="50%"/>
 </p>
