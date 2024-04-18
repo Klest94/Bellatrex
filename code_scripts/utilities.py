@@ -19,6 +19,7 @@ from sklearn.tree import _tree # to check things like _tree.TREE_UNDEFINED
 from code_scripts.wrapper_class import EnsembleWrapper
 
 
+
 def concatenate_helper(y_pred, y_local_pred, axis=0):
     
     if y_pred.shape[0] == 0: #if still empty (no rows added)

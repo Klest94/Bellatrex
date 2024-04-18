@@ -88,10 +88,10 @@ def make_interactive_plot(plots, plotheight=400,borderpercent=0.1,
                         real_plot_depth = my_clf[tree_index].tree_.max_depth
     
                     
-                        smart_width = 1 + 1.0*np.sqrt(real_plot_leaves**1.5)
+                        smart_width = 2 + 1.0*np.sqrt(real_plot_leaves**1.7)
                         smart_width = int(smart_width)
                         
-                        smart_height = real_plot_depth*0.9
+                        smart_height = real_plot_depth*0.95
                         smart_height = int(smart_height)
                         #print("figsize:", (smart_width, smart_height))
                         fig, ax = plt.subplots(figsize=(smart_width, smart_height))
@@ -103,12 +103,12 @@ def make_interactive_plot(plots, plotheight=400,borderpercent=0.1,
                             
                             the_tree = my_clf[tree_index]
                             
-                                                    
                             plot_tree_patched(the_tree,
                                       max_depth=max_depth,
                                       feature_names=feature_names,
-                                      fontsize=12)
-                            plt.rcParams["font.size"] = 14 
+                                      fontsize=10)
+                            plt.rcParams["font.size"] = 12
+                            
                             plt.title("Tree %i predicting sample %i" % (tree_index, sample_index))
                             plt.savefig(tree_name_png)
                             plt.show()

@@ -53,9 +53,11 @@ TAIL_NOTES = "p1" # ONLY FOR FINAL CSV FILE
 
 NOTES = EXTRA_NOTES + PROJ_METHOD + "_" + FEAT_REPRESENTATION + "_"
 
-testing_dnames = dnames[4:5]#[:4]
+testing_dnames = dnames[5:6]#[:4]
 #testing_dnames = [dnames[i] for i in [4, 6, 8, 10, 11]]
 ##########################################################################
+
+#%%
 
 from code_scripts.utilities import validate_paramater_run
 validate_paramater_run(p_grid, EXTRA_NOTES, N_FOLDS)
@@ -124,10 +126,10 @@ for dataset in testing_dnames:
         
     while j < N_FOLDS:
         data_single_folder = os.path.join(data_scenario_folder, dataset)
-        X_train = pd.read_csv(os.path.join(data_single_folder, "X_new_train"+ str(j+1) + ".csv"))
-        y_train = pd.read_csv(os.path.join(data_single_folder, "y_new_train"+ str(j+1) + ".csv"))
-        X_test = pd.read_csv(os.path.join(data_single_folder, "X_new_test"+ str(j+1) + ".csv"))
-        y_test = pd.read_csv(os.path.join(data_single_folder, "y_new_test"+ str(j+1) + ".csv"))
+        X_train = pd.read_csv(os.path.join(data_single_folder, "X_new_train"+ str(j+1) + ".csv"))[:300]
+        y_train = pd.read_csv(os.path.join(data_single_folder, "y_new_train"+ str(j+1) + ".csv"))[:300]
+        X_test = pd.read_csv(os.path.join(data_single_folder, "X_new_test"+ str(j+1) + ".csv"))[:200]
+        y_test = pd.read_csv(os.path.join(data_single_folder, "y_new_test"+ str(j+1) + ".csv"))[:200]
         
         X_train.drop("Unnamed: 0", axis=1, errors="ignore", inplace=True)
         X_test.drop("Unnamed: 0", axis=1, errors="ignore", inplace=True)
@@ -177,8 +179,6 @@ for dataset in testing_dnames:
         clf1 = tree_list_to_model(tree_list) #normally, you load the dict in this format
         # this is run under the hood
         # clf2 = EnsembleWrapper(clf1)
-        
-        #%%
 
         #fit RF here. The hyperparameters are given
         # input either original trained model rf, or dictionary clf1.       
@@ -380,4 +380,3 @@ if OVERWRITE_DF == True:
     df_filename = name_info + SETUP.capitalize() + str(date.today())[4:] + TAIL_NOTES + ".csv"
     results_df.to_csv(os.path.join(root_folder, df_filename))
 
-# %%
