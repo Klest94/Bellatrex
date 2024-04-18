@@ -79,7 +79,7 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         # axs = np.atleast_1d(aaxs)
         if len(aaxs.shape) == 1:
             aaxs = np.atleast_2d(aaxs).T
-        axs     = aaxs[0,:]
+        axs = aaxs[0,:]
     
     else: #create extra axis object for density plots (2d array)
         fig, aaxs = plt.subplots(figsize=(5*nrules+2, plot_height_rulebased+3), 
@@ -90,7 +90,6 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         axs     = aaxs[0,:]
         distaxs = aaxs[1,:]
 
-    
     margin = 0.01 * 2*maxdev # 1% margin left and right
     min_rel_x_axis = np.min(baselines)-maxdev-margin
     max_rel_x_axis = np.max(baselines)+maxdev+margin
@@ -101,11 +100,10 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
 
     
     for i, ax in enumerate(axs):
+        
         ax.invert_yaxis()
         # make the x axis include all partial prediction of the forest internal nodes in interval, plus some margin
         ax.set_xlim([min_rel_x_axis, max_rel_x_axis])
-        
-        
         
         ax.set_ylim([max_rulelen+0.75, -0.75])
         # ax.set_xlabel(f"Prediction\nThis rule: {(preds[i][-1])} with weight {weights[i]}")
@@ -113,11 +111,8 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         ax.set_yticks(range(max_rulelen+(max_rulelen==max_rulelen_visual)))
         ax.tick_params(axis='y', labelsize=base_fontsize)
         ax.grid(axis="x", zorder=-999, alpha=0.5)
-        font_rule_title = base_fontsize + max(0, 4-len(axs)) # decreases with increasing number of final (selected, plotted) rules
-        # ax.set_title(f"Selected rule {i+1}\nprediction = {(preds[i][-1]):.{round_digits}f}, weight = {weights[i]:.{round_digits-1}f}",
-                     # fontsize=font_rule_title)# (weighted {weights[i]:.2f})")
         ax.set_title(f"Selected rule {i+1}\n (weight = {100*weights[i]:.0f}%)",
-                      fontsize=font_rule_title)# (weighted {weights[i]:.2f})")    
+                      fontsize=base_fontsize)# (weighted {weights[i]:.2f})")    
     
     plt.subplots_adjust(wspace=0.12)
     # alt: max_rulelen --> fig.get_size_inches()[0]
@@ -190,8 +185,9 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
             ax.vlines(x=pred[-1], ymin=0, ymax=density(pred[-1]), colors=col2, linestyles=":")
             ax.set_ylim([0, 1.1*ax.get_ylim()[1]])
             ax.set_yticks([])
-            ax.set_xlabel("Prediction", fontsize=base_fontsize)
             ax.grid(axis="x", zorder=-999, alpha=0.5)
+            ax.set_xlabel("Prediction", fontsize=base_fontsize)
+        
         distaxs[0].set_ylabel("Density", fontsize=base_fontsize)
         
 
@@ -233,17 +229,17 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
     final_pred_str += " (= " + " + ".join([
         rf"{preds[i][-1]:.{round_digits}f}$\times${weights[i]:.{round_digits-1}f}" 
         for i in range(len(rules))
-    ]) + ")        " # extra space to the right to move text slighlty to the left
+    ]) + ")            " # extra space to the right to move text slighlty to the left
     
     if b_box_pred is not None:
         bbox_pred_str = "\n(compared to black-box model prediction: "
         bbox_pred_str += ", ".join([f"{pred:.{round_digits}f}" 
                                      for pred in np.atleast_1d(b_box_pred)])
-        bbox_pred_str += ")"
+        bbox_pred_str += ")      "
             
     # fig.suptitle(bbox_pred_str, va="top", y=0.99, fontsize=font_rule_title)
     
-    plt.figtext(0.5, 0.05, final_pred_str+bbox_pred_str, fontsize=font_rule_title, ha="center")
+    plt.figtext(0.5, 0.05, final_pred_str+bbox_pred_str, fontsize=base_fontsize+1, ha="center")
     
     return fig, aaxs
 
