@@ -19,24 +19,23 @@ from code_scripts.TreeRepresentation_utils import count_rule_length
 from code_scripts.LocalMethod_class import Bellatrex
 from code_scripts.wrapper_class import tree_list_to_model, DT_to_dict
 
-SETUP = "surv"
+SETUP = "surv" # <- select prediction task here, will load the corresponding datasets
 PROJ_METHOD = "PCA"
 
 SAVE_PREDS = False # if True: save: predictions, tuned_hyperparams and dataframe
 # otherwise if False, the final file is stored with the "Draft_" prefix
 OVERWRITE_DF = False # save performance df as csv, potentially overwriting smth
 # reduce MAX_TEST_SIZE for quick code testing
-MAX_TEST_SIZE = 3 #if set >= 100, it takes the (original) value X_test.shape[0]
-VERBOSE = 4
+MAX_TEST_SIZE = 100 # set to >= 100 for reproducing the complete results. Set to small numbers for a fast trial 
+VERBOSE = 3
 SET_PLOT_GUI = False
-N_FOLDS = 1
+N_FOLDS = 5
 
 p_grid = {
-    "n_trees": [0.8, 1.0], # [100] for "noTrees_" ablation
-    "n_dims": [2, None], #None = no dim reduction   #Ablation: noDims_
-    "n_clusters": [2, 3]
+    "n_trees": [0.2, 0.5, 0.8], # [100] for "noTrees_" ablation
+    "n_dims": [2, 5, None], #None = no dim reduction   #Ablation: noDims_
+    "n_clusters": [1, 2, 3]
     }
-
 
 STRUCTURE = "rules" # accepted keys: "trees" or "rules"
 FEAT_REPRESENTATION = "weighted" # "simple" or "by_samples" # or
@@ -53,8 +52,7 @@ TAIL_NOTES = "p1" # ONLY FOR FINAL CSV FILE
 
 NOTES = EXTRA_NOTES + PROJ_METHOD + "_" + FEAT_REPRESENTATION + "_"
 
-testing_dnames = dnames[5:6]#[:4]
-#testing_dnames = [dnames[i] for i in [4, 6, 8, 10, 11]]
+testing_dnames = dnames[0:3]
 ##########################################################################
 
 #%%
