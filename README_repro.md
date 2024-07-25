@@ -62,12 +62,11 @@ To then make use of the Graphical User Interface, set the variable `SET_PLOT_GUI
 
 **Note:** When running Bellatrex with the GUI for multiple test samples, the program will generate an interactive window. The process may take a couple of seconds, and the the user has to click at least once within the generated window in order to activate the interactive mode. Once this is done, the user can explore the generated rules by clicking on the corresponding representation. To show the Bellatrex explanation for the next sample, close the interactive window and wait until Bellatrex generates the explanation for the new sample.
 
-Now, you can run the [`main_method.py`](https://github.com/Klest94/Bellatrex/blob/main/main_method.py) script to generate the results.
+Now, you can run the [`main_method.py`](https://github.com/Klest94/Bellatrex/blob/main/main_method.py) script to generate the results. A tutorial is availble in [`tutorial.ipynb`](https://github.com/Klest94/Bellatrex/blob/main/tutorial.ipynb), but we recommend the updated version in the [main](https://github.com/Klest94/Bellatrex) development branch
 
 # Additional material
 
-In order not to overcrowd the final manuscript with tables and plots, we share here some details about the datasets employed in the comparison as well as an extended version of the results.
-
+Here we share some details about the datasets employed in the comparison, as well as an extended version of the results that could not fit the main manuscript.
 
 ## Dataset overview
 
