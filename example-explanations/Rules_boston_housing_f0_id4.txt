@@ -1,0 +1,30 @@
+########################  SAMPLE  ########################
+        rm lstat   black
+4     6.10  9.81  240.16
+##################   RULE WEIGHT: 0.16  ##################
+Baseline prediction: 0.3713
+node.   0:   rm <= 6.94  --> 0.3185
+node.   1:     lstat <= 14.79  --> 0.3951
+node.   2:       lstat > 9.54  --> 0.3358
+node.  62:         black <= 380.40  --> 0.2898
+node.  63:           rm > 5.21  --> 0.2970
+node.  65:             lstat <= 14.28  --> 0.3119
+node.  66:               lstat <= 10.18  --> 0.2222
+leaf.  67:               returns 0.2222
+########################  SAMPLE  ########################
+        rm lstat   dis  crim     tax
+4     6.10  9.81  2.28  2.92  403.00
+##################   RULE WEIGHT: 0.84  ##################
+Baseline prediction: 0.3618
+node.   0:   rm <= 6.85  --> 0.3147
+node.   1:     lstat <= 14.76  --> 0.3925
+node.   2:       rm <= 6.48  --> 0.3655
+node.   3:         dis > 1.38  --> 0.3615
+node.   5:           lstat <= 11.69  --> 0.3845
+node.   6:             rm > 6.06  --> 0.4094
+node.  22:               lstat > 8.01  --> 0.3960
+node.  34:                 crim > 0.05  --> 0.4054
+node.  36:                   tax <= 417.50  --> 0.4142
+node.  37:                     crim > 0.14  --> 0.4254
+leaf.  41:                     returns 0.4254
+Bellatrex prediction: 0.393

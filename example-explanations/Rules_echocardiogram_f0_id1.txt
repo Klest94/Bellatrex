@@ -1,0 +1,25 @@
+########################  SAMPLE  ########################
+      lvdd    age   epss wallmotion-score wallmotion-index
+1     5.05  65.00  13.00            10.00             1.00
+##################   RULE WEIGHT: 0.82  ##################
+Baseline prediction: 34.3733
+node.   0:   lvdd > 4.06  --> 40.7596
+node.   2:     age <= 67.00  --> 49.7406
+node.   3:       epss > 7.42  --> 42.0334
+node.   5:         wallmotion-score <= 22.00  --> 40.4691
+node.   6:           wallmotion-index <= 1.16  --> 33.0513
+node.   7:             epss > 9.69  --> 36.6857
+leaf.   9:             returns 36.6857
+########################  SAMPLE  ########################
+     wallmotion-score   epss wallmotion-index    age
+1               10.00  13.00             1.00  65.00
+##################   RULE WEIGHT: 0.17  ##################
+Baseline prediction: 34.6601
+node.   0:   wallmotion-score <= 21.75  --> 37.9438
+node.   1:     wallmotion-score > 9.50  --> 39.4772
+node.   3:       epss > 4.10  --> 36.9474
+node.   5:         wallmotion-index <= 1.18  --> 26.5884
+node.   6:           wallmotion-score <= 12.25  --> 35.2540
+node.   7:             age > 57.50  --> 38.7000
+leaf.   9:             returns 38.7000
+Bellatrex prediction: 37.038

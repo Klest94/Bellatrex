@@ -1,0 +1,41 @@
+########################  SAMPLE  ########################
+        rm lstat   dis     tax  crim  indus   nox ptratio
+2     6.07  5.52  5.29  305.00  0.09  10.81  0.41   19.20
+##################   RULE WEIGHT: 0.72  ##################
+Baseline prediction: 0.3913
+node.   0:   rm <= 6.94  --> 0.3264
+node.   1:     lstat <= 15.99  --> 0.4067
+node.   2:       lstat <= 9.95  --> 0.4704
+node.   3:         dis > 1.46  --> 0.4600
+node.   5:           rm <= 6.59  --> 0.4134
+node.   6:             tax > 208.00  --> 0.4085
+node.   8:               rm > 6.06  --> 0.4219
+node.  14:                 lstat > 4.62  --> 0.4154
+node.  16:                   crim > 0.05  --> 0.4327
+node.  26:                     dis > 4.20  --> 0.4186
+node.  36:                       indus <= 13.38  --> 0.4146
+node.  37:                         tax > 258.50  --> 0.4124
+node.  39:                           crim <= 0.32  --> 0.4092
+node.  40:                             nox <= 0.45  --> 0.4159
+node.  41:                               ptratio > 18.95  --> 0.4033
+leaf.  43:                               returns 0.4033
+########################  SAMPLE  ########################
+        rm lstat   dis ptratio     tax   nox   age   black
+2     6.07  5.52  5.29   19.20  305.00  0.41  7.80  390.91
+##################   RULE WEIGHT: 0.28  ##################
+Baseline prediction: 0.3666
+node.   0:   rm <= 6.84  --> 0.3015
+node.   1:     lstat <= 14.81  --> 0.3865
+node.   2:       dis > 1.21  --> 0.3831
+node.   4:         rm <= 6.54  --> 0.3640
+node.   5:           rm > 6.06  --> 0.3921
+node.  37:             ptratio <= 19.95  --> 0.4083
+node.  38:               tax <= 412.50  --> 0.4138
+node.  39:                 nox <= 0.45  --> 0.3956
+node.  40:                   age <= 51.40  --> 0.4154
+node.  41:                     nox > 0.41  --> 0.4225
+node.  43:                       nox <= 0.43  --> 0.4170
+node.  44:                         rm <= 6.49  --> 0.4225
+node.  45:                           black > 381.57  --> 0.4307
+leaf.  47:                           returns 0.4307
+Bellatrex prediction: 0.411

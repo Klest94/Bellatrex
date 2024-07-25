@@ -1,0 +1,23 @@
+########################  SAMPLE  ########################
+     wallmotion-index fractionalshortening
+4                1.00                 0.36
+##################   RULE WEIGHT: 0.70  ##################
+Baseline prediction: 34.2775
+node.   0:   wallmotion-index <= 1.75  --> 37.8564
+node.   1:     fractionalshortening > 0.32  --> 18.8393
+leaf.  17:     returns 18.8393
+########################  SAMPLE  ########################
+     wallmotion-score  epss    age  lvdd group wallmotion-index
+4               12.00  8.80  65.00  5.78  2.00             1.00
+##################   RULE WEIGHT: 0.30  ##################
+Baseline prediction: 35.1115
+node.   0:   wallmotion-score <= 21.75  --> 38.7474
+node.   1:     epss <= 13.05  --> 33.5443
+node.   2:       age <= 72.50  --> 37.3451
+node.   3:         wallmotion-score > 9.50  --> 41.9379
+node.   5:           lvdd > 3.73  --> 50.1162
+node.   7:             group > 1.78  --> 43.7222
+node.   9:               wallmotion-index <= 1.02  --> 50.6298
+node.  10:                 group > 1.90  --> 51.7976
+leaf.  12:                 returns 51.7976
+Bellatrex prediction: 28.727

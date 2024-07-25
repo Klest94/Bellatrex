@@ -1,0 +1,23 @@
+########################  SAMPLE  ########################
+        X1    X7 Relative_compactness    X8
+0     0.92  0.00                 0.06  0.00
+##################   RULE WEIGHT: 0.62  ##################
+Baseline prediction: 0.449, 0.378
+node.   0:   X1 > 0.54  --> 0.199, 0.140
+node. 154:     X7 <= 0.44  --> 0.147, 0.105
+node. 155:       Relative_compactness <= 0.08  --> 0.200, 0.150
+node. 156:         Relative_compactness > 0.03  --> 0.223, 0.211
+node. 168:           X8 <= 0.10  --> 0.128, 0.158
+leaf. 169:           returns 0.128, 0.158
+########################  SAMPLE  ########################
+        X4    X7 Relative_compactness    X3
+0     1.00  0.00                 0.06  0.57
+##################   RULE WEIGHT: 0.38  ##################
+Baseline prediction: 0.424, 0.354
+node.   0:   X4 > 0.67  --> 0.192, 0.135
+node. 158:     X7 <= 0.44  --> 0.143, 0.099
+node. 159:       Relative_compactness <= 0.08  --> 0.198, 0.142
+node. 160:         X3 <= 0.64  --> 0.232, 0.215
+node. 161:           X7 <= 0.12  --> 0.124, 0.158
+leaf. 162:           returns 0.124, 0.158
+Bellatrex prediction: 0.126, 0.158

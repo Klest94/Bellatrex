@@ -1,0 +1,22 @@
+########################  SAMPLE  ########################
+        rm ptratio
+3     7.92   13.60
+##################   RULE WEIGHT: 0.90  ##################
+Baseline prediction: 0.3618
+node.   0:   rm > 6.85  --> 0.7045
+node. 168:     rm > 7.44  --> 0.8634
+node. 184:       rm <= 8.36  --> 0.8341
+node. 185:         ptratio <= 16.15  --> 0.8922
+leaf. 186:         returns 0.8922
+########################  SAMPLE  ########################
+     lstat    rm ptratio    age
+3     3.16  7.92   13.60  24.80
+##################   RULE WEIGHT: 0.10  ##################
+Baseline prediction: 0.3792
+node.   0:   lstat <= 9.71  --> 0.5486
+node.   1:     rm > 7.44  --> 0.9126
+node.  73:       ptratio <= 17.90  --> 0.9482
+node.  74:         age <= 53.10  --> 0.9109
+node.  75:           rm > 7.63  --> 0.9430
+leaf.  77:           returns 0.9430
+Bellatrex prediction: 0.897
