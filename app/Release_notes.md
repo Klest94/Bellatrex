@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.2.1] - 2024-09-02
+### Fixed
+- Fixed bug while calling plot_visuals() with `preds_distr = None` and `conf_level != None`, sometimes the wrong axis was being modified.
 
 ## [0.2.0] - 2024-09-01
 ### Refactored
