@@ -95,19 +95,19 @@ for i in range(MAX_TEST_SAMPLES): # iterate for the first few samples in the tes
     #                                                             keep_files=True,
     #                                                             show=True)
 
-    # y_train_pred = clf.predict_proba(X_train)[:,1]
-    # y_test_pred = clf.predict_proba(X_test)[:,1]
-    y_train_pred = clf.predict(X_train)
-    y_test_pred = clf.predict(X_test)
+    y_train_pred = clf.predict_proba(X_train)[:,1]
+    y_test_pred = clf.predict_proba(X_test)[:,1]
+    # y_train_pred = clf.predict(X_train)
+    # y_test_pred = clf.predict(X_test)
 
     # currently testing:
     fig, ax = Btrex_fitted.explain(X_test, i).plot_visuals(plot_max_depth=5,
-                                                            preds_distr=None,
-                                                            conf_level=0.9,
-                                                            tot_digits=4,
-                                                            b_box_pred=None,
-                                                            keep_files=True,
-                                                            show=False)
+                                                           preds_distr=None,
+                                                           conf_level=0.9,
+                                                           tot_digits=4,
+                                                           b_box_pred=None,
+                                                           keep_files=False,
+                                                           show=False)
     fig.suptitle(f"Plot overview trial, sample {i}", fontsize=16)
     plt.show()
 

@@ -1,6 +1,6 @@
 <a name="logo-anchor"></a>
 <p align="center">
-<img src="Bellatrex-logo.png" alt="Bellatrex Logo" width="60%"/>
+<img src="app/Bellatrex-logo.png" alt="Bellatrex Logo" width="60%"/>
 </p>
 
 # Welcome to Bellatrex!
@@ -12,7 +12,7 @@ To illustrate how Bellatrex works, let's consider an example: when a user provid
 <table>
   <tr>
     <td align="center">
-      <img src="illustration-Bellatrex.png" alt="Bellatrex image"/>
+      <img src="app/illustration-Bellatrex.png" alt="Bellatrex image"/>
     </td>
   </tr>
   <tr>
@@ -28,8 +28,8 @@ Another strength of Bellatrex lies in its ability to handle several prediction t
 
 This repository contains:
 - instructions to run Bellatrex on your machine
-- an overwview of the datasets used to test the effectiveness of the method
-- accesss to such datasets, as they appear after the pre-processing step.
+- an overview of the datasets used to test the effectiveness of the method
+- access to such datasets, as they appear after the pre-processing step.
 
 # Set-up
 

@@ -7,7 +7,7 @@ Created on Mon Jul 22 11:21:19 2024
 import os #TODO: consider moving to pathlib for cross-OS consistency.
 from setuptools import find_packages, setup
 
-readme_path = os.path.join('app', 'README.md')
+readme_path = os.path.join('README.md')
 
 with open(readme_path, 'r') as f:
     text_description = f.read()

@@ -4,6 +4,11 @@ __pycache__/
 .spyderproject
 .spyproject
 
+
+# Bellatrex specific stuff
+app/bellatrex/explanations_text/*
+app/bellatrex/temp_files/*
+
 # Distribution / packaging
 .Python
 build/

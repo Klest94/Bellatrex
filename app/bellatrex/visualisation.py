@@ -1,4 +1,4 @@
-
+import warnings
 import numpy as np
 from scipy import stats
 import matplotlib.pyplot as plt
@@ -6,7 +6,7 @@ from matplotlib.colors import LinearSegmentedColormap
 
 from .visualization_extra import _input_validation, max_rulelength_visual
 from .visualization_extra import define_relative_position, plot_arrow
-from .utilities import rule_to_file, frmt_pretty_print
+from .utilities import frmt_pretty_print
 
 
 def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
@@ -247,8 +247,13 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
                     colors=get_color(pred[-1], bsl), linestyles=":")
 
     ### Here confidence interval:
+
+    if other_preds is None and conf_level is not None:
+        warnings.warn("No confidsence level can be plotted if \'other_preds\' is None")
+
     # Do so by plotting distribution integrated in the preds_distr
-    if other_preds is not None and conf_level is not None:
+    if other_preds is not None and conf_level is not None and dens_axs[0] is not None:
+
         final_preds = [pred[-1] for pred in other_preds] + [pred[-1] for pred in preds]
 
         # conf_level:  size of the confidence interval (0.9 = 90% of the tree predictions)
@@ -258,7 +263,7 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
         vmin = np.quantile(final_preds, (1-conf_level)/2)
         vmax = np.quantile(final_preds, (1+conf_level)/2)
 
-        for ax in dens_axs:
+        for ax in aaxs[-2,:]: # last aaxs row is for the arrows, we need the axis just above them
             ax.fill_between(
                 x=[vmin, vmax],
                 y1=[0,0],
@@ -266,8 +271,7 @@ def plot_rules(rules, preds, baselines, weights, max_rulelen=None,
                 color="gray",
                 alpha=0.2)
 
-    ## Add weighted average contribution to the bottom of the plot
-    # on the arroaxs Axes object
+    ## Add weighted average contribution to the bottom of the plot on the arrow Axes object
     n_cols = aaxs.shape[1]
     #define relative position of aroow subplot depending on n_cols
     pos_list = define_relative_position(n_cols)
