@@ -1,0 +1,14 @@
+include README.md
+include LICENSE
+include app/bellatrex/version.txt
+recursive-include app/bellatrex/datasets *.csv
+
+global-exclude __pycache__
+global-exclude *.py[cod]
+
+global-exclude *.so
+global-exclude *.pyd
+global-exclude *.o
+global-exclude *.a
+global-exclude *.log
+global-exclude *.tmp
