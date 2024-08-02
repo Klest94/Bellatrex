@@ -1,6 +1,6 @@
 <a name="logo-anchor"></a>
 <p align="center">
-<img src="app/Bellatrex-logo.png" alt="Bellatrex Logo" width="60%"/>
+<img src="app/bellatrex-logo.png" alt="Bellatrex Logo" width="60%"/>
 </p>
 
 # Welcome to Bellatrex!
