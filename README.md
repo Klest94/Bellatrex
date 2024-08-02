@@ -5,7 +5,7 @@
 
 # Welcome to Bellatrex!
 
-Random Forest models can be difficult to interpret, and Bellatrex addresses this challenge by generating explanations that are easy to understand, and by providing insights into how the model arrived at its predictions. Bellatrex does so by Building Explanations through a LocalLy AccuraTe Rule EXtractor (hence the name: Bellatrex) for a given test instance, by extracting only a few, diverse rules. See [the published paper](https://ieeexplore.ieee.org/abstract/document/10105927) for more details.
+Random Forest models can be difficult to interpret, and Bellatrex addresses this challenge by generating explanations that are easy to understand, and by providing insights into how the model arrived at its predictions. Bellatrex does so by Building Explanations through a LocalLy AccuraTe Rule EXtractor (hence the name: Bellatrex) for a given test instance, by extracting only a few, diverse rules. See [the published paper](https://ieeexplore.ieee.org/abstract/document/10105927) for more details. The code for reproducing its results is available in a different [GitHub branch](https://github.com/Klest94/Bellatrex/tree/archive/reproduce-Dedja2023).
 
 To illustrate how Bellatrex works, let's consider an example: when a user provides a test instance to Bellatrex, the tool begins by 1) pre-selecting a subset of the rules used to make the prediction; it then creates 2) a vector representation of such rules and 3) projects them to a low-dimensional space; Bellatrex then 4) clusters such representations to pick a rule from each cluster to explain the instance prediction. One rule per cluster is shown to the end user through visually appealing plots, and the tool's GUI allows users to explore similar rules to those extracted.
 
@@ -60,4 +60,5 @@ pip install bellatrex[gui]
 
 # Ready for the tutorial!
 
-If you have downloaded the content of this folder and installed the packages successfully, you can dive into the [`tutorial.ipynb`](https://github.com/Klest94/Bellatrex/blob/main/tutorial.ipynb) code and try Bellatrex yourself.
+If you have downloaded the content of this folder and installed the packages successfully, you can dive into the [`tutorial.ipynb`](/tutorial.ipynb) code and try Bellatrex yourself.
+
