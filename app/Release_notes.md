@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.2] - Unlreleased
+### Fixed
+- Updated README.md with absolute paths instead of relative ones.
+- Updated Python requirements, show more clearly that the package is compatible with all versions from 3.9 to 3.12 included.
+
+
 ## [0.2.1] - 2024-09-02
 ### Fixed
 - Fixed bug while calling plot_visuals() with `preds_distr = None` and `conf_level != None`, sometimes the wrong axis was being modified.

@@ -1,6 +1,6 @@
 <a name="logo-anchor"></a>
 <p align="center">
-<img src="app/bellatrex-logo.png" alt="Bellatrex Logo" width="60%"/>
+<img src="https://github.com/Klest94/Bellatrex/blob/main-dev/app/bellatrex-logo.png?raw=true" alt="Bellatrex Logo" width="60%"/>
 </p>
 
 # Welcome to Bellatrex!
@@ -12,7 +12,7 @@ To illustrate how Bellatrex works, let's consider an example: when a user provid
 <table>
   <tr>
     <td align="center">
-      <img src="app/illustration-Bellatrex.png" alt="Bellatrex image"/>
+      <img src="https://github.com/Klest94/Bellatrex/blob/main-dev/app/illustration-Bellatrex.png?raw=true" alt="Bellatrex image"/>
     </td>
   </tr>
   <tr>
@@ -60,5 +60,5 @@ pip install bellatrex[gui]
 
 # Ready for the tutorial!
 
-If you have downloaded the content of this folder and installed the packages successfully, you can dive into the [`tutorial.ipynb`](/tutorial.ipynb) code and try Bellatrex yourself.
+If you have downloaded the content of this folder and installed the packages successfully, you can dive into the [`tutorial.ipynb`](https://github.com/Klest94/Bellatrex/blob/main-dev/tutorial.ipynb) code and try Bellatrex yourself.
 
