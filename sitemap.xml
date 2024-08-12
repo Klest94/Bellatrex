@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>1.00</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/blob/main-dev/Licence.txt</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/issues</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/pulls</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/actions</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/security</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/blob/main-dev/.gitignore</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/blob/main-dev/MANIFEST.in</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/blob/main-dev/README.md</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/blob/main-dev/setup.py</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/blob/main-dev/tutorial.ipynb</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/releases</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/commit/1158c79068135d8018323bda88c7139d0c9a719a</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/releases/tag/v0.2.1</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels?sort=name-asc</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels?sort=name-desc</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels?sort=count-desc</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels?sort=count-asc</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels/bug</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels/documentation</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels/duplicate</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels/enhancement</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels/good%20first%20issue</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels/help%20wanted</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels/invalid</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels/question</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/labels/wontfix</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?state=open</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?state=closed</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=desc&amp;sort=due_date&amp;state=open</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=asc&amp;sort=due_date&amp;state=open</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=asc&amp;sort=completeness&amp;state=open</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=desc&amp;sort=completeness&amp;state=open</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=asc&amp;sort=title&amp;state=open</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=desc&amp;sort=title&amp;state=open</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=desc&amp;sort=count&amp;state=open</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=asc&amp;sort=count&amp;state=open</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/commit/91b13d44a2660aedd07724876a36a0cd3ebd8b3b</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=desc&amp;sort=due_date&amp;state=closed</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.41</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=asc&amp;sort=due_date&amp;state=closed</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.41</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=asc&amp;sort=completeness&amp;state=closed</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.41</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=desc&amp;sort=completeness&amp;state=closed</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.41</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=asc&amp;sort=title&amp;state=closed</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.41</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=desc&amp;sort=title&amp;state=closed</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.41</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=desc&amp;sort=count&amp;state=closed</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.41</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/milestones?direction=asc&amp;sort=count&amp;state=closed</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.41</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/commit/5157f52586603f2e549aeb14c196abc181df366c</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.41</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/pull/7</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.33</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/commit/ae7d5a289bf51c5c51fad1e3c11e80c086a8a0e4</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.33</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/commit/630dd4a2f18873ed061f4abd977b5e8082fd95da</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.33</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/pull/7/commits</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.26</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/pull/7/checks</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.26</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/pull/7/files</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.26</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/pull/6</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.26</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/commit/48c2fa99a88346a810b0eea0d3834228d6e1eac7</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.26</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/commit/38fbb6d01080bcf57aacaf7a02e911f33f36e3da</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.26</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/pull/6/commits</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.21</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/pull/6/checks</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.21</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/pull/6/files</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.21</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/commit/2876c5db87c7d78745f06f1ff64b6de997d5ae34</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.21</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/commit/e2f43a0eec5720b584318af6c2b3da986ec6c7e1</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.17</priority>
+</url>
+<url>
+  <loc>https://github.com/Klest94/Bellatrex/commit/75e905fd079357e01cdd663ae3245eae9b42107c</loc>
+  <lastmod>2024-08-12T11:37:56+00:00</lastmod>
+  <priority>0.13</priority>
+</url>
+
+
+</urlset>
