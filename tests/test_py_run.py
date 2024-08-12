@@ -22,8 +22,8 @@ from bellatrex.datasets import load_mtr_data, load_mlc_data
 from bellatrex.datasets import load_survival_data, load_binary_data, load_regression_data
 from bellatrex.utilities import get_auto_setup
 
-X, y = load_binary_data(return_X_y=True)
-# X, y = load_regression_data(return_X_y=True)
+# X, y = load_binary_data(return_X_y=True)
+X, y = load_regression_data(return_X_y=True)
 # X, y = load_survival_data(return_X_y=True)
 # X, y = load_mlc_data(return_X_y=True)
 # X, y = load_mtr_data(return_X_y=True)
@@ -49,14 +49,20 @@ elif SETUP.lower() in ['regression', 'multi-target']:
 
 
 from bellatrex import BellatrexExplain
-from bellatrex.wrapper_class import EnsembleWrapper, tree_list_to_model, DT_to_dict
+from bellatrex.wrapper_class import EnsembleWrapper, pack_trained_ensemble
 
 clf.fit(X_train, y_train)
 print('Model fitting complete.')
 
+clf_packed = pack_trained_ensemble(clf)
+
+# Load the pretrained model and make it compatible with Bellatrex through EnsembleWrapper()
+clf2 = EnsembleWrapper(clf_packed)
+
+
 #fit RF here. The hyperparameters are given
 # compatible with trained model clf, and with a wrapped dictionary as in clf1
-Btrex_fitted = BellatrexExplain(clf, set_up='auto',
+Btrex_fitted = BellatrexExplain(clf2, set_up='auto',
                                 p_grid={"n_clusters": [1, 2, 3]},
                                 verbose=3).fit(X_train, y_train)
 
@@ -70,17 +76,19 @@ for i in range(MAX_TEST_SAMPLES): # iterate for the first few samples in the tes
     os.makedirs(explan_dir, exist_ok=True)
     FILE_OUT = os.path.join(explan_dir, "Rules_"+str(SETUP)+'_id'+str(i)+'.txt')
 
-    y_train_pred = clf.predict_proba(X_train)[:,1]
-    y_test_pred = clf.predict_proba(X_test)[:,1]
+    # y_train_pred = clf.predict_proba(X_train)[:,1]
+    # y_test_pred = clf.predict_proba(X_test)[:,1]
+    # y_train_pred = clf.predict(X_train)
+    # y_test_pred = clf.predict(X_test)
 
     tuned_method = Btrex_fitted.explain(X_test, i)
     tuned_method.plot_overview(show=True)
 
     tuned_method.plot_visuals(plot_max_depth=5,
-                              preds_distr=y_train_pred,
+                              preds_distr=None,
                               conf_level=0.9,
                               tot_digits=4)
-    # plt.show()
+    plt.show()
 
     # tuned_method.plot_overview(show=True)
 

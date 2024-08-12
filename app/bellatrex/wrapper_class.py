@@ -7,10 +7,73 @@ Created on Mon Oct  9 14:55:55 2023
 """
 import numpy as np
 import pandas as pd
+import warnings
 from scipy.sparse import csr_matrix, hstack
 
+from sklearn.utils.validation import check_is_fitted
+
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sksurv.tree import SurvivalTree
+from sksurv.ensemble import RandomSurvivalForest
+
+
+def pack_trained_ensemble(clf, set_up="auto", time_to_bin=None):
+    """
+    Packs a trained ensemble model into a dictionary format compatible with scikit-learn.
+
+    Parameters
+    ----------
+    clf : RandomForestRegressor, RandomForestClassifier, RandomSurvivalForest
+        The trained ensemble classifier to be packed. The classifier must be one of the supported types:
+        RandomForestRegressor, RandomForestClassifier, or RandomSurvivalForest.
+
+    set_up : str, optional, default="auto"
+        Specifies the format in which the tree data should be output. This argument is passed to the
+        `tree_to_dict` function. The default value is "auto".
+
+    time_to_bin : float or int, optional
+        This parameter is specific to `RandomSurvivalForest`. If provided, it will be passed to the
+        `tree_to_dict` function for each tree. If `time_to_bin` is provided for any other classifier
+        type, a warning will be issued, and the parameter will be ignored.
+
+    Returns
+    -------
+    dict
+        A dictionary representation of the packed ensemble model. This format is compatible with scikit-learn's
+        model loading functions.
+
+    Raises
+    ------
+    ValueError
+        If the `clf` object is not one of the supported classifier types.
+
+    Notes
+    -----
+    This function first checks if the classifier is fitted using the `check_is_fitted` method. The individual trees
+    of the ensemble are then converted into a dictionary format using the `tree_to_dict` function and stored in a
+    list. Finally, the list of tree dictionaries is converted into a model dictionary using `tree_list_to_model`.
+    """
+
+    if not isinstance(clf, (RandomForestRegressor, RandomForestClassifier, RandomSurvivalForest)):
+        raise ValueError(f"Incompatible classifier object, found: {type(clf)}")
+
+    check_is_fitted(clf) # if not fitted, exception is raised
+
+    if time_to_bin is not None and not isinstance(clf, RandomSurvivalForest):
+        warnings.warn(f"time_to_bin parameter is ignored for any estimator other than RandomSurvivalForest.\n"
+                        f"Found: {type(clf)}")
+
+    tree_list = []
+    for t in range(clf.n_estimators):
+        tree_dict = tree_to_dict(clf, t,
+                                 output_format=set_up,
+                                 time_to_bin=time_to_bin)
+        tree_list.append(tree_dict)
+    # load the model in a dict format somewhat compatible with scikit-learn:
+    clf_out = tree_list_to_model(tree_list)
+
+    return clf_out
 
 class EnsembleWrapper:
     '''
@@ -19,8 +82,10 @@ class EnsembleWrapper:
     see "Example of loading a custom tree model into SHAP" in
     https://shap.readthedocs.io/en/stable/tabular_examples.html
     (link verified as of July 2024)
-    It is designed to be compatible with RandomForestClassifier,
-    RandomForestRegressor, and RandomSurvivalForest.
+    It is designed to be compatible with:\
+         RandomForestClassifier,
+        RandomForestRegressor, and
+        RandomSurvivalForest.
     It therefore assumes that the predictions are AVERAGED in the ensemble step
     '''
     class Estimator:
@@ -159,12 +224,12 @@ class EnsembleWrapper:
 
 
 
-def DT_to_dict(clf_obj, idx, output_format, T_to_bin=2):
+def tree_to_dict(clf_obj, idx, output_format, time_to_bin=None):
     '''
     Compatible with single output trees only, at the moment.
     compatible with SurvivalTree learners of a RandomSurvivalForest
     (scikit-survival 0.21)
-    with DecisionTreeClassifier and DecisionTreeRegressor from RandomForest-s
+    with DecisionTreeClassifier and DecisionTreeRegressor from RandomForests
     (scikit-learn 1.2.2)
     '''
     tree_obj = clf_obj[idx]
@@ -193,8 +258,8 @@ def DT_to_dict(clf_obj, idx, output_format, T_to_bin=2):
         if tree_dict['unique_times_'] is None and output_format not in ['probability']:
             raise KeyError('Missing \'unique_times_\' in the tree ensemble.')
 
-        if T_to_bin == None and tree_dict['unique_times_'] is not None: # select median time to (any) event
-            T_to_bin = tree_dict['unique_times_'][len(tree_dict['unique_times_'])//2]
+        if time_to_bin is None and tree_dict['unique_times_'] is not None: # select median time interval
+            time_to_bin = tree_dict['unique_times_'][len(tree_dict['unique_times_'])//2]
 
         if output_format == "predict_survival_curve":
             tree_dict["values"] = tree.value[:,:, 1]
@@ -213,9 +278,9 @@ def DT_to_dict(clf_obj, idx, output_format, T_to_bin=2):
 
         elif output_format == "probability":
             # pick last "False" index before "True" appears
-            index_T = np.argmax(tree_obj.unique_times_ > T_to_bin)-1
+            index_T = np.argmax(tree_obj.unique_times_ > time_to_bin)-1
             # it DOES work when all times are > T_bin, as it will again select -1
-            if min(tree_obj.unique_times_) > T_to_bin:
+            if min(tree_obj.unique_times_) > time_to_bin:
                 index_T = 0
             # probability of experiencing the event by t=2 -> P(t) = 1 - S(t)
             tree_dict["values"] = 1 - tree.value[:,index_T, 1].reshape(-1, 1)

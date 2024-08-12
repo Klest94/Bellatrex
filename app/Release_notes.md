@@ -1,10 +1,12 @@
 # Changelog
 
-## [0.2.2] - Unlreleased
+## [0.2.2] - 2024-08-12
 ### Fixed
-- Updated README.md with absolute paths instead of relative ones.
-- Updated Python requirements, show more clearly that the package is compatible with all versions from 3.9 to 3.12 included.
-
+- Updated README.md with absolute paths instead of relative ones (broken)
+- Updated Python requirements, show more clearly that the package is compatible with any version from 3.9 to 3.12.
+### Enhanced
+- Improved plotting format in plot_visuals() and inline printing in general, with custom function `frmt_pretty_print`
+- Streamlined storing of trained (Random Forest) models and loading of pre-trained models (Random Forest)
 
 ## [0.2.1] - 2024-09-02
 ### Fixed

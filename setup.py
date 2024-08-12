@@ -36,8 +36,10 @@ setup(
     licence='MIT',
     classifiers=[
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3.10",
-    ],
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',    ],
     install_requires=['scikit-learn >= 1.2',
                       'threadpoolctl>=3.1',
                       'scikit-survival>=0.22',
@@ -48,5 +50,5 @@ setup(
         'dev': ['pytest', 'twine'],
         'gui': ['dearpygui>=1.6.2', 'dearpygui-ext>=0.9.5'] # for Graphical User Interface (demo)
     },
-    python_requires='>=3.9',
+    python_requires='>=3.9, <4',
 )

@@ -12,12 +12,12 @@ To illustrate how Bellatrex works, let's consider an example: when a user provid
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/Klest94/Bellatrex/blob/main-dev/app/illustration-Bellatrex.png?raw=true" alt="Bellatrex image"/>
+      <img src="https://github.com/Klest94/Bellatrex/blob/main-dev/app/illustration-Bellatrex.png?raw=true" alt="Bellatrex image" width="90%"/>
     </td>
   </tr>
   <tr>
     <td align="left">
-      <em>Overview representation of Bellatrex, starting from top left, proceeding clockwise, we reach the output and explanation on the bottom left.</em>
+      <em>Overview of Bellatrex, starting from top left, proceeding clockwise, we reach the output with related explanations on the bottom left. </em>
     </td>
   </tr>
 </table>

@@ -141,15 +141,21 @@ class BellatrexExplain:
             bool: `True` if the model is fitted, `False` otherwise.
         '''
 
-        if isinstance(self.clf, dict):
+        if isinstance(self.clf, dict): # case of simple, packed dictionary:
             self.clf = EnsembleWrapper(self.clf)
+            if self.verbose >= 1:
+                print("Found dict, running \'EnsembleWrapper\' on it for compatibility")
             return True
-        else: #no dict, normal check if sklearn/sksurv model is fitted or not
+        elif isinstance(self.clf, EnsembleWrapper): # case where compatibility is already taken care of:
+            return True
+        else: #case where full sklearn/sksurv model is given. Check if it is fitted or not
             try:
                 check_is_fitted(self.clf) #only with sklearn models (but works with all of them)
                 return True
             except Exception: # if 'check_is_fitted' throws exception, we need it to output 'False'
                 return False
+        # Note that from sklearn 1.3. we can simply use return _is_fitted(self.clf) # returns boolean already
+
 
     def fit(self, X, y):
         '''
@@ -192,14 +198,30 @@ class BellatrexExplain:
         if self.verbose >= 2:
             print(f"oracle_sample is: {self.ys_oracle}")
 
-
         if self.set_up == "auto": # automatically determine scenario based on fitted classifier
 
-            if (isinstance(self.clf, dict) or isinstance(self.clf, EnsembleWrapper)):
-                raise ValueError("Dictionary format (wrapped ensemble) not compatible"
-                                 "with \'auto\' set-up selection. Select manually")
+            if isinstance(self.clf, EnsembleWrapper):
 
-            if isinstance(self.clf, sklearn.ensemble.RandomForestClassifier):
+                print("Auto-checking, let's go!")
+
+                if self.clf.ensemble_class == "RandomForestClassifier" and self.clf.n_outputs_ == 1:
+                    self.set_up = "binary"
+                elif self.clf.ensemble_class == "RandomForestClassifier" and self.clf.n_outputs_ > 1:
+                    self.set_up = "multi-label"
+                elif self.clf.ensemble_class == "RandomForestRegressor" and self.clf.n_outputs_ == 1:
+                    self.set_up = "regression"
+                elif self.clf.ensemble_class == "RandomForestRegressor" and self.clf.n_outputs_ > 1:
+                    self.set_up = "multi-target"
+                elif self.clf.ensemble_class == "RandomSurvivalForest" and y.shape[1] == 2:
+                    self.set_up = "survival"
+                elif self.clf.ensemble_class == "RandomSurvivalForest" and y.shape[1] > 2:
+                    raise ValueError(f"Shape of recarray labels {y.shape} implies multi-output survival analysis, "
+                                     "which is not implemented yet")
+                else:
+                    raise ValueError(f"EnsembleWrapper classifier {self.clf.ensemble_class} not compatible"
+                                     "with \'auto\' set-up selection. Select manually")
+
+            elif isinstance(self.clf, sklearn.ensemble.RandomForestClassifier):
                 if self.clf.n_outputs_ == 1:
                     self.set_up = 'binary'
                 else:
