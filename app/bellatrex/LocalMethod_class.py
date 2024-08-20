@@ -140,9 +140,7 @@ class BellatrexExplain:
         '''
 
         if isinstance(self.clf, dict): # case of simple, packed dictionary:
-            self.clf = EnsembleWrapper(self.clf)
-            if self.verbose >= 1:
-                print("Found dict, running \'EnsembleWrapper\' on it for compatibility")
+            self.clf = EnsembleWrapper(self.clf) # EnsembleWrapper() ensures compatibily of (packed) dictionaries
             return True
         elif isinstance(self.clf, EnsembleWrapper): # case where compatibility is already taken care of:
             return True
@@ -276,7 +274,7 @@ class BellatrexExplain:
             self.set_up, sample, self.verbose
         )
 
-        best_params = {"n_clusters": 2, "n_dims": None, "n_trees": 80}
+        best_params = {"n_clusters": 2, "n_dims": None, "n_trees": 80} #default combination, in case everything fails
 
         if self.n_jobs == 1:
             for params in grid_list:

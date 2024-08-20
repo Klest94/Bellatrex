@@ -110,8 +110,6 @@ class TreeExtraction:# is it convenient if it inherits?
         '''
         kmeans, HL_bunch = self.preselect_represent_cluster_trees()
 
-        # kmeans, HL_bunch = self.preselect_represent_cluster_trees()
-
         self.final_trees_idx, \
         self.cluster_sizes = self.extract_final_trees(HL_bunch.proj_data,
                                                               HL_bunch.index, kmeans)

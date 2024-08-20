@@ -1,6 +1,10 @@
 # Changelog
 
-## [0.2.3] - Unreleased
+## [0.2.3] - 2024-08-20
+### Refactored
+- Cleaned some code and dropped unused files and functions (still ongoing)
+### Enhanced
+- Further streamlined loading of pre-trained models.
 
 
 ## [0.2.2] - 2024-08-12
