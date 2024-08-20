@@ -4,11 +4,9 @@ import warnings
 from joblib import Parallel, delayed
 import numpy as np
 import pandas as pd
-from scipy import stats
 
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
 
 import sklearn
 from sklearn.exceptions import ConvergenceWarning
@@ -184,7 +182,8 @@ class BellatrexExplain:
         '''
 
         if self.force_refit is False and self.is_fitted():
-            print("Model is already fitted, building explanation.")
+            if self.verbose >=0:
+                print("Model is already fitted, building explanation.")
         else:
             if self.verbose >= 0:
                 print("Fitting the model...", end='')
@@ -202,8 +201,6 @@ class BellatrexExplain:
 
             if isinstance(self.clf, EnsembleWrapper):
 
-                print("Auto-checking, let's go!")
-
                 if self.clf.ensemble_class == "RandomForestClassifier" and self.clf.n_outputs_ == 1:
                     self.set_up = "binary"
                 elif self.clf.ensemble_class == "RandomForestClassifier" and self.clf.n_outputs_ > 1:
@@ -218,8 +215,8 @@ class BellatrexExplain:
                     raise ValueError(f"Shape of recarray labels {y.shape} implies multi-output survival analysis, "
                                      "which is not implemented yet")
                 else:
-                    raise ValueError(f"EnsembleWrapper classifier {self.clf.ensemble_class} not compatible"
-                                     "with \'auto\' set-up selection. Select manually")
+                    raise ValueError(f"Classifier {self.clf.ensemble_class} not compatible"
+                                     "with \'auto\' set-up selection. PLease select the set-up manually")
 
             elif isinstance(self.clf, sklearn.ensemble.RandomForestClassifier):
                 if self.clf.n_outputs_ == 1:

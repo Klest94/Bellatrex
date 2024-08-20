@@ -82,11 +82,11 @@ class EnsembleWrapper:
     see "Example of loading a custom tree model into SHAP" in
     https://shap.readthedocs.io/en/stable/tabular_examples.html
     (link verified as of July 2024)
-    It is designed to be compatible with:\
-         RandomForestClassifier,
-        RandomForestRegressor, and
+    It is designed to be compatible with:
+        RandomForestClassifier,
+        RandomForestRegressor,
         RandomSurvivalForest.
-    It therefore assumes that the predictions are AVERAGED in the ensemble step
+    It assumes that the predictions are AVERAGED in the ensemble step
     '''
     class Estimator:
 

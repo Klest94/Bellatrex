@@ -40,7 +40,7 @@ setup(
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',    ],
-    install_requires=['scikit-learn >= 1.2',
+    install_requires=['scikit-learn >= 1.2', # avoiding (for now) some validation.utils functions that appear in 1.3.1
                       'threadpoolctl>=3.1',
                       'scikit-survival>=0.22',
                       'scipy>=1.11',

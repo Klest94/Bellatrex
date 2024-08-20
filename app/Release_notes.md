@@ -1,11 +1,14 @@
 # Changelog
 
+## [0.2.3] - Unreleased
+
+
 ## [0.2.2] - 2024-08-12
 ### Fixed
-- Updated README.md with absolute paths instead of relative ones (broken)
-- Updated Python requirements, show more clearly that the package is compatible with any version from 3.9 to 3.12.
+- Updated README.md with absolute paths instead of relative ones.
+- Updated Python requirements, show explicitly under ```setup.classifiers`` that the package is compatible with any `python >= 3.9`.
 ### Enhanced
-- Improved plotting format in plot_visuals() and inline printing in general, with custom function `frmt_pretty_print`
+- Improved plotting format in plot_visuals() and inline printing in general, with custom function `frmt_pretty_print`.
 - Streamlined storing of trained (Random Forest) models and loading of pre-trained models (Random Forest)
 
 ## [0.2.1] - 2024-09-02
@@ -15,9 +18,9 @@
 ## [0.2.0] - 2024-09-01
 ### Refactored
 - Refactor the explain() method to accomodate for plot_overview() and plot_visuals(). Separating tasks and making method chaining possible.
-- Refactor code to improve performance (e.g. not storing entire test set under `self.X` if not necessary)
+- Refactor code to improve performance (e.g. not storing entire test set under `self.X` if not necessary).
 ### Enhanced
-- Improved plotting format in plot_visuals() and inline printing in general, with custom function `frmt_pretty_print`
+- Improved plotting format in plot_visuals() and inline printing in general, with custom function `frmt_pretty_print`.
 
 ## [0.1.4] - 2024-07-28
 ### Added
@@ -25,12 +28,12 @@
 - Added enhanced visualization output, compatible with single-output predictions.
 
 ### Refactored
-- Refactored code in the BellatrexExplain class, and gui_plots_code script
-- Refactored code in the visualisation script for compatibiility with BellatrexExplain
+- Refactored code in the BellatrexExplain class, and gui_plots_code script.
+- Refactored code in the visualisation script for compatibiility with BellatrexExplain.
 
 ## [0.1.3] - 2024-07-24
 ### Fixed
-- Fixed version file (it was still problematic), made it a .txt file. Updated MANIFEST.in accordingly
+- Fixed version file (it was still problematic), made it a .txt file. Updated MANIFEST.in accordingly.
 
 ## [0.1.2] - 2024-07-24
 ### Tested
