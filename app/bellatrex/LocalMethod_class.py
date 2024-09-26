@@ -207,7 +207,7 @@ class BellatrexExplain:
                     self.set_up = "regression"
                 elif self.clf.ensemble_class == "RandomForestRegressor" and self.clf.n_outputs_ > 1:
                     self.set_up = "multi-target"
-                elif self.clf.ensemble_class == "RandomSurvivalForest" and y.shape[1] == 2:
+                elif self.clf.ensemble_class == "RandomSurvivalForest" and y.shape[1] == 2: #ideally, check for 1 field boolean and one field numeric
                     self.set_up = "survival"
                 elif self.clf.ensemble_class == "RandomSurvivalForest" and y.shape[1] > 2:
                     raise ValueError(f"Shape of recarray labels {y.shape} implies multi-output survival analysis, "
@@ -282,7 +282,7 @@ class BellatrexExplain:
                     candidate = trees_extract.set_params(**params).main_fit()
                     perf = candidate.score(self.fidelity_measure, self.ys_oracle)
                 except ConvergenceWarning as e:
-                    warnings.warn(f'Something went wrong. {e}, skipping candidate: {params}')
+                    warnings.warn(f'Something went wrong (ConvergenceWarning). {e}, skipping candidate: {params}')
                     perf = -np.inf
                 # except KeyboardInterrupt as e:
                 #     raise e
