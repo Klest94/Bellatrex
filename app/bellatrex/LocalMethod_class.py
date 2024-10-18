@@ -120,7 +120,7 @@ class BellatrexExplain:
         if np.array([isinstance(i, float) for i in self.n_trees]).all(): # if all elements are floats
             if max(self.n_trees) <= 1.0 and min(self.n_trees) > 0: # all elements are in the (0, 1] interval:
                 # round to closest integer
-                self.n_trees = (np.array(self.n_trees)*self.clf.n_estimators+0.5).astype(int)
+                self.n_trees = (np.array(self.n_trees)*self.clf.n_estimators+0.5).astype(int).tolist() # all params are sorted as list, keep consistency
 
 
     def is_fitted(self): #auxiliary function that returns boolean
@@ -274,7 +274,7 @@ class BellatrexExplain:
             self.set_up, sample, self.verbose
         )
 
-        best_params = {"n_clusters": 2, "n_dims": None, "n_trees": 80} #default combination, in case everything fails
+        best_params = {"n_clusters": 2, "n_dims": None, "n_trees": 80} # default combination, in case everything fails
 
         if self.n_jobs == 1:
             for params in grid_list:
@@ -345,7 +345,7 @@ class BellatrexExplain:
         tuned_method = trees_extract.set_params(**best_params).main_fit()
         tuned_method.sample_score = tuned_method.score(self.fidelity_measure, self.ys_oracle)
 
-        final_extract_trees = tuned_method.final_trees_idx
+        final_extract_trees = np.array(tuned_method.final_trees_idx) #better printout as array (for some reason...)
         final_cluster_sizes = tuned_method.cluster_sizes
 
         if not isinstance(self.clf, RandomSurvivalForest):
@@ -521,6 +521,9 @@ class BellatrexExplain:
         if keep_files is False: # delete txt files after reading stored rules
             os.remove(out_file)
             os.remove(file_extra)
+            if self.verbose >= 3:
+                print(f"Removed txt files from:\n{os.path.dirname(out_file)}")
+
 
         fig, axs = plot_rules(rules, preds, baselines, weights,
                               max_rulelen=plot_max_depth, other_preds=other_preds,

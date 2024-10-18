@@ -1,4 +1,7 @@
-
+'''
+Author: Klest Dedja
+Here we manually test most of the features
+'''
 import os
 import matplotlib.pyplot as plt
 
@@ -46,6 +49,8 @@ elif SETUP.lower() in ['binary', 'multi-label']:
 elif SETUP.lower() in ['regression', 'multi-target']:
     clf = RandomForestRegressor(n_estimators=100, min_samples_split=5,
                                 n_jobs=-2, random_state=0)
+else:
+    raise ValueError(f"Detection task {SETUP} not compatible with Bellatrex (yet)")
 
 
 from bellatrex import BellatrexExplain
@@ -80,7 +85,7 @@ for i in range(MAX_TEST_SAMPLES): # iterate for the first few samples in the tes
     y_train_pred = predict_helper(clf, X_train)
 
     tuned_method = Btrex_fitted.explain(X_test, i)
-    tuned_method.plot_overview(show=True)
+    # tuned_method.plot_overview(show=True)
 
     tuned_method.plot_visuals(plot_max_depth=5,
                               preds_distr=y_train_pred,

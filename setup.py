@@ -40,7 +40,7 @@ setup(
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',    ],
-    install_requires=['scikit-learn >= 1.2', # avoiding (for now) some validation.utils functions that appear in 1.3.1
+    install_requires=['scikit-learn >= 1.2', # we avoid making use (for now) of some validation.utils functions that appear in 1.3.1
                       'threadpoolctl>=3.1',
                       'scikit-survival>=0.22',
                       'scipy>=1.11',
@@ -50,5 +50,5 @@ setup(
         'dev': ['pytest', 'twine'],
         'gui': ['dearpygui>=1.6.2', 'dearpygui-ext>=0.9.5'] # for Graphical User Interface (demo)
     },
-    python_requires='>=3.9, <4',
+    python_requires='>=3.9, <3.13',
 )
