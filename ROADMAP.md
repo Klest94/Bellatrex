@@ -1,15 +1,28 @@
 # Roadmap
 
-This file sketches the direction of the project. It’s meant as a _guidepost_ and priorities can shift over time.
+This file sketches the direction of the project. It is a guidepost, and priorities can
+shift over time.
 
 
 ## Immediate goals (v0.4.x patches)
 
-- Update documentation to recent 0.4.0 changes
-- Track coverage % in CI, ensure consistency between local runs and codecov runs
-- Increase coverage to >80%. Main gains to be made in the newly refactored GUI code (migrated to _nicegui_)
-- Consider adding static type checking such as _mypy_
-- Consider a modern suite for code quality stack: balck + pytest + mypy, and later add ruff + coverage + pre-commit
+- Increase line coverage from roughly 67% to above 80%. The largest gains are still
+  available in the NiceGUI backend and `utilities.py`.
+- Stabilize the NiceGUI explorer, especially responsiveness and handling of multiple
+  explanation windows.
+- Finish integrating static checks into development and CI. Black, Ruff, mypy, pytest,
+  and coverage are configured; dependency declarations, enforcement, and pre-commit
+  hooks still need to be consolidated.
+- Add automated checks for README links and tutorial execution before releases.
+
+
+## Recently completed
+
+- Released v0.4.0 with a NiceGUI frontend and Python 3.13 and 3.14 support.
+- Published `BellatrexExplain`, `pack_trained_ensemble`, and `predict_helper` as top-level
+  imports.
+- Updated and simplified `tutorial.ipynb` and `tutorial.py` for the 0.4.0 API.
+- Added consistent local and Codecov coverage reporting and repaired release-facing links.
 
 
 ## Mid-term ideas (future releases)
@@ -31,7 +44,7 @@ The weight of the extra $q$ dimensions should be controlled by a new parameter.
 ### Type safety
 
 - Add type hints throughout the codebase, starting with the public API in
-  `bellatrex_explain.py` and `utilities.py`. Current coverage is below 1%.
+  `bellatrex_explain.py` and `utilities.py`, where annotation coverage remains limited.
 - Use `from __future__ import annotations` to keep annotations compatible with
   older Python versions while writing modern syntax.
 
@@ -55,7 +68,7 @@ The weight of the extra $q$ dimensions should be controlled by a new parameter.
 
 - Add docstrings to all internal functions that currently have none (e.g.,
   `frmt_pretty_print`, `rule_to_file`, `_validate_p_grid`).
-- Set up auto-generated API docs (Sphinx / ReadTheDocs / zensical. See short term goals).
+- Set up auto-generated API docs with Sphinx, Read the Docs, or Zensical.
 
 ### Testing
 
@@ -73,11 +86,11 @@ The weight of the extra $q$ dimensions should be controlled by a new parameter.
 
 
 ### Wider compatibility and support
-- Add explainability features for more model types (Extra Tress, Gradient Boosting Trees, etc.).
+- Add explainability features for more model types (Extra Trees, gradient-boosted trees, etc.).
 - Provide a simple web demo (Streamlit or FastAPI).
 - Improve documentation:
     - interactive notebooks
-    - fully fledged website `readthedocs` style
+    - a full documentation website
 
 
 ## How to contribute
@@ -85,4 +98,4 @@ The weight of the extra $q$ dimensions should be controlled by a new parameter.
 Open a PR directly, either for small fixes or for suggesting new features and roadmap items.
 
 ---
-_Last updated: 2026-05-11_
+_Last updated: 2026-07-13_

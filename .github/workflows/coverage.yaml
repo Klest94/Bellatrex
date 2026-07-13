@@ -46,7 +46,7 @@ jobs:
 
       - name: Run tests with coverage, same settings as local
         run: |
-          pytest -q -m "not gui" --cov=bellatrex --cov-report=xml --cov-report=html --cov-report=term-missing:skip-covered --cov-config=.coveragerc
+          pytest --cov=bellatrex --cov-report=xml --cov-report=html --cov-report=term-missing:skip-covered --cov-config=.coveragerc
 
       # Upload coverage tests to Codecov
       - name: Upload to Codecov

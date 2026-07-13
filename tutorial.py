@@ -1,7 +1,6 @@
 """
-This is a Python script with the tutorial, to demonstrate how to use Bellatrex.
-Less user friendly compare to the notebook, but easier to run tests.
-For a more user-friendly tutorial, please check the Jupyter notebook with the same name.
+This script demonstrates how to use Bellatrex.
+It mirrors the Jupyter notebook, but is easier to run locally or in automated checks.
 """
 
 import os
@@ -49,7 +48,18 @@ print("Model fitting complete.")
 
 # --- Step 2: Pack the trained model (optional) -------------------------------
 
-# pack_trained_ensemble converts the fitted forest into a portable dictionary.
+# The pre-trained model may be stored under app/bellatrex/datasets/model_example.pkl
+# To save your own model, uncomment and adjust the line below:
+# joblib.dump(clf, os.path.join('app', 'bellatrex', 'datasets', 'model_example.pkl'))
+
+model_path = os.path.join("app", "bellatrex", "datasets", f"{SETUP}_pretrained.pkl")
+if not os.path.exists(model_path):
+    raise FileNotFoundError(f"No pre-trained model found at {model_path}")
+
+clf = joblib.load(model_path)
+print(f"Loaded pre-trained model from {model_path}")
+
+# pack_trained_ensemble converts the fitted forest into a memory-efficient dictionary.
 # Pass clf_packed (or the original clf) to BellatrexExplain – both are supported.
 clf_packed = pack_trained_ensemble(clf)
 print(f"Packed {clf_packed['ensemble_class']} with {len(clf_packed['trees'])} trees.")
@@ -58,32 +68,40 @@ print(f"Packed {clf_packed['ensemble_class']} with {len(clf_packed['trees'])} tr
 # --- Step 3: Fit Bellatrex and explain predictions --------------------------
 
 Btrex_fitted = BellatrexExplain(
-    clf, set_up="auto", p_grid={"n_clusters": [1, 2, 3]}, verbose=1
+    clf,
+    set_up="auto",
+    p_grid={"n_clusters": [1, 2, 3], "n_dims": [2, None]},
+    verbose=1,
 ).fit(X_train, y_train)
 
 # Pre-compute training predictions once, used as background distribution in plot_visuals
 y_train_pred = predict_helper(clf, X_train)
 
-N_TEST_SAMPLES = 2
-for i in range(N_TEST_SAMPLES):
-    print(f"\n--- Explaining sample i={i} ---")
+SAMPLE_INDEX = 0
+print(f"\n--- Explaining sample i={SAMPLE_INDEX} ---")
 
-    tuned_method = Btrex_fitted.explain(X_test, i)
+tuned_method = Btrex_fitted.explain(X_test, SAMPLE_INDEX)
 
-    # Plot 1: cluster overview (shows pre-selected trees and selected rules)
-    tuned_method.plot_overview(plot_gui=PLOT_GUI, show=PLOT_GUI)
-    # When plot_gui=True the NiceGUI window blocks until closed, then the loop continues.
-    if PLOT_GUI:
-        # Ensure no placeholder matplotlib figure leaks from overview when NiceGUI is used.
-        plt.close("all")
-    else:
-        plt.show(block=True)
+# Plot 1: cluster overview (shows pre-selected trees and selected rules).
+# In GUI mode this opens one NiceGUI explorer for SAMPLE_INDEX.
+fig_overview, _ = tuned_method.plot_overview(plot_gui=PLOT_GUI, show=PLOT_GUI)
+if not PLOT_GUI:
+    plt.show(block=True)
+plt.close(fig_overview)
 
-    # Plot 2: rule-level detail (single-output tasks only)
-    if SETUP.lower() in ["binary", "survival", "regression"]:
-        tuned_method.plot_visuals(
-            plot_max_depth=5, preds_distr=y_train_pred, conf_level=0.9, tot_digits=4, show=False
-        )
-        # plot_visuals is always a plain matplotlib figure; show it regardless of GUI mode.
-        plt.show(block=True)
-        plt.close("all")
+# Plot 2: rule-level detail (single-output tasks only).
+# plot_visuals is always a plain matplotlib figure; show it regardless of GUI mode.
+if SETUP.lower() in ["binary", "regression", "survival"]:
+    fig_visuals, _ = tuned_method.plot_visuals(
+        plot_max_depth=5,
+        preds_distr=y_train_pred,
+        conf_level=0.9,
+        tot_digits=4,
+        show=False,
+    )
+    plt.show(block=True)
+    plt.close(fig_visuals)
+
+# Save the text explanation and print it to the console.
+tuned_method.create_rules_txt()
+tuned_method.print_rules_txt()
