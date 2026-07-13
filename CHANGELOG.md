@@ -1,11 +1,16 @@
 # Changelog
 
-## [0.4.0] - pre-release
+## [Unreleased]
 
-This is a major release, with a completely revised user interface: we phased out from
-DearPyGUI and adopted NiceGUI for easier maintainability. This allows us to enhance
-Bellatrex compatibility to Python 3.13 and 3.14. Compatibility with Python 3.9 has
-been dropped.
+### Documentation
+- Aligned the roadmap, README, changelog, and script tutorial with the released 0.4.0 API
+  and the simplified notebook workflow.
+
+## [0.4.0] - 2026-06-08
+
+This is a major release with a completely revised user interface: DearPyGUI was replaced
+with NiceGUI for easier maintenance. Bellatrex now supports Python 3.10 through 3.14;
+support for Python 3.9 has been dropped.
 
 ### Added
 - `pack_trained_ensemble` and `predict_helper` are now importable directly from `bellatrex`

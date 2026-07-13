@@ -24,9 +24,9 @@ Curious about the details and inner mechanisms of Bellatrex? Check out [our pape
 
 - [How Bellatrex works](#how-bellatrex-works)
 - [Supported models and tasks](#supported-models-and-tasks)
-- [Installation](#set-up)
+- [Installation](#installation)
+- [Interactive GUI mode](#interactive-gui-mode)
 - [Quickstart](#quickstart)
-- [API Overview](#api-overview)
 - [Support and Contributions](#support-and-contributions)
 - [References](#references)
 
@@ -65,11 +65,11 @@ The current support of Bellatrex focuses on Random Forest models implemented via
 - Survival Analysis (time-to-event predictions with censoring) via `RandomSurvivalForest`
 
 
-# Set-up
+## Installation
 
-Bellatrex is available on Pypi, simply run:
+Bellatrex supports Python 3.10 and newer and is available on PyPI:
 
-```
+```bash
 pip install bellatrex
 ```
 
@@ -78,13 +78,18 @@ If this step fails and you don't find a solution immediately, please [open an is
 
 ## Interactive GUI mode
 
-The `nicegui`-based interactive frontend is installed by default, but is not yet currently _stable_. Users may experience slow responsiveness, and various probelms when trying to open multiple sample expalanations at the same time.
+The NiceGUI-based interactive frontend is installed by default and can be opened with
+`plot_overview(plot_gui=True)`. It is still experimental: responsiveness can be slow, and
+opening several sample explanations at once is not yet fully supported.
 
 ## Quickstart
 
-A step-by-step walkthrough covering all supported tasks is available in [`tutorial.ipynb`](https://github.com/KlestDedja/Bellatrex/blob/main/tutorial.ipynb).
+A step-by-step walkthrough covering every supported task is available in
+[`tutorial.ipynb`](https://github.com/KlestDedja/Bellatrex/blob/main/tutorial.ipynb). A
+script version for local runs and automated checks is available as
+[`tutorial.py`](https://github.com/KlestDedja/Bellatrex/blob/main/tutorial.py).
 
-# Support and Contributions
+## Support and Contributions
 
 Bellatrex is an open-source project that was initially developed from research funding by [Flanders AI](https://www.flandersai.be/en). Since the end of that funding period, the project has been maintained through volunteer work, but there is always exciting work ahead: new features, performance improvements, tests for robustness... if you find Bellatrex useful or believe in its goals, there are several meaningful ways you can help support its ongoing development:
 
