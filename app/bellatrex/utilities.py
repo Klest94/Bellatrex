@@ -1,23 +1,24 @@
 import warnings
 from enum import Enum
-import numpy as np
-import pandas as pd
-
-import sklearn
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.decomposition import PCA
-from sklearn.tree import _tree  # to check things like _tree.TREE_UNDEFINED
-
-import sksurv
-from sksurv.ensemble import RandomSurvivalForest
-from sksurv.tree import SurvivalTree
 
 import matplotlib as mpl
-from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FuncFormatter
+import numpy as np
+import pandas as pd
+import sklearn
+import sksurv
 from matplotlib.colorbar import Colorbar
+from matplotlib.colors import BoundaryNorm, LinearSegmentedColormap
+from matplotlib.ticker import FuncFormatter
+from sklearn.decomposition import PCA
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.tree import (
+    DecisionTreeClassifier,
+    DecisionTreeRegressor,
+    _tree,  # to check things like _tree.TREE_UNDEFINED
+)
+from sksurv.ensemble import RandomSurvivalForest
+from sksurv.tree import SurvivalTree
 
 from .wrapper_class import EnsembleWrapper
 

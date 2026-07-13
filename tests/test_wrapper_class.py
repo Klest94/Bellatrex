@@ -1,12 +1,12 @@
-import pytest
 import numpy as np
-from scipy.sparse import csr_matrix
+import pytest
 from bellatrex.wrapper_class import (
-    pack_trained_ensemble,
     EnsembleWrapper,
-    tree_to_dict,
+    pack_trained_ensemble,
     tree_list_to_model,
+    tree_to_dict,
 )
+from scipy.sparse import csr_matrix
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
 # from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor

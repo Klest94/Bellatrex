@@ -7,16 +7,15 @@ Created on Mon Oct  9 14:55:55 2023
 """
 
 import warnings
+
 import numpy as np
 import pandas as pd
 from scipy.sparse import csr_matrix, hstack
-
-from sklearn.utils.validation import check_is_fitted
-
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sksurv.tree import SurvivalTree
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.utils.validation import check_is_fitted
 from sksurv.ensemble import RandomSurvivalForest
+from sksurv.tree import SurvivalTree
 
 
 def pack_trained_ensemble(

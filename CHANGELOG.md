@@ -1,5 +1,27 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+- Fixed parallel hyperparameter search so `n_jobs > 1` selects the best successful
+  candidate instead of always using a hard-coded fallback.
+- Implemented the documented `proj_method=None` path and made `ys_oracle` accept
+  pandas and NumPy-like inputs.
+- Made partial `p_grid` values preserve unspecified defaults and reject invalid
+  `n_jobs` values early.
+- Restored tree-plot compatibility with newer scikit-learn releases where the private
+  `FriedmanMSE` criterion class is no longer exposed.
+- Corrected stale license and version entries in `MANIFEST.in`.
+
+### Changed
+- Standardized development and quick CI on Python 3.12 while retaining Python
+  3.10–3.14 compatibility checks and Python 3.10 syntax targets.
+- Added Ruff and mypy to development dependencies and quick CI, and cleaned the
+  existing static-analysis baseline.
+- Made release version comparisons PEP 440-aware and based on PyPI's reported latest
+  release rather than unordered JSON keys.
+- Made both tutorials use the model they train instead of repository-only pickle paths.
+
 ## [0.4.0] - pre-release
 
 This is a major release, with a completely revised user interface: we phased out from

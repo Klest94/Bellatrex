@@ -1,12 +1,17 @@
 import warnings
-import numpy as np
-from scipy import stats
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
 
-from .visualization_extra import _input_validation, compute_max_visual_len
-from .visualization_extra import define_relative_position, plot_arrow
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
+from scipy import stats
+
 from .utilities import frmt_pretty_print
+from .visualization_extra import (
+    _input_validation,
+    compute_max_visual_len,
+    define_relative_position,
+    plot_arrow,
+)
 
 
 def plot_rules(
@@ -101,7 +106,8 @@ def plot_rules(
         vmin=-0.5 * (dev_max - dev_min), vmax=0.5 * (dev_max - dev_min)
     )
 
-    get_color = lambda value, baseline: cmap(norm(value - baseline))
+    def get_color(value, baseline):
+        return cmap(norm(value - baseline))
 
     # Initialize the plot (rules and arrows only)
     plot_height_rulebased = 0.9 * max(max_rulelen_visual, 4)

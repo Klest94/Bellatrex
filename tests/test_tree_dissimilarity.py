@@ -1,11 +1,9 @@
 import numpy as np
 import pandas as pd
-import pytest
-from sklearn.datasets import make_classification
-from sklearn.ensemble import RandomForestClassifier
-
 from bellatrex.tree_dissimilarity import TreeDissimilarity
 from bellatrex.tree_representation_utils import rule_splits_to_vector
+from sklearn.datasets import make_classification
+from sklearn.ensemble import RandomForestClassifier
 
 
 def test_avg_dissimilarity_computation():

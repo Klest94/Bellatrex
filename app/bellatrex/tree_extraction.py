@@ -1,22 +1,24 @@
-import numpy as np
-import pandas as pd
-import os
-
 # due to a known issue with memory leak on Windows with MKL, set the following:
 # os.environ["OMP_NUM_THREADS"] = "1"
 # os.environ["MKL_NUM_THREADS"] = "1"
 import warnings
-from sklearn.metrics.pairwise import cosine_distances
-from sklearn.manifold import MDS  # , TSNE
-from sklearn.decomposition import PCA
+
+import numpy as np
+import pandas as pd
+import sksurv
 from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.manifold import MDS  # , TSNE
+from sklearn.metrics.pairwise import cosine_distances
 from sklearn.neighbors import KDTree
 from sklearn.utils import Bunch
-import sksurv
 
 # from .utilities import  frmt_pretty_print
-from .tree_representation_utils import tree_splits_to_vector  # tree_vector
-from .tree_representation_utils import rule_splits_to_vector, add_emergency_noise
+from .tree_representation_utils import (
+    add_emergency_noise,
+    rule_splits_to_vector,
+    tree_splits_to_vector,  # tree_vector
+)
 from .utilities import predict_helper, safe_element_to_scalar
 
 
@@ -161,7 +163,7 @@ class TreeExtraction:  # is it convenient if it inherits?
         # for PCA, the tree_representation is enough: tree_vector / rule_vector,
         # therefore, no pairwise distance is needed
 
-        if self.proj_method == "PCA":
+        if self.proj_method in ("PCA", None):
             pass  # no pairwise distance calculation
 
         # for MDS, a transformation to distance square matrix is needed first
@@ -342,7 +344,7 @@ class TreeExtraction:  # is it convenient if it inherits?
             )
             proj_trees = m.fit_transform(selected_trees)
 
-        else:  # method == PCA and n_dims == None: do nothing :-P
+        else:  # PCA with n_dims=None, or proj_method=None: keep the original representation
             proj_trees = selected_trees
 
         return proj_trees

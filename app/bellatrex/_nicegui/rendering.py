@@ -13,9 +13,7 @@ from matplotlib.colors import BoundaryNorm, LinearSegmentedColormap
 from matplotlib.ticker import FuncFormatter
 from sklearn.decomposition import PCA
 
-from ..utilities import colormap_from_str
-from ..utilities import custom_axes_limit, custom_formatter
-from ..utilities import rule_print_inline
+from ..utilities import colormap_from_str, custom_axes_limit, custom_formatter, rule_print_inline
 from .models import InteractPlot, InteractPoint
 
 if TYPE_CHECKING:
@@ -27,8 +25,8 @@ PLOT_WIDTH = 520
 PLOT_HEIGHT = 430
 COLORBAR_FIGSIZE = (1.94, 4.84)
 COLORBAR_DPI = 110
-CLUSTER_COLORBAR_CAX_RECT = [0.40, 0.06, 0.18, 0.88]
-PREDICTION_COLORBAR_CAX_RECT = [0.50, 0.06, 0.18, 0.88]
+CLUSTER_COLORBAR_CAX_RECT = (0.40, 0.06, 0.18, 0.88)
+PREDICTION_COLORBAR_CAX_RECT = (0.50, 0.06, 0.18, 0.88)
 
 
 def _feature_names_for_clf(clf) -> list[str]:
@@ -37,7 +35,9 @@ def _feature_names_for_clf(clf) -> list[str]:
     return [f"X{i}" for i in range(clf.n_features_in_)]
 
 
-def _create_colorbar_figure(cax_rect: list[float]) -> tuple[plt.Figure, plt.Axes]:
+def _create_colorbar_figure(
+    cax_rect: tuple[float, float, float, float],
+) -> tuple[plt.Figure, plt.Axes]:
     """Create a fixed canvas with an explicitly positioned colorbar axis."""
     figure = plt.figure(figsize=COLORBAR_FIGSIZE, dpi=COLORBAR_DPI)
     axis = figure.add_axes(cax_rect)

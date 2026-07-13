@@ -8,15 +8,12 @@ import os
 
 import bellatrex
 import matplotlib.pyplot as plt
-import joblib
-
-from sksurv.ensemble import RandomSurvivalForest
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.model_selection import train_test_split
-
 from bellatrex import BellatrexExplain, pack_trained_ensemble, predict_helper
 from bellatrex import datasets as bellatrex_datasets
 from bellatrex.utilities import get_auto_setup
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sksurv.ensemble import RandomSurvivalForest
 
 print("Bellatrex version:", bellatrex.__version__)
 print("Working directory:", os.getcwd())
@@ -50,21 +47,9 @@ clf.fit(X_train, y_train)
 print("Model fitting complete.")
 
 
-# --- Step 2: Pack or load the trained model (optional) ----------------------
+# --- Step 2: Pack the trained model (optional) -------------------------------
 
-# The pre-trained model may be stored under app/bellatrex/datasets/model_example.pkl
-# To save your own model, uncomment and adjust the line below:
-# joblib.dump(clf, os.path.join('app', 'bellatrex', 'datasets', 'model_example.pkl'))
-
-model_path = os.path.join("app", "bellatrex", "datasets", "model_example.pkl")
-if os.path.exists(model_path):
-    clf = joblib.load(model_path)
-    print(f"Loaded pre-trained model from {model_path}")
-else:
-    # No pre-trained model found: use the fitted clf from Step 1
-    print("No pre-trained model found; using the freshly fitted model.")
-
-# pack_trained_ensemble converts the fitted forest into a memory-efficient dictionary.
+# pack_trained_ensemble converts the fitted forest into a portable dictionary.
 # Pass clf_packed (or the original clf) to BellatrexExplain – both are supported.
 clf_packed = pack_trained_ensemble(clf)
 print(f"Packed {clf_packed['ensemble_class']} with {len(clf_packed['trees'])} trees.")

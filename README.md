@@ -63,17 +63,20 @@ The current support of Bellatrex focuses on Random Forest models implemented via
 
 # Set-up
 
-To install Bellatrex, create an anaconda environment:
+To install Bellatrex, create an Anaconda environment using Python 3.12, the standard
+development and quick-CI version:
 
 ```
 conda create -n bellatrex python=3.12
 ```
 
-and install the package:
+Then install the package:
 
 ```
 pip install bellatrex
 ```
+
+Bellatrex remains compatible with, and release-tested on, Python 3.10 through 3.14.
 
 If this step fails and you don't find a solution immediately, please [open an issue](https://github.com/KlestDedja/Bellatrex/issues). In the meantime, you can also try to [clone](https://github.com/KlestDedja/Bellatrex) the repository manually.
 

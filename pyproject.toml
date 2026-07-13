@@ -40,6 +40,8 @@ dev = [
     "pytest-xdist",
     "twine",
     "black >= 24",
+    "ruff >= 0.5",
+    "mypy >= 1.10",
     "nbstripout >= 0.6",
     "vulture >= 2.7",
 ]
@@ -51,7 +53,7 @@ dev = [
 
 [tool.black]
 line-length = 100
-target-version = ['py312']
+target-version = ['py310']
 skip-string-normalization = false
 exclude = '''
 /(
@@ -69,15 +71,25 @@ exclude = '''
 
 [tool.ruff]
 line-length = 100
-target-version = "py39"
+target-version = "py310"
+exclude = [
+    ".venv",
+    ".venv-*",
+    "build",
+    "dist",
+    "__pycache__",
+    "app/bellatrex/gui_plots_code.py", # deprecated DearPyGUI source retained for reference
+]
+
+[tool.ruff.lint]
 # E/W: pycodestyle, F: pyflakes, I: isort
 select = ["E", "F", "W", "I"]
 # E501 (line-too-long) is handled by black; E741 (ambiguous var names) too noisy for now
 ignore = ["E501", "E741"]
-exclude = [".venv", "build", "dist", "__pycache__"]
 
 [tool.mypy]
 # Permissive baseline — tighten gradually as type hints are added
+python_version = "3.12"
 ignore_missing_imports = true
 allow_untyped_defs = true
 allow_untyped_calls = true

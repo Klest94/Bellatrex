@@ -1,6 +1,7 @@
 from importlib.resources import files
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
 
 def load_data(filename: str) -> pd.DataFrame:

@@ -1,16 +1,15 @@
 import pytest
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sksurv.ensemble import RandomSurvivalForest
-
 from bellatrex.bellatrex_explain import BellatrexExplain
 from bellatrex.datasets import (
+    load_binary_data,
     load_mlc_data,
+    load_mtr_data,
     load_regression_data,
     load_survival_data,
-    load_binary_data,
-    load_mtr_data,
 )
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sksurv.ensemble import RandomSurvivalForest
 
 DATA_LOADERS = {
     "binary": load_binary_data,

@@ -1,5 +1,5 @@
-import pickle
 import os
+import pickle
 import sys
 import types
 
@@ -13,27 +13,29 @@ pytest.importorskip("nicegui", reason="Install Bellatrex[gui] to run GUI tests")
 pytestmark = pytest.mark.gui
 
 try:
+    from app.bellatrex import nicegui_plots_code
     from app.bellatrex._nicegui.cache import TreeCacheEntry, TreeRenderCache
     from app.bellatrex._nicegui.models import InteractPlot, InteractPoint
     from app.bellatrex._nicegui.rendering import build_plotly_figure, plot_with_interface
-    from app.bellatrex._nicegui.runtime import build_main_window_payload, cleanup_temp_artifacts
     from app.bellatrex._nicegui.runtime import (
+        build_main_window_payload,
+        cleanup_temp_artifacts,
         ensure_nicegui_screen_test_port,
         prepare_session_temp_dir,
         prepare_tree_window_temp_dir,
     )
-    from app.bellatrex import nicegui_plots_code
 except ImportError:
+    from bellatrex import nicegui_plots_code
     from bellatrex._nicegui.cache import TreeCacheEntry, TreeRenderCache
     from bellatrex._nicegui.models import InteractPlot, InteractPoint
     from bellatrex._nicegui.rendering import build_plotly_figure, plot_with_interface
-    from bellatrex._nicegui.runtime import build_main_window_payload, cleanup_temp_artifacts
     from bellatrex._nicegui.runtime import (
+        build_main_window_payload,
+        cleanup_temp_artifacts,
         ensure_nicegui_screen_test_port,
         prepare_session_temp_dir,
         prepare_tree_window_temp_dir,
     )
-    from bellatrex import nicegui_plots_code
 
 
 class DummyKMeans:

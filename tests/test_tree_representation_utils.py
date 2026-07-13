@@ -1,6 +1,5 @@
-import pytest
 import numpy as np
-import pandas as pd
+import pytest
 from bellatrex import tree_representation_utils as tr_utils
 
 

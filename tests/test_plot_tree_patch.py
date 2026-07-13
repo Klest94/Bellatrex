@@ -1,17 +1,16 @@
-import pytest
-import numpy as np
 import matplotlib
+import numpy as np
+import pytest
 
 matplotlib.use("Agg")  # Use non-interactive backend for tests
 import matplotlib.pyplot as plt
-
 from sklearn.datasets import load_iris
 from sklearn.tree import DecisionTreeClassifier
 
 try:
-    from bellatrex.plot_tree_patch import _color_brew, plot_tree_patched, _MPLTreeExporter
+    from bellatrex.plot_tree_patch import _color_brew, _MPLTreeExporter, plot_tree_patched
 except ImportError:
-    from app.bellatrex.plot_tree_patch import _color_brew, plot_tree_patched, _MPLTreeExporter
+    from app.bellatrex.plot_tree_patch import _color_brew, _MPLTreeExporter, plot_tree_patched
 
 
 def test_color_brew_length_and_type():
@@ -71,9 +70,6 @@ def test_plot_tree_patched_survivaltree():
     anns = plot_tree_patched(clf, ax=ax)
     assert isinstance(anns, list)
     plt.close(fig)
-
-
-import types
 
 
 class DummyTree:

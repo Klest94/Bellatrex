@@ -1,8 +1,9 @@
 import os
-import pytest
+from importlib import import_module
+
 import numpy as np
 import pandas as pd
-from importlib import import_module
+import pytest
 
 try:  # TODO: Paths to be updated: this workaround makes tests work across different setups.
     from app.bellatrex.bellatrex_explain import BellatrexExplain
@@ -46,6 +47,122 @@ def test_bellatrex_explain_fit(mock_clf, mock_data):
     explainer = BellatrexExplain(mock_clf, verbose=1)
     explainer.fit(X, y)
     assert explainer.is_fitted() is True
+
+
+def test_partial_grid_preserves_unspecified_defaults(mock_clf, mock_data):
+    X, y = mock_data
+    explainer = BellatrexExplain(mock_clf, p_grid={"n_clusters": [1]}).fit(X, y)
+
+    assert explainer.n_trees == [6, 8, 10]
+    assert explainer.n_dims == [2, None]
+    assert explainer.n_clusters == [1]
+
+
+@pytest.mark.parametrize("n_jobs", [0, -1, True, 1.5])
+def test_n_jobs_must_be_a_positive_integer(mock_clf, n_jobs):
+    with pytest.raises(ValueError, match="positive integer"):
+        BellatrexExplain(mock_clf, n_jobs=n_jobs)
+
+
+def test_parallel_grid_search_selects_best_candidate(monkeypatch, mock_clf, mock_data):
+    X, y = mock_data
+    mock_clf.fit(X, y)
+    module = import_module(BellatrexExplain.__module__)
+
+    class FakeTreeExtraction:
+        def __init__(
+            self,
+            proj_method,
+            dissim_method,
+            feature_represent,
+            n_trees,
+            n_dims,
+            n_clusters,
+            pre_select_loss,
+            fidelity_measure,
+            clf,
+            oracle_sample,
+            set_up,
+            sample,
+            verbose,
+            output_explain=False,
+        ):
+            self.proj_method = proj_method
+            self.dissim_method = dissim_method
+            self.feature_represent = feature_represent
+            self.n_trees = n_trees
+            self.n_dims = n_dims
+            self.n_clusters = n_clusters
+            self.pre_select_loss = pre_select_loss
+            self.fidelity_measure = fidelity_measure
+            self.clf = clf
+            self.oracle_sample = oracle_sample
+            self.set_up = set_up
+            self.sample = sample
+            self.verbose = verbose
+            self.output_explain = output_explain
+            self.final_trees_idx = [0]
+            self.cluster_sizes = np.array([1])
+
+        def set_params(self, **params):
+            for key, value in params.items():
+                setattr(self, key, value)
+            return self
+
+        def main_fit(self):
+            return self
+
+        def score(self, fidelity_measure, oracle_sample):
+            return float(self.n_clusters)
+
+    monkeypatch.setattr(module, "TreeExtraction", FakeTreeExtraction)
+    explainer = BellatrexExplain(
+        mock_clf,
+        n_jobs=2,
+        p_grid={"n_trees": [3], "n_dims": [None], "n_clusters": [1, 2]},
+    ).fit(X, y)
+
+    explainer.explain(X, 0)
+
+    assert explainer.tuned_method.n_clusters == 2
+    assert explainer.tuned_method.sample_score == 2.0
+
+
+def test_numpy_oracle_values_are_indexed_positionally(monkeypatch, mock_clf, mock_data):
+    X, y = mock_data
+    oracle = np.linspace(0.0, 1.0, len(X))
+    seen_oracles = []
+    module = import_module(BellatrexExplain.__module__)
+    original_score = module.TreeExtraction.score
+
+    def recording_score(self, fidelity_measure, oracle_sample):
+        seen_oracles.append(oracle_sample)
+        return original_score(self, fidelity_measure, oracle_sample)
+
+    monkeypatch.setattr(module.TreeExtraction, "score", recording_score)
+    explainer = BellatrexExplain(
+        mock_clf,
+        ys_oracle=oracle,
+        p_grid={"n_trees": [3], "n_dims": [None], "n_clusters": [1]},
+    ).fit(X, y)
+
+    explainer.explain(X, 2)
+
+    assert seen_oracles
+    assert all(value == oracle[2] for value in seen_oracles)
+
+
+def test_projection_can_be_disabled(mock_clf, mock_data):
+    X, y = mock_data
+    explainer = BellatrexExplain(
+        mock_clf,
+        proj_method=None,
+        p_grid={"n_trees": [3], "n_dims": [2], "n_clusters": [1]},
+    ).fit(X, y)
+
+    result = explainer.explain(X, 0)
+
+    assert result.tuned_method.proj_method is None
 
 
 # def test_bellatrex_explain_explain(mock_clf, mock_data):
