@@ -10,10 +10,8 @@ shift over time.
   available in the NiceGUI backend and `utilities.py`.
 - Stabilize the NiceGUI explorer, especially responsiveness and handling of multiple
   explanation windows.
-- Finish integrating static checks into development and CI. Black, Ruff, mypy, pytest,
-  and coverage are configured; dependency declarations, enforcement, and pre-commit
-  hooks still need to be consolidated.
-- Add automated checks for README links and tutorial execution before releases.
+- Add pre-commit hooks for the Black, Ruff, mypy, and pytest checks now enforced in CI.
+- Add automated checks for README links before releases.
 
 
 ## Recently completed
@@ -23,6 +21,9 @@ shift over time.
   imports.
 - Updated and simplified `tutorial.ipynb` and `tutorial.py` for the 0.4.0 API.
 - Added consistent local and Codecov coverage reporting and repaired release-facing links.
+- Standardized quick CI and development tooling on Python 3.12 while retaining the
+  Python 3.10–3.14 release compatibility matrix.
+- Enforced Black, Ruff, and mypy in quick CI and added a headless tutorial smoke test.
 
 
 ## Mid-term ideas (future releases)

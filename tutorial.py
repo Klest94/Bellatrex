@@ -18,6 +18,7 @@ print("Bellatrex version:", bellatrex.__version__)
 print("Working directory:", os.getcwd())
 
 PLOT_GUI = True
+WRITE_RULES_TXT = True
 
 # Uncomment the dataset that matches the prediction task you want to explore:
 X, y = bellatrex_datasets.load_binary_data(return_X_y=True)  # binary classification
@@ -103,5 +104,6 @@ if SETUP.lower() in ["binary", "regression", "survival"]:
     plt.close(fig_visuals)
 
 # Save the text explanation and print it to the console.
-tuned_method.create_rules_txt()
-tuned_method.print_rules_txt()
+if WRITE_RULES_TXT:
+    tuned_method.create_rules_txt()
+    tuned_method.print_rules_txt()
