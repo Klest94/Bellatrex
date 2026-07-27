@@ -125,10 +125,9 @@ def _normalize_tree_name(raw_tree_name: object) -> str | None:
     if isinstance(tree_name, dict):
         return None
 
-    try:
+    if isinstance(tree_name, (int, float)):
         return str(int(tree_name))
-    except (TypeError, ValueError):
-        return None
+    return None
 
 
 def _build_tree_cache_entry(
