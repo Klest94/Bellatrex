@@ -31,7 +31,7 @@ dependencies = [
     "plotly>=6.0",
 ]
 
-# here optional dependecies for testing and development, include black
+# Dependencies for testing and development.
 [project.optional-dependencies]
 dev = [
     "ipykernel",
@@ -39,11 +39,10 @@ dev = [
     "pytest-cov",
     "pytest-xdist",
     "twine",
-    "black >= 24",
-    "ruff >= 0.5",
-    "mypy >= 1.10",
+    "black >= 24.1, < 27",
+    "ruff >= 0.15, < 1",
+    "mypy >= 1.15, < 2",
     "nbstripout >= 0.6",
-    "vulture >= 2.7",
 ]
 
 # TODO: move this to normal dependencies (0.4.1), drop separation
@@ -89,11 +88,17 @@ select = ["E", "F", "W", "I"]
 ignore = ["E501", "E741"]
 
 [tool.mypy]
-# Permissive baseline — tighten gradually as type hints are added
+# Gradual baseline: mypy is the single type-checking authority in the editor and CI.
+# Function bodies without annotations are intentionally deferred for now.
 python_version = "3.12"
+files = ["app/bellatrex"]
+exclude = ["app/bellatrex/gui_plots_code.py"]
 ignore_missing_imports = true
 allow_untyped_defs = true
 allow_untyped_calls = true
+check_untyped_defs = false
+warn_redundant_casts = true
+warn_unused_configs = true
 warn_unused_ignores = true
 pretty = true
 

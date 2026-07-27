@@ -23,7 +23,6 @@ from .utilities import predict_helper, safe_element_to_scalar
 
 
 class TreeExtraction:  # is it convenient if it inherits?
-
     RAND_SEED = 0
     BINARY_KEYS = ["bin", "binary"]
     SURVIVAL_KEYS = ["surv", "survival"]
@@ -168,7 +167,6 @@ class TreeExtraction:  # is it convenient if it inherits?
 
         # for MDS, a transformation to distance square matrix is needed first
         elif self.proj_method == "MDS":
-
             tree_matrix = self.transform_to_symm_matrix(tree_matrix)
             # in case distances all collapsed to 0
             if np.abs(tree_matrix).max() < 1e-6:

@@ -381,7 +381,7 @@ class _MPLTreeExporter(_BaseTreeExporter):
         if isinstance(precision, Integral):
             if precision < 0:
                 raise ValueError(
-                    "'precision' should be greater or equal to 0." f" Got {precision} instead."
+                    f"'precision' should be greater or equal to 0. Got {precision} instead."
                 )
         else:
             raise ValueError(f"'precision' should be an integer. Got {type(precision)} instead.")

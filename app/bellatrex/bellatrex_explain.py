@@ -768,7 +768,7 @@ class BellatrexExplain:
             main_path = os.path.join(target_dir, filename)
             if not os.path.exists(main_path):
                 raise ValueError(
-                    f"No rules file found at '{main_path}'. " "Call create_rules_txt() first."
+                    f"No rules file found at '{main_path}'. Call create_rules_txt() first."
                 )
 
         with open(main_path, "r", encoding="utf-8") as f:

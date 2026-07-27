@@ -43,7 +43,7 @@ TREE_WINDOW_HEAD_CSS = """
 """
 
 TREE_WINDOW_LAYOUT_STYLE = (
-    "width:100%; height:100%; gap:0.75rem; padding:1rem; " "box-sizing:border-box; overflow:hidden;"
+    "width:100%; height:100%; gap:0.75rem; padding:1rem; box-sizing:border-box; overflow:hidden;"
 )
 TREE_WINDOW_VIEWPORT_STYLE = (
     "flex:1 1 auto; min-height:0; min-width:0; width:100%; overflow-x:auto; "

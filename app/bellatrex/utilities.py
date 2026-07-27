@@ -154,7 +154,7 @@ def _infer_set_up(clf, y) -> str:
             f"{clf.n_outputs_.shape} != {clf.unique_times_.shape}\n"
             "Note that multi-event Survival analysis is not supported yet"
         )
-    raise ValueError("Provided model is not recognized or compatible with Bellatrex: " f"{clf!r}")
+    raise ValueError(f"Provided model is not recognized or compatible with Bellatrex: {clf!r}")
 
 
 def _is_binary_clf(clf):
@@ -169,7 +169,6 @@ def _is_binary_clf(clf):
 def concatenate_helper(y_pred: np.ndarray, y_local_pred: np.ndarray, axis: int = 0) -> np.ndarray:
 
     if y_pred.shape[0] == 0:  # if still empty (no rows added)
-
         # Initialize final_array columns based on the first new_array
         if y_local_pred.ndim == 2:  # if output is 2D array
             y_pred = np.empty((0, y_local_pred.shape[1]))  # for (n_samples, n_outputs)
@@ -307,7 +306,7 @@ def frmt_pretty_print(y_pred, digits_single=4, digits_vect=3) -> str:
                     f"{val:.{trail_pretty_digits(val, digits_vect)}f}" for val in y_pred
                 )
             else:  # majority of numbers is very small or very big: use expon notation, drop one decimal
-                y_pred_str = ", ".join(f"{val:.{digits_vect-1}e}" for val in y_pred)
+                y_pred_str = ", ".join(f"{val:.{digits_vect - 1}e}" for val in y_pred)
         elif y_pred.size == 1:  # Handle single-value array of shape (1,)
             y_pred = y_pred.item()
 
@@ -318,7 +317,7 @@ def frmt_pretty_print(y_pred, digits_single=4, digits_vect=3) -> str:
         if not is_extreme:
             y_pred_str = f"{y_pred:.{trail_pretty_digits(y_pred, digits_single)}f}"
         else:  # very small or very big: use expon notation, drop one decimal
-            y_pred_str = f"{y_pred:.{digits_single-1}e}"
+            y_pred_str = f"{y_pred:.{digits_single - 1}e}"
 
     if isinstance(y_pred, str):
         warnings.warn(
@@ -749,7 +748,6 @@ def plot_preselected_trees(
     if tuned_method.clf.n_outputs_ == 1 or isinstance(
         tuned_method.clf, RandomSurvivalForest
     ):  # single output, color on predictions
-
         ### right figure scatterplot here (axes[2] and axes[3]):
 
         is_binary = _is_binary_clf(tuned_method.clf)

@@ -11,9 +11,9 @@ def _input_validation(rules, preds, baselines, weights):
     Raises:
     - AssertionError: If the lengths of `rules`, `preds`, `baselines`, and `weights` are not equal.
     """
-    assert (
-        len(rules) == len(preds) == len(baselines) == len(weights)
-    ), f"All input lists must have the same lengths, found {len(rules)}, {len(preds)}, {len(baselines)}, {len(weights)}."
+    assert len(rules) == len(preds) == len(baselines) == len(weights), (
+        f"All input lists must have the same lengths, found {len(rules)}, {len(preds)}, {len(baselines)}, {len(weights)}."
+    )
     return None
 
 
@@ -98,7 +98,6 @@ def plot_arrow(ax, pos, weight, pred_out, fontsize, tot_digits):
 
     # Draw segments (all except final arrow head)
     for i in range(len(points) - 2):
-
         posA = convert_to_data_coords(ax, points[i])
         posB = convert_to_data_coords(ax, points[i + 1])
 
@@ -151,7 +150,6 @@ def plot_arrow(ax, pos, weight, pred_out, fontsize, tot_digits):
 
 
 if __name__ == "__main__":
-
     # fig, ax = plt.subplots()
     # ax.set_xlim(0, 0.6)
     # ax = plot_arrow(ax, 'center', 0.2, 0.35, 1.5, fontsize=12)  # Example with 'weight' as 'w', 'pred_out' as 'p', and 'color' as 'blue'

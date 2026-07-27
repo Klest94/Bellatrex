@@ -1,19 +1,15 @@
-"""Rendering helpers for the NiceGUI frontend."""
-
 from __future__ import annotations
 
 import io
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import colormaps
-from matplotlib.axes import Axes
 from matplotlib.colorbar import Colorbar
 from matplotlib.colors import BoundaryNorm, LinearSegmentedColormap
-from matplotlib.figure import Figure
 from matplotlib.ticker import FuncFormatter
 from sklearn.decomposition import PCA
 
@@ -41,7 +37,7 @@ def _feature_names_for_clf(clf) -> list[str]:
 
 def _create_colorbar_figure(
     cax_rect: tuple[float, float, float, float],
-) -> tuple[Figure, Axes]:
+) -> tuple[plt.Figure, plt.Axes]:
     """Create a fixed canvas with an explicitly positioned colorbar axis."""
     figure = plt.figure(figsize=COLORBAR_FIGSIZE, dpi=COLORBAR_DPI)
     axis = figure.add_axes(cax_rect)
@@ -108,14 +104,16 @@ def write_tree_image(tree_png: bytes, tree_name: str, temp_files_dir: str) -> tu
     return image_name, image_path
 
 
-def _is_scalar_like(value: object) -> bool:
+def _is_scalar_like(value: Any) -> bool:
     return np.asarray(value).size == 1
 
 
 def _rgba_to_plotly(rgba: list[float]) -> str:
-    return (
-        f"rgba({int(rgba[0])},{int(rgba[1])},{int(rgba[2])},"
-        f"{float(rgba[3]) / 255.0:.2f})"
+    return "rgba({},{},{},{:.2f})".format(
+        int(rgba[0]),
+        int(rgba[1]),
+        int(rgba[2]),
+        float(rgba[3]) / 255.0,
     )
 
 
@@ -132,14 +130,13 @@ def _add_points_trace(
     size: float,
     trace_name: str,
     clustered: bool,
-    plotly_go: object,
+    plotly_go: Any,
 ) -> None:
     if not points:
         return
 
-    scatter = getattr(plotly_go, "Scatter")
     figure.add_trace(
-        scatter(
+        plotly_go.Scatter(
             x=[float(point.pos[0]) for point in points],
             y=[float(point.pos[1]) for point in points],
             mode="markers",
@@ -164,14 +161,13 @@ def _add_legend_trace(
     size: float,
     trace_name: str,
     fill_color: str = "rgba(220,220,220,1.0)",
-    plotly_go: object | None = None,
+    plotly_go: Any | None = None,
 ) -> None:
     if plotly_go is None:
         raise ValueError("plotly_go must be provided when adding legend traces")
 
-    scatter = getattr(plotly_go, "Scatter")
     figure.add_trace(
-        scatter(
+        plotly_go.Scatter(
             x=[None],
             y=[None],
             mode="markers",
@@ -188,7 +184,7 @@ def _add_legend_trace(
 
 
 def build_plotly_figure(interactplot: InteractPlot) -> go.Figure:
-    import plotly.graph_objects as go  # pylint: disable=import-outside-toplevel
+    import plotly.graph_objects as go
 
     figure = go.Figure()
     candidate_points = [point for point in interactplot.points if point.shape != "star"]
@@ -301,8 +297,6 @@ def plot_with_interface(
         else:
             fig, ax = _create_colorbar_figure(PREDICTION_COLORBAR_CAX_RECT)
             if rf_pred_is_scalar:
-                if scalar_rf_pred is None:
-                    raise ValueError("A scalar random-forest prediction was expected.")
                 is_binary = plot_data_bunch.set_up == "binary"
                 v_min, v_max = custom_axes_limit(
                     np.asarray(pred_values).min(),
@@ -311,7 +305,7 @@ def plot_with_interface(
                     is_binary,
                 )
                 norm_preds = BoundaryNorm(np.linspace(v_min, v_max, 256), color_map_right.N)
-                pred_tick = round(scalar_rf_pred, 3)
+                pred_tick = np.round(scalar_rf_pred, 3)
                 cb = Colorbar(ax, cmap=color_map_right, norm=norm_preds)
                 ax.set_title("RF pred: " + str(pred_tick), fontsize=8, pad=6)
                 cb.ax.plot([0, 1], [pred_values] * 2, color="grey", linewidth=1)

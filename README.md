@@ -98,7 +98,7 @@ Bellatrex is an open-source project that was initially developed from research f
 - 🐛 **Test and Report Issues:** if you encounter any bugs, inconsistencies, or simply find areas for improvement, open an [issue](https://github.com/KlestDedja/Bellatrex/issues) and share example code and error traces.
 - ⭐ **Give a star Bellatrex:** it will make the project more visible to others and motivate ongoing voluntary development.
 - 💡 **Create your own feature**: have an idea for a useful addition? Open a PR for self-contained changes, or open an issue first to discuss possible designs, usefulness, and alignment with the project.
-- 🔧 **Contribute code:** open a PR directly for small fixes, or open an issue first to discuss larger changes. See [ROADMAP.md](./ROADMAP.md) for planned features.
+- 🔧 **Contribute code:** open a PR directly for small fixes, or open an issue first to discuss larger changes. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the local quality checks and [ROADMAP.md](./ROADMAP.md) for planned features.
 
 ## References
 

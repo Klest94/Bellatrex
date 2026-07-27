@@ -45,9 +45,9 @@ DATA_LOADERS = {
 def prepare_fitted_bellatrex(setup, loader):
     X, y = loader(return_X_y=True)
     X_train, X_test, y_train, _ = train_test_split(X, y, test_size=0.3, random_state=0)
-    assert setup == get_auto_setup(
-        y
-    ), f"Automatic task detection failed: found {get_auto_setup(y)} instead of {setup}"
+    assert setup == get_auto_setup(y), (
+        f"Automatic task detection failed: found {get_auto_setup(y)} instead of {setup}"
+    )
 
     if setup.lower() == "survival":
         clf = RandomSurvivalForest(
@@ -126,7 +126,6 @@ def test_create_rules_txt(tmp_path):
             os.remove(out_file)
             # If there are more trees than clusters, check for extra rules file and remove it
             if enough_trees:
-
                 assert os.path.exists(out_file_extra), "Rules file was not created"
                 with open(out_file_extra, "r", encoding="utf8") as f:
                     content = f.read()

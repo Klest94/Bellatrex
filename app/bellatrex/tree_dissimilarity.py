@@ -7,7 +7,6 @@ from .tree_representation_utils import rule_splits_to_vector, tree_splits_to_vec
 
 
 class TreeDissimilarity:
-
     def __init__(
         self,
         clf,

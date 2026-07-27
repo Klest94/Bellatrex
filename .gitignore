@@ -1,6 +1,9 @@
 # Editor related files
 __pycache__/
-.vscode
+.cache/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 .vs
 .pylintrc
 .spyderproject

@@ -6,6 +6,7 @@ It mirrors the Jupyter notebook, but is easier to run locally or in automated ch
 import os
 
 import bellatrex
+import joblib
 import matplotlib.pyplot as plt
 from bellatrex import BellatrexExplain, pack_trained_ensemble, predict_helper
 from bellatrex import datasets as bellatrex_datasets
