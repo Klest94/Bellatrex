@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import numpy as np
 
 
 @dataclass(slots=True)
@@ -6,7 +7,7 @@ class InteractPoint:
     """Container for one clickable point in the NiceGUI scatter plot."""
 
     name: str
-    pos: object
+    pos: np.ndarray
     color: list[float]
     size: float
     shape: str
