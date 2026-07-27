@@ -23,7 +23,8 @@ shift over time.
 - Added consistent local and Codecov coverage reporting and repaired release-facing links.
 - Standardized quick CI and development tooling on Python 3.12 while retaining the
   Python 3.10–3.14 release compatibility matrix.
-- Enforced Black, Ruff, and mypy in quick CI and added a headless tutorial smoke test.
+- Enforced Black, Ruff, and mypy in quick CI and on pull requests targeting `main`,
+  and added a headless tutorial smoke test.
 
 
 ## Mid-term ideas (future releases)

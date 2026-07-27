@@ -2,18 +2,27 @@
 
 ## Development environment
 
-Create a virtual environment named `.venv`, activate it, and install Bellatrex with
-its development tools:
+Create a virtual environment (for example, named `.venv`) and activate it. For a lightweight setup
+that can run the test suite:
 
 ```bash
 python -m venv .venv
 python -m pip install --upgrade pip
+python -m pip install -e . pytest
+```
+
+For the complete maintainer environment, including coverage, notebook, formatting,
+linting, and type-checking tools, install the development extra instead:
+
+```bash
 python -m pip install -e ".[dev]"
 ```
 
-In VS Code, select that `.venv` interpreter. The repository recommends the Python,
-Pylance, Black, Ruff, and mypy extensions. Pylance provides language navigation and
-completion; mypy is the project's type-checking authority.
+Installing the development extra is recommended but not required to open a pull request;
+GitHub Actions runs the mandatory checks before changes can merge. In VS Code, select
+the `.venv` interpreter. The repository recommends the Python, Pylance, Black, Ruff,
+and mypy extensions. Pylance provides language navigation and completion; mypy is the
+project's type-checking authority.
 
 ## Quality checks
 
