@@ -34,10 +34,8 @@ def tree_splits_to_vector(clf, idx1, split_weight=None):  # it's a SIMILARITY me
     elif split_weight == "simple":
         the_weights = None  # no weighting (all equal weights)
     else:
-        raise KeyError(
-            "split_weight_style = '{}' not recognized,\
-                 accepted values are 'simple' and  'by_samples'."
-        )
+        raise KeyError("split_weight_style = '{}' not recognized,\
+                 accepted values are 'simple' and  'by_samples'.")
     tree_vector_no_pad = np.bincount(the_splits, weights=the_weights)
     # PROBLEM: some features might be missing (at the tail), fill with zeros
     # does this work for both binary and survival?
@@ -75,10 +73,8 @@ def rule_splits_to_vector(clf, idx1, feature_represent, sample):  # it's a SIMIL
     elif feature_represent == "simple":
         the_weights = None  # no weighting (all equal weights)
     else:
-        raise KeyError(
-            "split_weight_style = '{}' not recognized,\
-                  accepted values are 'simple' or  'by_samples' and 'weighted' ."
-        )
+        raise KeyError("split_weight_style = '{}' not recognized,\
+                  accepted values are 'simple' or  'by_samples' and 'weighted' .")
 
     rule_vec_no_pad = np.bincount(path_splits, weights=the_weights)
 

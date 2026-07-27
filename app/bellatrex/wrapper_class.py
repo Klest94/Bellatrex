@@ -300,7 +300,9 @@ def tree_to_dict(clf_obj, idx, output_format, time_to_bin=None):
         elif output_format in ["survival", "time-to-event"]:
             tree_dict["values"] = np.trapz(
                 tree.value[:, :, 1], tree_obj.unique_times_, axis=1
-            ).reshape(-1, 1)  # integrate S(t) over unique_times_
+            ).reshape(
+                -1, 1
+            )  # integrate S(t) over unique_times_
             # output shape: (n_nodes, 1) with E[S(t)] at each node
 
         elif output_format == "probability":

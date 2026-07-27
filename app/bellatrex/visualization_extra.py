@@ -11,9 +11,9 @@ def _input_validation(rules, preds, baselines, weights):
     Raises:
     - AssertionError: If the lengths of `rules`, `preds`, `baselines`, and `weights` are not equal.
     """
-    assert len(rules) == len(preds) == len(baselines) == len(weights), (
-        f"All input lists must have the same lengths, found {len(rules)}, {len(preds)}, {len(baselines)}, {len(weights)}."
-    )
+    assert (
+        len(rules) == len(preds) == len(baselines) == len(weights)
+    ), f"All input lists must have the same lengths, found {len(rules)}, {len(preds)}, {len(baselines)}, {len(weights)}."
     return None
 
 
