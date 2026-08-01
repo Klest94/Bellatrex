@@ -79,7 +79,6 @@ support for Python 3.9 has been dropped.
 - Improved GitHub workflow actions, which now include `cross-platform`,
   `cross-version`, `coverage`, `CodeQL`, and automatic `release` to PyPi.
 
-
 ## [0.3.0] - 2025-07-24
 
 ### Enhanced
@@ -98,7 +97,6 @@ An initial test coverage is introduced, with first set of pytest running success
 Many `DeprecationWarning` warnings have been resolved (mainly within numpy and
 matplotlib), making the package more future-proof.
 
-
 ## [0.2.3] - 2024-11-15
 
 ### Fixed
@@ -116,20 +114,17 @@ matplotlib), making the package more future-proof.
 - Further streamlined loading of pre-trained models with `EnsembleWrapper` class.
 - Improved compatibility between `EnsembleWrapper` and GUI interface.
 
-
-
 ## [0.2.2] - 2024-08-12
 
 ### Fixed
 
 - Updated README.md with absolute paths instead of relative ones.
-- Updated Python requirements, show explicitly under ```setup.classifiers`` that the package is compatible with any `python >= 3.9`.
+- Updated Python requirements, show under ```setup.classifiers`` compatibility with `python >= 3.9`.
 
 ### Enhanced
 
 - Improved plotting format in plot_visuals() and inline printing in general, with custom function `frmt_pretty_print`.
-- Streamlined storing of trained (Random Forest) models and loading of pre-trained
-  models (Random Forest).
+- Streamlined storing of trained (Random Forest) models and loading of pre-trained models (Random Forest).
 
 ## [0.2.1] - 2024-09-02
 
@@ -165,7 +160,8 @@ matplotlib), making the package more future-proof.
 ## [0.1.3] - 2024-07-24
 
 ### Fixed
-- Fixed version file (it was still problematic), made it a .txt file. Updated MANIFEST.in accordingly.
+
+- Fixed version file, made it a .txt file. Updated MANIFEST.in accordingly.
 
 ## [0.1.2] - 2024-07-24
 
@@ -177,7 +173,8 @@ matplotlib), making the package more future-proof.
 
 ### Fixed
 
-- Fixed a bug with the version file that prevented the package from being installed properly. Moved the version file and updated the related path imports.
+- Fixed a bug with the version file that prevented the package from being installed properly.
+Moved the version file and updated the related path imports.
 
 ## [0.1.0] - 2024-07-23
 

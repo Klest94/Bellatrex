@@ -1,3 +1,5 @@
+"""Data models used by the NiceGUI interactive explorer."""
+
 from dataclasses import dataclass
 
 import numpy as np

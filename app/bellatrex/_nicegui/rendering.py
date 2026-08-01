@@ -1,7 +1,10 @@
+"""Rendering helpers for the NiceGUI interactive explorer."""
+
 from __future__ import annotations
 
 import io
 import os
+from importlib import import_module
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
@@ -13,6 +16,7 @@ from matplotlib.colors import BoundaryNorm, LinearSegmentedColormap
 from matplotlib.ticker import FuncFormatter
 from sklearn.decomposition import PCA
 
+from ..plot_tree_patch import plot_tree_patched
 from ..utilities import colormap_from_str, custom_axes_limit, custom_formatter, rule_print_inline
 from .models import InteractPlot, InteractPoint
 
@@ -52,7 +56,7 @@ def print_tree_rule(tree_index, render_context: dict) -> None:
 
 
 def render_tree_image(tree_index, render_context: dict) -> tuple[bytes, str]:
-    from ..plot_tree_patch import plot_tree_patched
+    """Render one selected tree as PNG bytes and return its display title."""
 
     clf = render_context["clf"]
     sample = render_context["sample"]
@@ -95,6 +99,7 @@ def render_tree_image(tree_index, render_context: dict) -> tuple[bytes, str]:
 
 
 def write_tree_image(tree_png: bytes, tree_name: str, temp_files_dir: str) -> tuple[str, str]:
+    """Write rendered tree bytes to a unique temporary PNG file."""
     image_name = f"tree_{tree_name}_{uuid4().hex}.png"
     image_path = os.path.abspath(os.path.join(temp_files_dir, image_name))
     with open(image_path, "wb") as image_file:
@@ -109,12 +114,7 @@ def _is_scalar_like(value: Any) -> bool:
 
 
 def _rgba_to_plotly(rgba: list[float]) -> str:
-    return "rgba({},{},{},{:.2f})".format(
-        int(rgba[0]),
-        int(rgba[1]),
-        int(rgba[2]),
-        float(rgba[3]) / 255.0,
-    )
+    return f"rgba({int(rgba[0])},{int(rgba[1])},{int(rgba[2])},{float(rgba[3]) / 255.0:.2f})"
 
 
 def _point_hover_text(point: InteractPoint, clustered: bool) -> str:
@@ -184,9 +184,10 @@ def _add_legend_trace(
 
 
 def build_plotly_figure(interactplot: InteractPlot) -> go.Figure:
-    import plotly.graph_objects as go
+    """Build the Plotly figure for one interactive scatter plot."""
+    plotly_go = import_module("plotly.graph_objects")
 
-    figure = go.Figure()
+    figure = plotly_go.Figure()
     candidate_points = [point for point in interactplot.points if point.shape != "star"]
     selected_points = [point for point in interactplot.points if point.shape == "star"]
 
@@ -197,7 +198,7 @@ def build_plotly_figure(interactplot: InteractPlot) -> go.Figure:
         SIZE_SIMPLE,
         "Candidate trees",
         interactplot.clustered,
-        go,
+        plotly_go,
     )
     _add_points_trace(
         figure,
@@ -206,10 +207,10 @@ def build_plotly_figure(interactplot: InteractPlot) -> go.Figure:
         SIZE_SELECTED,
         "Selected trees",
         interactplot.clustered,
-        go,
+        plotly_go,
     )
-    _add_legend_trace(figure, "circle", SIZE_SIMPLE, "Candidate trees", plotly_go=go)
-    _add_legend_trace(figure, "star", SIZE_SELECTED, "Selected trees", plotly_go=go)
+    _add_legend_trace(figure, "circle", SIZE_SIMPLE, "Candidate trees", plotly_go=plotly_go)
+    _add_legend_trace(figure, "star", SIZE_SELECTED, "Selected trees", plotly_go=plotly_go)
 
     figure.update_layout(
         title="Cluster colors" if interactplot.clustered else "Prediction colors",
@@ -225,6 +226,7 @@ def build_plotly_figure(interactplot: InteractPlot) -> go.Figure:
 
 
 def build_colorbar_paths(plots, temp_files_dir: str) -> list[str]:
+    """Return the expected temporary colorbar path for each plot."""
     return [
         os.path.abspath(os.path.join(temp_files_dir, f"temp_colourbar{i}.png"))
         for i in range(len(plots))
@@ -361,7 +363,8 @@ def plot_with_interface(
                     point.value = f"{float(loss_values[j]):.3f}"
                 else:
                     raise ValueError(
-                        f"Expected numeric prediction/loss values, got {type(loss_values[j])} instead"
+                        "Expected numeric prediction/loss values, got "
+                        f"{type(loss_values[j])} instead"
                     )
             points.append(point)
 
