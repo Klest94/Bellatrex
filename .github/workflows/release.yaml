@@ -194,17 +194,10 @@ jobs:
         with:
           ref: ${{ needs.details.outputs.tag_name }}
       - name: Check README links
-        uses: lycheeverse/lychee-action@v2
+        uses: JustinBeckwith/linkinator-action@v2
         with:
-          args: >-
-            --no-progress
-            --max-retries 3
-            --retry-wait-time 2
-            --accept 200..=299,403,429
-            README.md
-          fail: true
-          failIfEmpty: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          paths: README.md
+          config: linkinator.config.json
 
   # 5) Build source and wheel artifacts once, then reuse them for publish jobs.
   build_dist:

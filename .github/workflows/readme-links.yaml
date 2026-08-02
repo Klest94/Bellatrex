@@ -5,11 +5,13 @@ on:
     branches: [ dev, main ]
     paths:
       - README.md
+      - linkinator.config.json
       - .github/workflows/readme-links.yaml
   push:
     branches: [ dev, main ]
     paths:
       - README.md
+      - linkinator.config.json
       - .github/workflows/readme-links.yaml
   workflow_dispatch:
 
@@ -27,14 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Check README links
-        uses: lycheeverse/lychee-action@v2
+        uses: JustinBeckwith/linkinator-action@v2
         with:
-          args: >-
-            --no-progress
-            --max-retries 3
-            --retry-wait-time 2
-            --accept 200..=299,403,429
-            README.md
-          fail: true
-          failIfEmpty: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          paths: README.md
+          config: linkinator.config.json
