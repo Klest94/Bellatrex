@@ -45,17 +45,18 @@ ruff check --fix app tests tutorial.py
 Black owns formatting, Ruff owns linting and import sorting, and mypy owns type
 checking. Their shared configuration lives in `pyproject.toml`.
 
-The development extra also installs pre-commit. Enable the repository hooks once per
-clone, then run them against the whole tree whenever needed:
+The development extra also installs pre-commit. Enable the commit and push hooks once
+per clone, then run either stage against the whole tree whenever needed:
 
 ```bash
 pre-commit install
 pre-commit run --all-files
+pre-commit run --all-files --hook-stage pre-push
 ```
 
-The hooks run the same Black, Ruff, mypy, and non-GUI pytest checks listed above. They
-use the active development environment, which keeps their dependency versions aligned
-with `pyproject.toml`.
+Black, Ruff, and mypy run before each commit. The longer non-GUI pytest suite runs before
+each push. The hooks use the active development environment, which keeps their dependency
+versions aligned with `pyproject.toml`.
 
 ## Dead-code policy
 

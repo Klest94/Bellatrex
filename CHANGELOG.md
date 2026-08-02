@@ -24,6 +24,10 @@
 
 ### Changed
 
+- Made tagged releases reject versions that differ from `bellatrex.__version__` or
+  point to commits not contained in `main`.
+- Moved the non-GUI pytest hook from the commit stage to the push stage, while keeping
+  Black, Ruff, and mypy on every commit.
 - Standardized development and quick CI on Python 3.12, while retaining
 compatibility checks for 3.10-3.14, Python 3.10 syntax targets.
 - Added Ruff and mypy to development dependencies and quick CI.
