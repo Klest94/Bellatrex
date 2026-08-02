@@ -1,6 +1,7 @@
 # Editor related files
 __pycache__/
 .cache/
+.mypy_cache/
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json
