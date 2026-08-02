@@ -37,12 +37,14 @@ jobs:
       - name: Parse and validate tag
         id: release
         shell: bash
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
         run: |
           set -euo pipefail
 
           # Manual runs read the user-provided tag; push runs read the pushed tag.
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG_NAME="${{ github.event.inputs.tag }}"
+            TAG_NAME="$INPUT_TAG"
           else
             TAG_NAME="${GITHUB_REF_NAME}"
           fi
