@@ -197,10 +197,10 @@ def predict_helper(clf: object, X: object) -> np.ndarray:
 
     def squeeze_output(y: object) -> np.ndarray:
         """Ensure scalar for single sample, else return array."""
-        y = np.array(y)
-        if y.size == 1:
-            return y.squeeze()
-        return y
+        y_array = np.asarray(y)
+        if y_array.size == 1:
+            return y_array.squeeze()
+        return y_array
 
     if isinstance(clf, (RandomForestClassifier, DecisionTreeClassifier)):
         if clf.n_outputs_ == 1:
