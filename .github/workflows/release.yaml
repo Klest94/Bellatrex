@@ -163,9 +163,31 @@ jobs:
 
           echo "Stable version check passed: $NEW_VERSION > $latest_previous_version"
 
-  # 4) Build source and wheel artifacts once, then reuse them for publish jobs.
+  # 4) Reject releases whose README contains broken links.
+  readme_links:
+    needs: details
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.details.outputs.tag_name }}
+      - name: Check README links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress
+            --max-retries 3
+            --retry-wait-time 2
+            --accept 200..=299,403,429
+            README.md
+          fail: true
+          failIfEmpty: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # 5) Build source and wheel artifacts once, then reuse them for publish jobs.
   build_dist:
-    needs: [details, full_matrix_test, gui_test, check_release_version]
+    needs: [details, full_matrix_test, gui_test, check_release_version, readme_links]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -191,7 +213,7 @@ jobs:
           name: dist
           path: dist/
 
-  # 5a) Dev tags publish to TestPyPI only.
+  # 6a) Dev tags publish to TestPyPI only.
   publish_testpypi:
     name: Publish to TestPyPI
     needs: [details, build_dist]
@@ -213,7 +235,7 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
 
-  # 5b) Stable tags publish to production PyPI only.
+  # 6b) Stable tags publish to production PyPI only.
   publish_pypi:
     name: Publish to PyPI
     needs: [details, build_dist]
@@ -233,7 +255,7 @@ jobs:
       - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
 
-  # 6a) Dev tags create GitHub pre-releases.
+  # 7a) Dev tags create GitHub pre-releases.
   github_release_dev:
     name: Create GitHub Pre-release
     needs: [details, publish_testpypi]
@@ -258,7 +280,7 @@ jobs:
             --title "${{ needs.details.outputs.tag_name }}" \
             --prerelease
 
-  # 6b) Stable tags create normal GitHub releases.
+  # 7b) Stable tags create normal GitHub releases.
   github_release_stable:
     name: Create GitHub Release
     needs: [details, publish_pypi]

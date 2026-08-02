@@ -10,8 +10,6 @@ shift over time.
   available in the NiceGUI backend and `utilities.py`.
 - Stabilize the NiceGUI explorer, especially responsiveness and handling of multiple
   explanation windows.
-- Add pre-commit hooks for the Black, Ruff, mypy, and pytest checks now enforced in CI.
-- Add automated checks for README links before releases.
 
 
 ## Recently completed
@@ -25,6 +23,9 @@ shift over time.
   Python 3.10–3.14 release compatibility matrix.
 - Enforced Black, Ruff, and mypy in quick CI and on pull requests targeting `main`,
   and added a headless tutorial smoke test.
+- Added local pre-commit hooks for Black, Ruff, mypy, and the non-GUI pytest suite.
+- Added automated README link checks for documentation changes and as a required
+  release gate.
 
 
 ## Mid-term ideas (future releases)
@@ -100,4 +101,4 @@ The weight of the extra $q$ dimensions should be controlled by a new parameter.
 Open a PR directly, either for small fixes or for suggesting new features and roadmap items.
 
 ---
-_Last updated: 2026-07-13_
+_Last updated: 2026-08-02_

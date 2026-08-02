@@ -1,0 +1,36 @@
+repos:
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.5.1
+    hooks:
+      - id: black
+        name: black (check)
+        args: [--workers, "1", --check, app, tests, tutorial.py]
+        pass_filenames: false
+        files: ^(app/|tests/|tutorial\.py$|pyproject\.toml$)
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.22
+    hooks:
+      - id: ruff-check
+        name: ruff (check)
+        args: [app, tests, tutorial.py]
+        pass_filenames: false
+        files: ^(app/|tests/|tutorial\.py$|pyproject\.toml$)
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.3.0
+    hooks:
+      - id: mypy
+        name: mypy (check)
+        args: [app/bellatrex]
+        pass_filenames: false
+        files: ^(app/bellatrex/|pyproject\.toml$)
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest (non-GUI suite)
+        entry: python -m pytest -q -m "not gui"
+        language: system
+        pass_filenames: false
+        files: ^(app/|tests/|tutorial\.py$|pyproject\.toml$|pytest\.ini$)

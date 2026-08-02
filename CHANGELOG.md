@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added local pre-commit hooks that mirror the Black, Ruff, mypy, and non-GUI pytest
+  checks enforced in CI.
+- Added automated README link validation on documentation changes and before release
+  artifacts can be built and published.
+
 ### Fixed
 
 - Fixed parallel hyperparameter search so `n_jobs > 1` selects the best successful

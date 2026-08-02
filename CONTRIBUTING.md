@@ -45,6 +45,18 @@ ruff check --fix app tests tutorial.py
 Black owns formatting, Ruff owns linting and import sorting, and mypy owns type
 checking. Their shared configuration lives in `pyproject.toml`.
 
+The development extra also installs pre-commit. Enable the repository hooks once per
+clone, then run them against the whole tree whenever needed:
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```
+
+The hooks run the same Black, Ruff, mypy, and non-GUI pytest checks listed above. They
+use the active development environment, which keeps their dependency versions aligned
+with `pyproject.toml`.
+
 ## Dead-code policy
 
 Ruff blocks unused imports and unused local variables. Broader tools such as Vulture
