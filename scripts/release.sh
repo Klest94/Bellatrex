@@ -15,7 +15,9 @@ git switch main
 git pull --ff-only
 
 git add "$version_file"
-git commit -m "chore: bump version to ${package_version}"
+if ! git diff --cached --quiet; then
+  git commit -m "chore: bump version to ${package_version}"
+fi
 git push origin main
 
 git tag "$version"
