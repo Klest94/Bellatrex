@@ -3,11 +3,10 @@ import numpy as np
 # from tree_extraction import TreeExtraction
 # from TreeRepresentation import Jaccard_trees
 # from TreeRepresentation import Jaccard_rules
-from .tree_representation_utils import tree_splits_to_vector, rule_splits_to_vector
+from .tree_representation_utils import rule_splits_to_vector, tree_splits_to_vector
 
 
 class TreeDissimilarity:
-
     def __init__(
         self,
         clf,

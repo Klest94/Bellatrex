@@ -1,0 +1,35 @@
+name: README links
+
+on:
+  pull_request:
+    branches: [ dev, main ]
+    paths:
+      - README.md
+      - linkinator.config.json
+      - .github/workflows/readme-links.yaml
+  push:
+    branches: [ dev, main ]
+    paths:
+      - README.md
+      - linkinator.config.json
+      - .github/workflows/readme-links.yaml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: readme-links-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-readme-links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check README links
+        uses: JustinBeckwith/linkinator-action@v2
+        with:
+          paths: README.md
+          config: linkinator.config.json

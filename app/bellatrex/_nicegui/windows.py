@@ -6,13 +6,24 @@ from nicegui import app as ng_app
 from nicegui import ui
 
 from .cache import TreeCacheEntry, TreeRenderCache
-from .rendering import build_colorbar_paths, build_plotly_figure
-from .rendering import print_tree_rule, render_tree_image, write_tree_image
-from .runtime import build_main_window_payload, build_tree_window_payload
-from .runtime import cleanup_temp_artifacts, detect_native_window_support
-from .runtime import ensure_nicegui_screen_test_port
-from .runtime import find_free_port, prepare_session_temp_dir
-from .runtime import prepare_tree_window_temp_dir, run_subprocess_app
+from .rendering import (
+    build_colorbar_paths,
+    build_plotly_figure,
+    print_tree_rule,
+    render_tree_image,
+    write_tree_image,
+)
+from .runtime import (
+    build_main_window_payload,
+    build_tree_window_payload,
+    cleanup_temp_artifacts,
+    detect_native_window_support,
+    ensure_nicegui_screen_test_port,
+    find_free_port,
+    prepare_session_temp_dir,
+    prepare_tree_window_temp_dir,
+    run_subprocess_app,
+)
 
 MAIN_WINDOW_SIZE = (1440, 720)
 TREE_WINDOW_SIZE = (1440, 900)
@@ -32,7 +43,7 @@ TREE_WINDOW_HEAD_CSS = """
 """
 
 TREE_WINDOW_LAYOUT_STYLE = (
-    "width:100%; height:100%; gap:0.75rem; padding:1rem; " "box-sizing:border-box; overflow:hidden;"
+    "width:100%; height:100%; gap:0.75rem; padding:1rem; box-sizing:border-box; overflow:hidden;"
 )
 TREE_WINDOW_VIEWPORT_STYLE = (
     "flex:1 1 auto; min-height:0; min-width:0; width:100%; overflow-x:auto; "
@@ -114,10 +125,9 @@ def _normalize_tree_name(raw_tree_name: object) -> str | None:
     if isinstance(tree_name, dict):
         return None
 
-    try:
+    if isinstance(tree_name, (int, float)):
         return str(int(tree_name))
-    except (TypeError, ValueError):
-        return None
+    return None
 
 
 def _build_tree_cache_entry(

@@ -1,12 +1,17 @@
 import warnings
-import numpy as np
-from scipy import stats
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
 
-from .visualization_extra import _input_validation, compute_max_visual_len
-from .visualization_extra import define_relative_position, plot_arrow
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
+from scipy import stats
+
 from .utilities import frmt_pretty_print
+from .visualization_extra import (
+    _input_validation,
+    compute_max_visual_len,
+    define_relative_position,
+    plot_arrow,
+)
 
 
 def plot_rules(
@@ -101,7 +106,8 @@ def plot_rules(
         vmin=-0.5 * (dev_max - dev_min), vmax=0.5 * (dev_max - dev_min)
     )
 
-    get_color = lambda value, baseline: cmap(norm(value - baseline))
+    def get_color(value, baseline):
+        return cmap(norm(value - baseline))
 
     # Initialize the plot (rules and arrows only)
     plot_height_rulebased = 0.9 * max(max_rulelen_visual, 4)
@@ -146,7 +152,6 @@ def plot_rules(
     rule_axs[0].set_ylabel("Rule depth", fontsize=base_fontsize)
 
     for i, ax in enumerate(rule_axs):
-
         ax.invert_yaxis()
         # make the x axis include all partial prediction of the forest internal nodes
         # plus some margin, given by the few lines above. We choose to use
@@ -157,7 +162,7 @@ def plot_rules(
         ax.tick_params(axis="y", labelsize=base_fontsize)
         ax.grid(axis="x", zorder=-99, alpha=0.5)
         ax.set_title(
-            f"Selected rule {i+1}\n (weight = {100*weights[i]:.0f}%)", fontsize=base_fontsize
+            f"Selected rule {i + 1}\n (weight = {100 * weights[i]:.0f}%)", fontsize=base_fontsize
         )  # (weighted {weights[i]:.2f})")
 
     plt.subplots_adjust(wspace=0.12)
@@ -261,7 +266,6 @@ def plot_rules(
     if preds_distr is not None:
         # Training set distribution (as provided by preds_distr)
         for i, (bsl, pred, ax) in enumerate(zip(baselines, preds, dens_axs)):
-
             # avg_bsl = np.mean(bsl, axis=0)
             avg_bsl = np.mean(baselines[i])  # assumes single-class output
             assert isinstance(avg_bsl, (float, int))
@@ -286,7 +290,6 @@ def plot_rules(
 
         # Connect density plot axes to the rest of the plot
         for bsl, pred, ax, dax in zip(baselines, preds, rule_axs, dens_axs):
-
             avg_bsl = np.mean(bsl, axis=0)
             # Draw dotted vline from baseline to density
             ax.vlines(x=bsl, ymin=0, ymax=ax.get_ylim()[0], colors="gray", linestyles=":")
@@ -316,7 +319,6 @@ def plot_rules(
 
     # Do so by plotting distribution integrated in the preds_distr
     if other_preds is not None and conf_level is not None and dens_axs[0] is not None:
-
         final_preds = [pred[-1] for pred in other_preds] + [pred[-1] for pred in preds]
 
         # conf_level:  size of the confidence interval (0.9 = 90% of the tree predictions)
@@ -349,7 +351,6 @@ def plot_rules(
         ax.set_xlim(xlim)
 
     for j, pos in zip(range(n_cols), pos_list):
-
         # TODO: make class out of all this so that plot_arrow can inherit
         # attribtues from plot_rules and/or instances of BellatrexExplain()
         aaxs[-1, j] = plot_arrow(

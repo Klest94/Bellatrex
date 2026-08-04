@@ -1,12 +1,12 @@
-import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pytest
 from bellatrex.datasets import (
     load_binary_data,
-    load_regression_data,
-    load_survival_data,
     load_mlc_data,
     load_mtr_data,
+    load_regression_data,
+    load_survival_data,
 )
 
 # Parametrize the test cases: (load_function, expected_y_shape, return_xy)

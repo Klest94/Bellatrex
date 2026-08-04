@@ -1,11 +1,10 @@
-import pytest
 import numpy as np
 from bellatrex.utilities import (
-    get_auto_setup,
     concatenate_helper,
-    trail_pretty_digits,
-    string_to_pretty_digits,
     frmt_pretty_print,
+    get_auto_setup,
+    string_to_pretty_digits,
+    trail_pretty_digits,
 )
 
 

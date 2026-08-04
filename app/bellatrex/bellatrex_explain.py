@@ -1,25 +1,28 @@
 import os
 import warnings
-from joblib import Parallel, delayed
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-import matplotlib
-import matplotlib.pyplot as plt
-
+from joblib import Parallel, delayed
 from sklearn.exceptions import ConvergenceWarning, NotFittedError
 from sklearn.model_selection import ParameterGrid
 from sklearn.utils.validation import check_is_fitted
-
 from sksurv.ensemble import RandomSurvivalForest
 
-from .wrapper_class import EnsembleWrapper
-from .utilities import predict_helper, normalize_set_up, _infer_set_up
-from .visualization_extra import _input_validation
 from .tree_extraction import TreeExtraction
-from .utilities import plot_preselected_trees, rule_print_inline
-from .utilities import rule_to_file, frmt_pretty_print
-from .visualization import read_rules, plot_rules
+from .utilities import (
+    _infer_set_up,
+    frmt_pretty_print,
+    normalize_set_up,
+    plot_preselected_trees,
+    predict_helper,
+    rule_print_inline,
+    rule_to_file,
+)
+from .visualization import plot_rules, read_rules
+from .visualization_extra import _input_validation
+from .wrapper_class import EnsembleWrapper
 
 
 class BellatrexExplain:
@@ -105,12 +108,15 @@ class BellatrexExplain:
         self.proj_method = proj_method
         self.dissim_method = dissim_method
         self.feature_represent = feature_represent
-        self.p_grid = p_grid if p_grid is not None else dict(self._DEFAULT_P_GRID)
+        self.p_grid = p_grid if p_grid is not None else {}
         self.pre_select_trees = pre_select_trees
         self.fidelity_measure = fidelity_measure
         self.n_jobs = n_jobs
         self.verbose = verbose
         self.ys_oracle = ys_oracle
+
+        if not isinstance(n_jobs, int) or isinstance(n_jobs, bool) or n_jobs < 1:
+            raise ValueError("n_jobs must be a positive integer")
 
         # Initialised by explain(); guards plot/txt methods against being called early.
         self.sample = None
@@ -147,6 +153,14 @@ class BellatrexExplain:
             warnings.warn(
                 f"The hyperparameter list contains unexpected keys: {unexpected_keys}. Ignoring them."
             )
+
+        # A partial grid overrides only the named defaults. Copy the lists so
+        # callers and instances cannot mutate the class-level defaults.
+        merged_grid = {key: list(values) for key, values in self._DEFAULT_P_GRID.items()}
+        merged_grid.update(
+            {key: value for key, value in self.p_grid.items() if key in default_keys}
+        )
+        self.p_grid = merged_grid
 
         if "n_trees" not in self.p_grid.keys():
             self.n_trees = [0.6, 0.8, 1.0]  # set to default if not existing
@@ -352,7 +366,22 @@ class BellatrexExplain:
                     f"Got:      {actual}"
                 )
 
-        ys_oracle = self.ys_oracle.iloc[idx] if self.ys_oracle is not None else None
+        if self.ys_oracle is None:
+            ys_oracle = None
+        else:
+            try:
+                oracle_length = len(self.ys_oracle)
+            except TypeError as exc:
+                raise TypeError(
+                    "ys_oracle must be an array-like object with one value per row"
+                ) from exc
+            if oracle_length != len(X):
+                raise ValueError(
+                    f"ys_oracle has {oracle_length} rows, but the explained X has {len(X)} rows."
+                )
+            ys_oracle = (
+                self.ys_oracle.iloc[idx] if hasattr(self.ys_oracle, "iloc") else self.ys_oracle[idx]
+            )
 
         param_grid = {"n_trees": self.n_trees, "n_dims": self.n_dims, "n_clusters": self.n_clusters}
 
@@ -390,8 +419,8 @@ class BellatrexExplain:
                 try:
                     candidate = trees_extract.set_params(**params).main_fit()
                     perf = candidate.score(self.fidelity_measure, ys_oracle)
-                except ConvergenceWarning as e:
-                    warnings.warn(f"Reached ConvergenceWarning: {e}, skipping candidate: {params}")
+                except (ConvergenceWarning, ValueError) as e:
+                    warnings.warn(f"Skipping candidate {params}: {e}")
                     perf = -np.inf
 
                 if self.verbose >= 5:
@@ -403,10 +432,7 @@ class BellatrexExplain:
                     best_params = params
 
             if best_perf == -np.inf:
-                warnings.warn(
-                    "The GridSearch did not find any meaningful configuration,"
-                    " setting default parameters"
-                )
+                raise RuntimeError("No hyperparameter configuration completed successfully.")
         elif self.n_jobs > 1:
             # Thread-based parallelism; speed-up is dataset-dependent.
             def missing_params_dict(given_params, class_instance):
@@ -448,16 +474,14 @@ class BellatrexExplain:
 
             perfs, params_list = zip(*results)
 
-            if best_perf > -np.inf:
-                best_idx = np.argsort(perfs)[::-1][0]
-                best_perf = perfs[best_idx]
+            finite_scores = np.flatnonzero(np.isfinite(np.asarray(perfs, dtype=float)))
+            if finite_scores.size:
+                best_idx = finite_scores[np.argmax(np.asarray(perfs)[finite_scores])]
+                best_perf = float(perfs[best_idx])
                 best_params = params_list[best_idx]
 
             if best_perf == -np.inf:
-                warnings.warn(
-                    "The GridSearch did not find any functioning hyperparameter"
-                    " configuration, setting default configuration"
-                )
+                raise RuntimeError("No hyperparameter configuration completed successfully.")
 
         tuned_method = trees_extract.set_params(**best_params).main_fit()
         tuned_method.sample_score = tuned_method.score(self.fidelity_measure, ys_oracle)
@@ -566,7 +590,7 @@ class BellatrexExplain:
             from .gui_utils import check_and_import_gui_dependencies
 
             check_and_import_gui_dependencies()  # raises ImportError if nicegui is absent
-            from .nicegui_plots_code import plot_with_interface, launch_nicegui_window
+            from .nicegui_plots_code import launch_nicegui_window, plot_with_interface
 
             # A temporary directory is used to store, read and clear files created during
             #  the User interactions, a writable GUI temp dir (no __file__, no site-packages)
@@ -744,7 +768,7 @@ class BellatrexExplain:
             main_path = os.path.join(target_dir, filename)
             if not os.path.exists(main_path):
                 raise ValueError(
-                    f"No rules file found at '{main_path}'. " "Call create_rules_txt() first."
+                    f"No rules file found at '{main_path}'. Call create_rules_txt() first."
                 )
 
         with open(main_path, "r", encoding="utf-8") as f:

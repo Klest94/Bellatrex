@@ -6,21 +6,20 @@ It mirrors the Jupyter notebook, but is easier to run locally or in automated ch
 import os
 
 import bellatrex
-import matplotlib.pyplot as plt
 import joblib
-
-from sksurv.ensemble import RandomSurvivalForest
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.model_selection import train_test_split
-
+import matplotlib.pyplot as plt
 from bellatrex import BellatrexExplain, pack_trained_ensemble, predict_helper
 from bellatrex import datasets as bellatrex_datasets
 from bellatrex.utilities import get_auto_setup
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sksurv.ensemble import RandomSurvivalForest
 
 print("Bellatrex version:", bellatrex.__version__)
 print("Working directory:", os.getcwd())
 
 PLOT_GUI = True
+WRITE_RULES_TXT = True
 
 # Uncomment the dataset that matches the prediction task you want to explore:
 X, y = bellatrex_datasets.load_binary_data(return_X_y=True)  # binary classification
@@ -49,7 +48,7 @@ clf.fit(X_train, y_train)
 print("Model fitting complete.")
 
 
-# --- Step 2: Pack or load the trained model (optional) ----------------------
+# --- Step 2: Pack the trained model (optional) -------------------------------
 
 # The pre-trained model may be stored under app/bellatrex/datasets/model_example.pkl
 # To save your own model, uncomment and adjust the line below:
@@ -106,5 +105,6 @@ if SETUP.lower() in ["binary", "regression", "survival"]:
     plt.close(fig_visuals)
 
 # Save the text explanation and print it to the console.
-tuned_method.create_rules_txt()
-tuned_method.print_rules_txt()
+if WRITE_RULES_TXT:
+    tuned_method.create_rules_txt()
+    tuned_method.print_rules_txt()

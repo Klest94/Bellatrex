@@ -5,8 +5,9 @@ Created on Thu Feb 25 15:42:47 2021
 @author: u0135479
 """
 
-import numpy as np
 import warnings
+
+import numpy as np
 
 
 def add_emergency_noise(tree_matrix, noise_level=1e-5):

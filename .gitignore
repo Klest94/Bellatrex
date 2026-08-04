@@ -1,31 +1,68 @@
-# Editor related files
-__pycache__/
-.vscode
-.vs
-.pylintrc
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors and IDEs
+.idea/
+.vs/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+*~
+*.swp
+*.swo
 .spyderproject
 .spyproject
-.ipynb_checkpoints
-.idea/
-tmp*
-temp-pytest/*
 
-# Bellatrex specific stuff
-explanations-output/*
-app/bellatrex/explanations-output/*
-app/bellatrex/temp-files/*
-app/bellatrex/temp-plots/*
-temp-plots/*
+# Python bytecode and native extensions
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
 
+# Python tooling caches
+.cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.pyre/
+.pytype/
+.tox/
+.nox/
+.coverage*
+.coverage.*
+coverage.xml
+htmlcov/
 
-# Distribution / packaging
+# Jupyter
+.ipynb_checkpoints/
+
+# Virtual environments and local configuration
+.env
+.env.*
+!.env.example
+.venv/
+.venv-*/
+env/
+ENV/
+venv/
+env.bak/
+venv.bak/
 .Python
+
+# Distribution and packaging artifacts
 build/
 develop-eggs/
 dist/
 downloads/
-*.egg
-*.egg-info/
 eggs/
 .eggs/
 lib/
@@ -34,24 +71,23 @@ parts/
 sdist/
 var/
 wheels/
-*.whl
 share/python-wheels/
+*.egg
+*.egg-info/
+*.whl
 .installed.cfg
 MANIFEST
 .pypirc
 
-# coverage report output files
-.coverage*
-.coverage.*
-coverage.xml
-htmlcov/
+# Project-generated output and temporary files
+explanations-output/*
+app/bellatrex/explanations-output/*
+app/bellatrex/temp-files/*
+app/bellatrex/temp-plots/*
+temp-plots/*
+temp-pytest/*
+tmp*
 
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+# Repository-local configuration intentionally kept out of version control
+.pylintrc
 .github/instructions/*

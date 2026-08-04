@@ -1,16 +1,14 @@
 def check_and_import_gui_dependencies():
-    """Import the NiceGUI backend.
+    """Import and return the NiceGUI backend.
 
-    Returns the ``nicegui`` module.
-
-    Raises :class:`ImportError` when NiceGUI is not installed.
+    Raises:
+        ImportError: If NiceGUI is not installed.
     """
     try:
         import nicegui
-
-        return nicegui
-    except ImportError as e:
+    except ImportError as exc:
         raise ImportError(
-            "Optional dependency 'nicegui' is not installed. "
-            "Install it with: pip install bellatrex"
-        ) from e
+            "The NiceGUI dependency is not installed. Install it with: pip install bellatrex"
+        ) from exc
+
+    return nicegui

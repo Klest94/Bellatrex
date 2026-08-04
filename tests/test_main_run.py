@@ -4,30 +4,29 @@ Here we manually test most of the the pipeline, from data loading to model expla
 We cover most of the combinations of tasks, models, and settings.
 """
 
-import pytest
 import matplotlib
+import pytest
 
 matplotlib.use("Agg")  # Must be before importing pyplot
 
+import os
 from importlib import import_module
-import matplotlib.pyplot as plt  # Safe after backend is set
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sksurv.ensemble import RandomSurvivalForest
 
+import matplotlib.pyplot as plt  # Safe after backend is set
 from bellatrex import BellatrexExplain
-from bellatrex.utilities import get_auto_setup
 
 # from bellatrex.wrapper_class import pack_trained_ensemble
 from bellatrex.datasets import (
+    load_binary_data,
     load_mlc_data,
+    load_mtr_data,
     load_regression_data,
     load_survival_data,
-    load_binary_data,
-    load_mtr_data,
 )
-
-import os
+from bellatrex.utilities import get_auto_setup
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sksurv.ensemble import RandomSurvivalForest
 
 IS_CI = os.environ.get("CI") == "true"
 
@@ -127,7 +126,6 @@ def test_create_rules_txt(tmp_path):
             os.remove(out_file)
             # If there are more trees than clusters, check for extra rules file and remove it
             if enough_trees:
-
                 assert os.path.exists(out_file_extra), "Rules file was not created"
                 with open(out_file_extra, "r", encoding="utf8") as f:
                     content = f.read()

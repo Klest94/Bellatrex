@@ -1,0 +1,16 @@
+{
+  "concurrency": 32,
+  "markdown": true,
+  "redirects": "warn",
+  "retry": true,
+  "retryErrors": true,
+  "retryErrorsCount": 3,
+  "retryErrorsJitter": 2000,
+  "timeout": 20000,
+  "verbosity": "info",
+  "statusCodes": {
+    "403": "skip",
+    "418": "skip",
+    "429": "skip"
+  }
+}

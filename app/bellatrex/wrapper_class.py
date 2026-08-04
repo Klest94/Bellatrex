@@ -7,16 +7,15 @@ Created on Mon Oct  9 14:55:55 2023
 """
 
 import warnings
+
 import numpy as np
 import pandas as pd
 from scipy.sparse import csr_matrix, hstack
-
-from sklearn.utils.validation import check_is_fitted
-
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sksurv.tree import SurvivalTree
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.utils.validation import check_is_fitted
 from sksurv.ensemble import RandomSurvivalForest
+from sksurv.tree import SurvivalTree
 
 
 def pack_trained_ensemble(
@@ -100,7 +99,6 @@ class EnsembleWrapper:
     """
 
     class Estimator:
-
         class Tree_:
             def __init__(
                 self,
@@ -282,7 +280,6 @@ def tree_to_dict(clf_obj, idx, output_format, time_to_bin=None):
     tree_dict["output_format"] = output_format
 
     if isinstance(tree_obj, SurvivalTree):  # case SETUP=survival
-
         if tree_dict["unique_times_"] is None and output_format not in ["probability"]:
             raise KeyError("Missing 'unique_times_' in the tree ensemble.")
 
@@ -301,7 +298,6 @@ def tree_to_dict(clf_obj, idx, output_format, time_to_bin=None):
             ).reshape(-1, 1)
 
         elif output_format in ["survival", "time-to-event"]:
-
             tree_dict["values"] = np.trapz(
                 tree.value[:, :, 1], tree_obj.unique_times_, axis=1
             ).reshape(

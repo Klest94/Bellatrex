@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     # Static-only imports to give type checkers and language servers
     # accurate signatures without affecting runtime import cost.
     from .bellatrex_explain import BellatrexExplain  # pylint: disable=unused-import
-    from .wrapper_class import pack_trained_ensemble  # pylint: disable=unused-import
     from .utilities import predict_helper  # pylint: disable=unused-import
+    from .wrapper_class import pack_trained_ensemble  # pylint: disable=unused-import
 
 
 # Lazy imports keep import-time overhead low and avoid issues during editable installs.

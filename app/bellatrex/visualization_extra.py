@@ -1,7 +1,6 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import gaussian_kde
 from matplotlib.patches import FancyArrowPatch
+
 from .utilities import frmt_pretty_print
 
 
@@ -99,7 +98,6 @@ def plot_arrow(ax, pos, weight, pred_out, fontsize, tot_digits):
 
     # Draw segments (all except final arrow head)
     for i in range(len(points) - 2):
-
         posA = convert_to_data_coords(ax, points[i])
         posB = convert_to_data_coords(ax, points[i + 1])
 
@@ -152,7 +150,6 @@ def plot_arrow(ax, pos, weight, pred_out, fontsize, tot_digits):
 
 
 if __name__ == "__main__":
-
     # fig, ax = plt.subplots()
     # ax.set_xlim(0, 0.6)
     # ax = plot_arrow(ax, 'center', 0.2, 0.35, 1.5, fontsize=12)  # Example with 'weight' as 'w', 'pred_out' as 'p', and 'color' as 'blue'
@@ -161,6 +158,6 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     ax.set_xlim(0, 0.70)
     ax = plot_arrow(
-        ax, "c", 0.35, 0.65, fontsize=12
+        ax, "c", 0.35, 0.65, fontsize=12, tot_digits=4
     )  # Example with 'weight' as 'w', 'pred_out' as 'p', and 'color' as 'blue'
     plt.show()

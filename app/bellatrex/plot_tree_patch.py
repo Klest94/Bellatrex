@@ -13,14 +13,11 @@ It is based on the sklearn.tree.export module.
 #          Giuseppe Vettigli <vettigli@gmail.com>
 # License: BSD 3 clause
 import warnings
-
 from numbers import Integral
 
 import numpy as np
-
-from sklearn.tree import _criterion
-from sklearn.tree import _tree
-from sklearn.tree._reingold_tilford import buchheim, Tree
+from sklearn.tree import _criterion, _tree
+from sklearn.tree._reingold_tilford import Tree, buchheim
 from sksurv.tree import SurvivalTree
 
 # from sksurv.tree._criterion import LogrankCriterion
@@ -269,7 +266,8 @@ class _BaseTreeExporter(object):
 
         # Write impurity
         if self.impurity:
-            if isinstance(criterion, _criterion.FriedmanMSE):
+            friedman_mse_type = getattr(_criterion, "FriedmanMSE", None)
+            if friedman_mse_type is not None and isinstance(criterion, friedman_mse_type):
                 criterion = "friedman_mse"
             elif not isinstance(criterion, str):
                 criterion = "impurity"
@@ -383,13 +381,10 @@ class _MPLTreeExporter(_BaseTreeExporter):
         if isinstance(precision, Integral):
             if precision < 0:
                 raise ValueError(
-                    "'precision' should be greater or equal to 0."
-                    " Got {} instead.".format(precision)
+                    f"'precision' should be greater or equal to 0. Got {precision} instead."
                 )
         else:
-            raise ValueError(
-                "'precision' should be an integer. Got {}" " instead.".format(type(precision))
-            )
+            raise ValueError(f"'precision' should be an integer. Got {type(precision)} instead.")
 
         # The depth of each node for plotting with 'leaf' option
         self.ranks = {"leaves": []}

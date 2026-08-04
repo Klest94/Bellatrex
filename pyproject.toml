@@ -6,11 +6,11 @@ readme = "README.md"
 authors = [
     { name = "Klest Dedja", email = "klest.dev@gmail.com" },
 ]
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE.txt"]
 requires-python = ">=3.10, <4.0"
 keywords = ["explainable AI", "rule extraction", "random forest", "surrogate models"]
 classifiers = [
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -24,24 +24,24 @@ dependencies = [
     "matplotlib >=3.7",
     "scikit-learn >=1.2",
     "scikit-survival >=0.22",
-    "threadpoolctl >=3.1",
     "joblib >=1.3",
     "nicegui>=3.0",
     "pywebview>=5.1",
     "plotly>=6.0",
 ]
 
-# here optional dependecies for testing and development, include black
+# Dependencies for testing and development.
 [project.optional-dependencies]
 dev = [
     "ipykernel",
     "pytest",
     "pytest-cov",
     "pytest-xdist",
-    "twine",
-    "black >= 24",
+    "black == 26.5.1",
+    "ruff == 0.15.22",
+    "mypy == 2.3.0",
+    "pre-commit == 4.6.0",
     "nbstripout >= 0.6",
-    "vulture >= 2.7",
 ]
 
 # TODO: move this to normal dependencies (0.4.1), drop separation
@@ -51,7 +51,7 @@ dev = [
 
 [tool.black]
 line-length = 100
-target-version = ['py312']
+target-version = ['py310']
 skip-string-normalization = false
 exclude = '''
 /(
@@ -61,6 +61,7 @@ exclude = '''
   | \.git
   | \.mypy_cache
   | \.pytest_cache
+  | \.venv
   | \.tox
   | __pycache__
     | tmp[^/]*
@@ -69,18 +70,32 @@ exclude = '''
 
 [tool.ruff]
 line-length = 100
-target-version = "py39"
+target-version = "py310"
+exclude = [
+    ".venv",
+    ".venv-*",
+    "build",
+    "dist",
+    "__pycache__",
+]
+
+[tool.ruff.lint]
 # E/W: pycodestyle, F: pyflakes, I: isort
 select = ["E", "F", "W", "I"]
 # E501 (line-too-long) is handled by black; E741 (ambiguous var names) too noisy for now
 ignore = ["E501", "E741"]
-exclude = [".venv", "build", "dist", "__pycache__"]
 
 [tool.mypy]
-# Permissive baseline — tighten gradually as type hints are added
+# Gradual baseline: mypy is the single type-checking authority in the editor and CI.
+# Function bodies without annotations are intentionally deferred for now.
+python_version = "3.12"
+files = ["app/bellatrex"]
 ignore_missing_imports = true
 allow_untyped_defs = true
 allow_untyped_calls = true
+check_untyped_defs = false
+warn_redundant_casts = true
+warn_unused_configs = true
 warn_unused_ignores = true
 pretty = true
 
@@ -105,5 +120,5 @@ skip_covered = true
 
 
 [build-system]
-requires = ["setuptools >= 64"]
+requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"

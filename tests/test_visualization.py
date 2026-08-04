@@ -1,10 +1,9 @@
-import pytest
-import numpy as np
 import matplotlib
+import numpy as np
 
 matplotlib.use("Agg")  # for headless testing
 import matplotlib.pyplot as plt
-from bellatrex.visualization import plot_rules, parse, read_rules
+from bellatrex.visualization import parse, plot_rules, read_rules
 
 
 # --- plot_rules ---

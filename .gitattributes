@@ -1,1 +1,2 @@
 *.ipynb filter=nbstripout
+*.sh text eol=lf

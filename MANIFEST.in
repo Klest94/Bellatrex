@@ -1,6 +1,5 @@
 include README.md
-include LICENSE
-include app/bellatrex/version.txt
+include LICENSE.txt
 recursive-include app/bellatrex/datasets *.csv
 
 global-exclude __pycache__
