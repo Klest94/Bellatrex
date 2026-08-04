@@ -1,4 +1,4 @@
-# Contributing to Bellatrex
+# Contributing to Bellatrex (Draft)
 
 ## Development environment
 
