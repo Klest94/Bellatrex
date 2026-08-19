@@ -51,6 +51,7 @@ htmlcov/
 !.env.example
 .venv/
 .venv-*/
+.worktrees/
 env/
 ENV/
 venv/
