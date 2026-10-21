@@ -91,6 +91,29 @@ A step-by-step walkthrough covering every supported task is available in
 script version for local runs and automated checks is available as
 [`tutorial.py`](https://github.com/KlestDedja/Bellatrex/blob/main/tutorial.py).
 
+Both tutorials load a bundled dataset, train a forest on the training split, and
+explain a test sample. From the repository root:
+
+```bash
+python -m pip install .
+python tutorial.py --headless
+```
+
+Interactive runs omit `--headless`. To execute the notebook without opening
+windows, set `BELLATREX_TUTORIAL_HEADLESS=1` before starting its kernel.
+
+The **Tutorial smoke** CI job builds and installs the wheel, then executes both the
+script and the notebook in fresh temporary working directories, using a real
+Jupyter kernel for the notebook. Both runs must train a model and export an
+explanation. The existing pytest pipeline tests exercise Bellatrex directly;
+this job also checks the tutorial files and installed package. To run the same
+smoke check against a local package installation:
+
+```bash
+python -m pip install . nbclient ipykernel
+python scripts/smoke_tutorials.py
+```
+
 ## Support and Contributions
 
 Bellatrex is an open-source project that was initially developed from research funding by [Flanders AI](https://www.flandersai.be/en). Since the end of that funding period, the project has been maintained through volunteer work, but there is always exciting work ahead: new features, performance improvements, tests for robustness... if you find Bellatrex useful or believe in its goals, there are several meaningful ways you can help support its ongoing development:

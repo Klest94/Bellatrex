@@ -211,7 +211,7 @@ class BellatrexExplain:
         """
         This function determines whether the classifier (`self.clf`) has been fitted.
         It considers two scenarios:
-        - If `self.clf` is a dictionary, it is assumed to represent a pre-trained model.
+        - If `self.clf` is a dictionary, it is assumed to represent an already-fitted forest.
             In this case, the function wraps  the dictionary using the `EnsembleWrapper` class
             and returns `True`, indicating the model is fitted.
         - If `self.clf` is not a dictionary, the function performs a check using `check_is_fitted`
