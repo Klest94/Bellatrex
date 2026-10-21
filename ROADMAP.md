@@ -17,14 +17,11 @@ shift over time.
 - Released v0.4.0 with a NiceGUI frontend and Python 3.13 and 3.14 support.
 - Published `BellatrexExplain`, `pack_trained_ensemble`, and `predict_helper` as top-level
   imports.
-- Simplified `tutorial.ipynb` and `tutorial.py` to train a forest on bundled data
-  and explain it, with an explicit headless mode.
+- Updated and simplified `tutorial.ipynb` and `tutorial.py` for the 0.4.0 API.
 - Added consistent local and Codecov coverage reporting and repaired release-facing links.
 - Standardized quick CI and development tooling on Python 3.12 while retaining the
   Python 3.10–3.14 release compatibility matrix.
 - Enforced Black, Ruff, and mypy in quick CI and on pull requests targeting `main`.
-- Added a separate headless CI smoke run that builds and installs the wheel, then
-  executes both tutorial files outside the checkout and checks their rule exports.
 - Added local pre-commit hooks for Black, Ruff, mypy, and the non-GUI pytest suite.
 - Added automated README link checks for documentation changes and as a required
   release gate.

@@ -8,8 +8,6 @@
   checks enforced in CI.
 - Added automated README link validation on documentation changes and before release
   artifacts can be built and published.
-- Added a separate CI job that builds and installs the wheel, then executes both
-  tutorials headlessly in temporary working directories and checks their rule exports.
 
 ### Fixed
 
@@ -38,8 +36,6 @@ compatibility checks for 3.10-3.14, Python 3.10 syntax targets.
   transitive dependency declarations, and simplified test-job installations.
 - Modernized the package license metadata and removed the unreachable DearPyGUI
   implementation retained after the NiceGUI migration.
-- Removed the unused bundled model snapshots; tutorials train their own forests on
-  the bundled CSV datasets.
 - Made release version comparisons PEP 440-aware and based on PyPI's reported latest
   release rather than unordered JSON keys.
 
@@ -47,8 +43,7 @@ compatibility checks for 3.10-3.14, Python 3.10 syntax targets.
 
 - Aligned the roadmap, README, changelog, and script tutorial with the released 0.4.0 API
   and the simplified notebook workflow.
-- Made both tutorials use the model they train and removed the unused packing step.
-  Documented headless execution and the separate tutorial smoke workflow.
+- Made both tutorials use the model they train.
 
 ## [0.4.0] - 2026-06-08
 
