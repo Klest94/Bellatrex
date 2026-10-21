@@ -65,3 +65,21 @@ are not blocking checks because Python callbacks, decorators, public APIs, and
 dynamically registered GUI routes can look unused to static analysis. Use Vulture,
 coverage reports, and editor reference searches as manual review aids before a
 release or large refactor, and verify each candidate before deleting it.
+
+## Removing release tags
+
+From the repository root, remove a local tag with:
+
+```bash
+bash scripts/untag.sh v0.4.1
+```
+
+Remote tags are preserved by default. To also delete the tag from `origin`, opt in
+explicitly:
+
+```bash
+bash scripts/untag.sh --remote v0.4.1
+```
+
+Missing tags are harmless; an error querying or updating `origin` returns a nonzero
+exit status. This helper does not remove published packages or GitHub releases.
