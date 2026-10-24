@@ -45,8 +45,7 @@ compatibility checks for 3.10-3.14, Python 3.10 syntax targets.
 
 - Aligned the roadmap, README, changelog, and script tutorial with the released 0.4.0 API
   and the simplified notebook workflow.
-- Made both tutorials use the model they train instead of repository-only pickle paths,
-  and added a headless tutorial smoke test to quick CI.
+- Made both tutorials use the model they train.
 
 ## [0.4.0] - 2026-06-08
 

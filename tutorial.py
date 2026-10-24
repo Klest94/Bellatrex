@@ -6,9 +6,8 @@ It mirrors the Jupyter notebook, but is easier to run locally or in automated ch
 import os
 
 import bellatrex
-import joblib
 import matplotlib.pyplot as plt
-from bellatrex import BellatrexExplain, pack_trained_ensemble, predict_helper
+from bellatrex import BellatrexExplain, predict_helper
 from bellatrex import datasets as bellatrex_datasets
 from bellatrex.utilities import get_auto_setup
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
@@ -48,26 +47,16 @@ clf.fit(X_train, y_train)
 print("Model fitting complete.")
 
 
-# --- Step 2: Pack the trained model (optional) -------------------------------
+# Already have a fitted forest? Skip Step 1 and pass it as clf below.
+# Alternatively, replace Step 1 with loading your own saved model:
+# import joblib
+# clf = joblib.load("path/to/your_model.joblib")
+# Use matching feature columns and preprocessing for X_train and X_test.
+# Load only trusted files, using the Python/package versions used for training;
+# loading across scikit-learn versions is unsupported.
+# Bellatrex reuses a fitted clf by default (force_refit=False).
 
-# The pre-trained model may be stored under app/bellatrex/datasets/model_example.pkl
-# To save your own model, uncomment and adjust the line below:
-# joblib.dump(clf, os.path.join('app', 'bellatrex', 'datasets', 'model_example.pkl'))
-
-model_path = os.path.join("app", "bellatrex", "datasets", f"{SETUP}_pretrained.pkl")
-if not os.path.exists(model_path):
-    raise FileNotFoundError(f"No pre-trained model found at {model_path}")
-
-clf = joblib.load(model_path)
-print(f"Loaded pre-trained model from {model_path}")
-
-# pack_trained_ensemble converts the fitted forest into a memory-efficient dictionary.
-# Pass clf_packed (or the original clf) to BellatrexExplain – both are supported.
-clf_packed = pack_trained_ensemble(clf)
-print(f"Packed {clf_packed['ensemble_class']} with {len(clf_packed['trees'])} trees.")
-
-
-# --- Step 3: Fit Bellatrex and explain predictions --------------------------
+# --- Step 2: Fit Bellatrex and explain predictions --------------------------
 
 Btrex_fitted = BellatrexExplain(
     clf,
