@@ -26,13 +26,13 @@ dependencies = [
     "scikit-survival >=0.22",
     "joblib >=1.3",
     "nicegui>=3.0",
-    "pywebview>=5.1",
     "plotly>=6.0",
 ]
 
 # Dependencies for testing and development.
 [project.optional-dependencies]
 dev = [
+    "nicegui >= 3.12.1",
     "ipykernel",
     "pytest",
     "pytest-cov",

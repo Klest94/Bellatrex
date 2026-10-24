@@ -1,1 +1,1 @@
-"""Private NiceGUI helpers for the Bellatrex interactive explorer."""
+"""Plot data, drawing functions, and the Bellatrex browser page."""

@@ -179,7 +179,7 @@ def concatenate_helper(y_pred: np.ndarray, y_local_pred: np.ndarray, axis: int =
     return np.concatenate((y_pred, y_local_pred), axis=axis)
 
 
-def predict_helper(clf: object, X: object) -> np.ndarray:
+def predict_helper(clf, X) -> np.ndarray:
     """
     Return consistent predictions across classifiers, regressors, and wrapped models.
 
@@ -195,7 +195,7 @@ def predict_helper(clf: object, X: object) -> np.ndarray:
     - Or a float if X has shape (1, n_features)
     """
 
-    def squeeze_output(y: object) -> np.ndarray:
+    def squeeze_output(y) -> np.ndarray:
         """Ensure scalar for single sample, else return array."""
         y_array = np.asarray(y)
         if y_array.size == 1:

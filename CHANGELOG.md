@@ -19,7 +19,6 @@
   `n_jobs` values early.
 - Restored tree-plot compatibility with newer scikit-learn releases where the private
   `FriedmanMSE` criterion class is no longer exposed.
-- Restored the NiceGUI dependency check used by the interactive plotting path.
 - Corrected stale license and version entries in `MANIFEST.in`.
 
 ### Changed
@@ -36,6 +35,9 @@ compatibility checks for 3.10-3.14, Python 3.10 syntax targets.
   transitive dependency declarations, and simplified test-job installations.
 - Modernized the package license metadata and removed the unreachable DearPyGUI
   implementation retained after the NiceGUI migration.
+- Rebuilt the interactive explorer as a browser-only NiceGUI page: Plotly now owns the
+  colorbars and selected trees open in an in-page dialog. Removed pywebview, subprocess
+  payloads, temporary GUI images, and native-window-specific tests.
 - Made release version comparisons PEP 440-aware and based on PyPI's reported latest
   release rather than unordered JSON keys.
 
