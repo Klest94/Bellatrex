@@ -1,20 +1,8 @@
 """Framework-independent data passed to the NiceGUI explorer."""
 
 from dataclasses import dataclass, field
-from typing import Any, TypedDict
 
 import numpy as np
-from numpy.typing import NDArray
-
-
-class RenderContext(TypedDict, total=False):
-    """Values needed to render a tree selected in the explorer."""
-
-    clf: Any
-    sample: Any
-    sample_index: object
-    max_depth: int | None
-    feature_names: list[str] | None
 
 
 @dataclass(slots=True)
@@ -22,7 +10,7 @@ class InteractPoint:
     """One tree represented in an interactive scatter plot."""
 
     name: str
-    pos: NDArray[np.float64]
+    pos: np.ndarray
     color_value: float
     selected: bool = False
     cluster_memb: str | None = None

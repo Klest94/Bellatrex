@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import io
-from collections.abc import Sequence
-from typing import Any, Protocol
 
 import numpy as np
 import plotly.graph_objects as go
@@ -12,12 +10,11 @@ from matplotlib import colormaps
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.colors import Colormap, LinearSegmentedColormap, to_hex
 from matplotlib.figure import Figure
-from numpy.typing import ArrayLike
 from sklearn.decomposition import PCA
 
 from ..plot_tree_patch import plot_tree_patched
 from ..utilities import colormap_from_str, custom_axes_limit, rule_print_inline
-from .models import InteractPlot, InteractPoint, RenderContext
+from .models import InteractPlot, InteractPoint
 
 SIZE_CANDIDATE = 9.0
 SIZE_SELECTED = 15.0
@@ -25,38 +22,20 @@ PLOT_WIDTH = 620
 PLOT_HEIGHT = 500
 
 
-class _PlotData(Protocol):
-    proj_data: ArrayLike
-    index: Sequence[int]
-    pred: ArrayLike
-    loss: ArrayLike
-    rf_pred: ArrayLike
-    set_up: str
-
-
-class _ClusterModel(Protocol):
-    labels_: ArrayLike
-
-
-class _InputMethod(Protocol):
-    final_trees_idx: Sequence[int]
-    fidelity_measure: str
-
-
-def _feature_names_for_clf(clf: Any) -> list[str]:
+def _feature_names_for_clf(clf) -> list[str]:
     if hasattr(clf, "feature_names_in_") and clf.feature_names_in_ is not None:
         return [str(name) for name in clf.feature_names_in_]
     return [f"X{i}" for i in range(clf.n_features_in_)]
 
 
-def print_tree_rule(tree_index: str, render_context: RenderContext) -> None:
+def print_tree_rule(tree_index: str, render_context: dict) -> None:
     """Print the selected rule to preserve the existing console feedback."""
     clf = render_context["clf"]
     sample = render_context["sample"]
     rule_print_inline(clf[int(tree_index)], sample)
 
 
-def render_tree_image(tree_index: str, render_context: RenderContext) -> tuple[bytes, str]:
+def render_tree_image(tree_index: str, render_context: dict) -> tuple[bytes, str]:
     """Render one selected tree as PNG bytes and return its display title."""
     clf = render_context["clf"]
     sample_index = render_context.get("sample_index")
@@ -202,9 +181,9 @@ def build_plotly_figure(interactplot: InteractPlot) -> go.Figure:
 
 
 def prepare_interactive_plots(
-    plot_data_bunch: _PlotData,
-    kmeans: _ClusterModel,
-    input_method: _InputMethod,
+    plot_data_bunch,
+    kmeans,
+    input_method,
     colormap: str | LinearSegmentedColormap | None = None,
     clusterplots: tuple[bool, ...] = (True, False),
 ) -> list[InteractPlot]:

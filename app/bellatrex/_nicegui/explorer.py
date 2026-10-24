@@ -3,16 +3,12 @@
 from __future__ import annotations
 
 import base64
-from collections.abc import Callable
 
 from nicegui import ui
 from nicegui.events import GenericEventArguments
 
-from .models import InteractPlot, RenderContext
+from .models import InteractPlot
 from .rendering import build_plotly_figure, print_tree_rule, render_tree_image
-
-TreeRenderer = Callable[[str, RenderContext], tuple[bytes, str]]
-RulePrinter = Callable[[str, RenderContext], None]
 
 _TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
 
@@ -36,10 +32,10 @@ def _image_data_url(image_png: bytes) -> str:
 
 def build_explorer_page(
     plots: list[InteractPlot],
-    render_context: RenderContext | None = None,
+    render_context: dict | None = None,
     *,
-    tree_renderer: TreeRenderer = render_tree_image,
-    rule_printer: RulePrinter = print_tree_rule,
+    tree_renderer=render_tree_image,
+    rule_printer=print_tree_rule,
 ) -> None:
     """Compose the explorer page; kept separate from ``ui.run`` for easy tests."""
     tree_cache: dict[str, tuple[str, str]] = {}
@@ -137,7 +133,7 @@ def build_explorer_page(
 
 def run_explorer(
     plots: list[InteractPlot],
-    render_context: RenderContext | None = None,
+    render_context: dict | None = None,
     *,
     port: int | None = None,
     show: bool = True,

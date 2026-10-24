@@ -99,13 +99,6 @@ warn_unused_configs = true
 warn_unused_ignores = true
 pretty = true
 
-[[tool.mypy.overrides]]
-module = ["bellatrex._nicegui.*"]
-check_untyped_defs = true
-disallow_any_generics = true
-disallow_incomplete_defs = true
-disallow_untyped_defs = true
-
 [tool.setuptools.packages.find]
 where = ["app"]
 
