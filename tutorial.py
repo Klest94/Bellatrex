@@ -47,6 +47,15 @@ clf.fit(X_train, y_train)
 print("Model fitting complete.")
 
 
+# Already have a fitted forest? Skip Step 1 and pass it as clf below.
+# Alternatively, replace Step 1 with loading your own saved model:
+# import joblib
+# clf = joblib.load("path/to/your_model.joblib")
+# Use matching feature columns and preprocessing for X_train and X_test.
+# Load only trusted files, using the Python/package versions used for training;
+# loading across scikit-learn versions is unsupported.
+# Bellatrex reuses a fitted clf by default (force_refit=False).
+
 # --- Step 2: Fit Bellatrex and explain predictions --------------------------
 
 Btrex_fitted = BellatrexExplain(
