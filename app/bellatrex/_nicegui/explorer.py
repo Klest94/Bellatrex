@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import base64
 from collections.abc import Callable
-from numbers import Integral, Real
 
 from nicegui import ui
 from nicegui.events import GenericEventArguments
@@ -23,23 +22,12 @@ def extract_click_selection(args: object) -> tuple[str | None, str]:
     if not isinstance(args, dict):
         return None, "Select a tree point to inspect it"
 
-    raw_tree_name = args.get("tree_name")
-    if isinstance(raw_tree_name, (list, tuple)):
-        raw_tree_name = raw_tree_name[0] if raw_tree_name else None
-
-    tree_name: str | None = None
-    if isinstance(raw_tree_name, Integral):
-        tree_name = str(int(raw_tree_name))
-    elif isinstance(raw_tree_name, Real) and float(raw_tree_name).is_integer():
-        tree_name = str(int(float(raw_tree_name)))
-    elif isinstance(raw_tree_name, str):
-        try:
-            tree_name = str(int(raw_tree_name.strip()))
-        except ValueError:
-            pass
+    tree_name = args.get("tree_name")
+    if not isinstance(tree_name, str) or not tree_name.isdecimal():
+        tree_name = None
 
     text = str(args.get("text") or "Select a tree point to inspect it")
-    return tree_name if tree_name is not None and int(tree_name) >= 0 else None, text
+    return tree_name, text
 
 
 def _image_data_url(image_png: bytes) -> str:

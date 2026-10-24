@@ -591,7 +591,7 @@ class BellatrexExplain:
                     "the pack_trained_ensemble function on it."
                 )
 
-            from ._nicegui import prepare_interactive_plots, run_explorer
+            from ._nicegui.rendering import prepare_interactive_plots
 
             plots = prepare_interactive_plots(
                 plot_data_bunch,
@@ -601,6 +601,8 @@ class BellatrexExplain:
             )
 
             if show:
+                from ._nicegui.explorer import run_explorer
+
                 run_explorer(
                     plots,
                     render_context={

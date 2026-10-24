@@ -158,9 +158,10 @@ def test_render_tree_image_uses_a_headless_canvas():
     ("args", "expected"),
     [
         ({"tree_name": "41", "text": "Tree 41"}, ("41", "Tree 41")),
-        ({"tree_name": [7]}, ("7", "Select a tree point to inspect it")),
+        ({"tree_name": [7]}, (None, "Select a tree point to inspect it")),
         ({"tree_name": "not-a-tree"}, (None, "Select a tree point to inspect it")),
         (None, (None, "Select a tree point to inspect it")),
+        ({"tree_name": 7}, (None, "Select a tree point to inspect it")),
         ({"tree_name": -1}, (None, "Select a tree point to inspect it")),
         ({"tree_name": 1.5}, (None, "Select a tree point to inspect it")),
         ({"tree_name": float("inf")}, (None, "Select a tree point to inspect it")),

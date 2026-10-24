@@ -205,13 +205,14 @@ def test_plot_overview_gui_show_false_does_not_run_server(monkeypatch):
     explainer.clf = object()
 
     module_root = BellatrexExplain.__module__.rsplit(".", 1)[0]
-    nicegui = import_module(f"{module_root}._nicegui")
+    rendering = import_module(f"{module_root}._nicegui.rendering")
+    explorer = import_module(f"{module_root}._nicegui.explorer")
 
     def fail_launch(*args, **kwargs):
         raise AssertionError("show=False should not run the NiceGUI server")
 
-    monkeypatch.setattr(nicegui, "prepare_interactive_plots", lambda *a, **k: ["plot"])
-    monkeypatch.setattr(nicegui, "run_explorer", fail_launch)
+    monkeypatch.setattr(rendering, "prepare_interactive_plots", lambda *a, **k: ["plot"])
+    monkeypatch.setattr(explorer, "run_explorer", fail_launch)
 
     fig, axes = explainer.plot_overview(show=False, plot_gui=True)
 

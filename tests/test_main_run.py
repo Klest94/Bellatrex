@@ -156,7 +156,7 @@ def test_create_rules_txt(tmp_path):
 def test_gui_workflow(monkeypatch):
 
     pytest.importorskip("nicegui", reason="Install Bellatrex dependencies to run GUI tests")
-    nicegui = import_module("bellatrex._nicegui")
+    explorer = import_module("bellatrex._nicegui.explorer")
     launch_calls = []
 
     def fake_run_explorer(plots, render_context=None):
@@ -168,7 +168,7 @@ def test_gui_workflow(monkeypatch):
         )
 
     monkeypatch.setattr(
-        nicegui,
+        explorer,
         "run_explorer",
         fake_run_explorer,
     )
