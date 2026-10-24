@@ -80,9 +80,18 @@ If this step fails and you don't find a solution immediately, please [open an is
 
 ## Interactive GUI mode
 
-The NiceGUI-based interactive frontend is installed by default and can be opened with
-`plot_overview(plot_gui=True)`. It is still experimental: responsiveness can be slow, and
-opening several sample explanations at once is not yet fully supported.
+The NiceGUI-based interactive frontend is installed by default and can be opened in your
+browser with `plot_overview(plot_gui=True)`. Plotly renders the overview and its colorbars;
+clicking a point opens the corresponding tree in an in-page dialog.
+
+GUI mode returns `(None, plots)` rather than a Matplotlib placeholder figure. Use
+`show=False` to prepare plots without starting a server. With `show=True`, the local
+server runs in the current process and blocks until interrupted with Ctrl+C; closing
+its browser tab does not stop it. The former `temp_gui_dir` parameter has been removed,
+since GUI images stay in memory. Use a standalone Python script to launch the explorer.
+
+Tree images are rendered on demand and cached per page. A first render can still pause
+the server; background rendering and concurrent explanation sessions remain future work.
 
 ## Quickstart
 

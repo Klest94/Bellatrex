@@ -6,15 +6,16 @@ shift over time.
 
 ## Immediate goals (v0.4.x patches)
 
+- Improve first-click rendering latency and support concurrent explanation sessions.
 - Increase line coverage from roughly 67% to above 80%. The largest gains are still
-  available in the NiceGUI backend and `utilities.py`.
-- Stabilize the NiceGUI explorer, especially responsiveness and handling of multiple
-  explanation windows.
+  available in `utilities.py`.
 
 
 ## Recently completed
 
 - Released v0.4.0 with a NiceGUI frontend and Python 3.13 and 3.14 support.
+- Simplified the NiceGUI explorer to a browser page with Plotly colorbars and an in-page
+  tree dialog, removing native-window and subprocess handling.
 - Published `BellatrexExplain`, `pack_trained_ensemble`, and `predict_helper` as top-level
   imports.
 - Updated and simplified `tutorial.ipynb` and `tutorial.py` for the 0.4.0 API.

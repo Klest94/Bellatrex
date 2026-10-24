@@ -184,8 +184,8 @@ def test_bellatrex_explain_plot_overview(mock_clf, mock_data):
 
 
 @pytest.mark.gui
-def test_plot_overview_gui_show_false_does_not_launch_window(monkeypatch, tmp_path):
-    pytest.importorskip("nicegui", reason="Install Bellatrex[gui] to run GUI tests")
+def test_plot_overview_gui_show_false_does_not_run_server(monkeypatch):
+    pytest.importorskip("nicegui", reason="Install Bellatrex dependencies to run GUI tests")
 
     class FakeTunedMethod:
         final_trees_idx = []
@@ -205,21 +205,17 @@ def test_plot_overview_gui_show_false_does_not_launch_window(monkeypatch, tmp_pa
     explainer.clf = object()
 
     module_root = BellatrexExplain.__module__.rsplit(".", 1)[0]
-    nicegui_plots_code = import_module(f"{module_root}.nicegui_plots_code")
+    nicegui = import_module(f"{module_root}._nicegui")
 
     def fail_launch(*args, **kwargs):
-        raise AssertionError("show=False should not launch a NiceGUI window")
+        raise AssertionError("show=False should not run the NiceGUI server")
 
-    monkeypatch.setattr(nicegui_plots_code, "plot_with_interface", lambda *a, **k: ["plot"])
-    monkeypatch.setattr(nicegui_plots_code, "launch_nicegui_window", fail_launch)
+    monkeypatch.setattr(nicegui, "prepare_interactive_plots", lambda *a, **k: ["plot"])
+    monkeypatch.setattr(nicegui, "run_explorer", fail_launch)
 
-    fig, axes = explainer.plot_overview(
-        show=False,
-        plot_gui=True,
-        temp_gui_dir=str(tmp_path),
-    )
+    fig, axes = explainer.plot_overview(show=False, plot_gui=True)
 
-    assert fig is not None
+    assert fig is None
     assert axes == ["plot"]
 
 

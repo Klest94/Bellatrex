@@ -12,7 +12,6 @@ matplotlib.use("Agg")  # Must be before importing pyplot
 import os
 from importlib import import_module
 
-import matplotlib.pyplot as plt  # Safe after backend is set
 from bellatrex import BellatrexExplain
 
 # from bellatrex.wrapper_class import pack_trained_ensemble
@@ -156,27 +155,25 @@ def test_create_rules_txt(tmp_path):
 @pytest.mark.gui
 def test_gui_workflow(monkeypatch):
 
-    pytest.importorskip("nicegui", reason="Install Bellatrex[gui] to run GUI tests")
-    nicegui_plots_code = import_module("bellatrex.nicegui_plots_code")
+    pytest.importorskip("nicegui", reason="Install Bellatrex dependencies to run GUI tests")
+    nicegui = import_module("bellatrex._nicegui")
     launch_calls = []
 
-    def fake_launch_nicegui_window(plots, temp_files_dir, blocking=None, render_context=None):
+    def fake_run_explorer(plots, render_context=None):
         launch_calls.append(
             {
                 "plots": plots,
-                "temp_files_dir": temp_files_dir,
-                "blocking": blocking,
                 "render_context": render_context,
             }
         )
 
     monkeypatch.setattr(
-        nicegui_plots_code,
-        "launch_nicegui_window",
-        fake_launch_nicegui_window,
+        nicegui,
+        "run_explorer",
+        fake_run_explorer,
     )
-    pytest.importorskip("nicegui", reason="Install Bellatrex[gui] to run GUI tests")
-    pytest.importorskip("plotly", reason="Install Bellatrex[gui] to run GUI tests")
+    pytest.importorskip("nicegui", reason="Install Bellatrex dependencies to run GUI tests")
+    pytest.importorskip("plotly", reason="Install Bellatrex dependencies to run GUI tests")
 
     for setup, loader in DATA_LOADERS.items():
         btrex_fitted, X_test = prepare_fitted_bellatrex(setup, loader)
@@ -184,11 +181,11 @@ def test_gui_workflow(monkeypatch):
         for i in range(MAX_TEST_SAMPLES):
             tuned_method = btrex_fitted.explain(X_test, i)
 
-            # Exercise the show=True GUI path without opening real OS windows in tests.
+            # Exercise the show=True path without starting a real NiceGUI server.
             fig, obj = tuned_method.plot_overview(show=True, plot_gui=True)
+            assert fig is None
             assert obj is not None
             assert launch_calls[-1]["plots"] is obj
             assert launch_calls[-1]["render_context"]["clf"] is tuned_method.tuned_method.clf
-            plt.close(fig)
 
     assert len(launch_calls) == len(DATA_LOADERS) * MAX_TEST_SAMPLES

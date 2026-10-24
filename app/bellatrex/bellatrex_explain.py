@@ -527,9 +527,13 @@ class BellatrexExplain:
 
         return self  # enables method chaining
 
-    def plot_overview(
-        self, show=True, plot_max_depth=None, colormap=None, plot_gui=False, temp_gui_dir=None
-    ):
+    def plot_overview(self, show=True, plot_max_depth=None, colormap=None, plot_gui=False):
+        """Return the overview figure/axes, or ``(None, plots)`` in browser GUI mode.
+
+        With ``plot_gui=True``, ``show=False`` prepares plot data without starting a
+        server. Otherwise the local NiceGUI server blocks until interrupted; closing
+        its browser tab does not stop it. ``plot_max_depth`` limits selected tree images.
+        """
 
         if self.sample is None or self.tuned_method is None:
             raise ValueError(
@@ -587,36 +591,18 @@ class BellatrexExplain:
                     "the pack_trained_ensemble function on it."
                 )
 
-            from .gui_utils import check_and_import_gui_dependencies
+            from ._nicegui import prepare_interactive_plots, run_explorer
 
-            check_and_import_gui_dependencies()  # raises ImportError if nicegui is absent
-            from .nicegui_plots_code import launch_nicegui_window, plot_with_interface
-
-            # A temporary directory is used to store, read and clear files created during
-            #  the User interactions, a writable GUI temp dir (no __file__, no site-packages)
-            base_dir = self._pick_base_dir(out_dir_name="temp-plots")
-            temp_files_dir = (
-                temp_gui_dir
-                if (isinstance(temp_gui_dir, str) and temp_gui_dir.strip())
-                else base_dir
-            )
-            os.makedirs(temp_files_dir, exist_ok=True)
-
-            # Call plot_with_interface and retrieve the interactive plots
-            plots = plot_with_interface(
+            plots = prepare_interactive_plots(
                 plot_data_bunch,
                 plot_kmeans,
                 tuned_method,
-                temp_files_dir=temp_files_dir,
-                max_depth=plot_max_depth,
                 colormap=colormap,
             )
 
             if show:
-                # Launch the NiceGUI window (blocking until the window is closed).
-                launch_nicegui_window(
+                run_explorer(
                     plots,
-                    temp_files_dir,
                     render_context={
                         "clf": tuned_method.clf,
                         "sample": tuned_method.sample,
@@ -625,9 +611,7 @@ class BellatrexExplain:
                     },
                 )
 
-            # Create a placeholder figure and axes to match the expected output format
-            fig = plt.figure(figsize=(8, 6))
-            axes = plots  # Use the returned plots as axes-like objects
+            axes = plots
 
         return fig, axes  # plt.gcf()
 

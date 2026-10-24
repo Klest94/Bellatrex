@@ -85,11 +85,12 @@ print(f"\n--- Explaining sample i={SAMPLE_INDEX} ---")
 tuned_method = Btrex_fitted.explain(X_test, SAMPLE_INDEX)
 
 # Plot 1: cluster overview (shows pre-selected trees and selected rules).
-# In GUI mode this opens one NiceGUI explorer for SAMPLE_INDEX.
+# In GUI mode this opens one NiceGUI browser page for SAMPLE_INDEX.
 fig_overview, _ = tuned_method.plot_overview(plot_gui=PLOT_GUI, show=PLOT_GUI)
 if not PLOT_GUI:
     plt.show(block=True)
-plt.close(fig_overview)
+if fig_overview is not None:
+    plt.close(fig_overview)
 
 # Plot 2: rule-level detail (single-output tasks only).
 # plot_visuals is always a plain matplotlib figure; show it regardless of GUI mode.

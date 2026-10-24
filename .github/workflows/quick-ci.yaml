@@ -61,9 +61,6 @@ jobs:
     needs: linting-checks
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      BELLATREX_GUI_AUTO_CLOSE_SECONDS: "2"
-      BELLATREX_GUI_SUBPROCESS_TIMEOUT_SECONDS: "60"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
