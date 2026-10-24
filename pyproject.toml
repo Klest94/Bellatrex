@@ -32,6 +32,7 @@ dependencies = [
 # Dependencies for testing and development.
 [project.optional-dependencies]
 dev = [
+    "nicegui >= 3.12.1",
     "ipykernel",
     "pytest",
     "pytest-cov",

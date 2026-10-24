@@ -1,8 +1,14 @@
 import numpy as np
 import pandas as pd
 import pytest
-from nicegui.testing.user_simulation import user_simulation
 from sklearn.ensemble import RandomForestClassifier
+
+try:
+    from nicegui.testing.user_simulation import user_simulation
+except ModuleNotFoundError as exc:
+    if exc.name != "nicegui.testing.user_simulation":
+        raise
+    user_simulation = None
 
 try:
     from app.bellatrex._nicegui import explorer
@@ -24,6 +30,10 @@ except ImportError:
     )
 
 pytestmark = pytest.mark.gui
+requires_simulator = pytest.mark.skipif(
+    user_simulation is None,
+    reason="Install Bellatrex[dev] for NiceGUI user simulation tests",
+)
 
 
 class DummyKMeans:
@@ -161,6 +171,7 @@ def test_extract_click_selection(args, expected):
     assert extract_click_selection(args) == expected
 
 
+@requires_simulator
 @pytest.mark.anyio
 async def test_explorer_page_opens_and_reuses_an_in_page_tree_dialog():
     render_calls: list[str] = []
@@ -224,6 +235,7 @@ def test_prepare_interactive_plots_rejects_mismatched_projection_rows():
         prepare_interactive_plots(data, DummyKMeans([0, 1, 0, 1]), DummyInputMethod())
 
 
+@requires_simulator
 @pytest.mark.anyio
 async def test_explorer_ignores_unknown_tree_and_recovers_after_render_failure():
     render_calls = []
@@ -255,6 +267,7 @@ async def test_explorer_ignores_unknown_tree_and_recovers_after_render_failure()
     assert render_calls == ["1", "1"]
 
 
+@requires_simulator
 @pytest.mark.anyio
 async def test_explorer_cache_is_scoped_to_each_page():
     render_calls = []
